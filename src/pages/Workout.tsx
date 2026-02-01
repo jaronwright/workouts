@@ -2,11 +2,17 @@ import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
-import { ExerciseCard, RestTimer } from '@/components/workout'
+import { CollapsibleSection, ExerciseCard, RestTimer } from '@/components/workout'
 import { useWorkoutDay } from '@/hooks/useWorkoutPlan'
 import { useStartWorkout, useCompleteWorkout, useLogSet, useSessionSets } from '@/hooks/useWorkoutSession'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { useAuthStore } from '@/stores/authStore'
+
+// Check if a section is a warm-up section (should be collapsible, default closed)
+function isWarmupSection(sectionName: string): boolean {
+  const name = sectionName.toLowerCase()
+  return name.includes('warm') || name.includes('warmup') || name.includes('warm-up')
+}
 
 export function WorkoutPage() {
   const { dayId } = useParams<{ dayId: string }>()
@@ -82,7 +88,7 @@ export function WorkoutPage() {
       <AppShell title="Loading..." showBack>
         <div className="p-4 space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-32 bg-gray-200 animate-pulse rounded-lg" />
+            <div key={i} className="h-32 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
           ))}
         </div>
       </AppShell>
@@ -92,7 +98,7 @@ export function WorkoutPage() {
   if (!workoutDay) {
     return (
       <AppShell title="Not Found" showBack>
-        <div className="p-4 text-center text-gray-500">
+        <div className="p-4 text-center text-[var(--color-text-muted)]">
           Workout day not found
         </div>
       </AppShell>
@@ -105,10 +111,10 @@ export function WorkoutPage() {
         <div className="p-4 space-y-6">
           <Card>
             <CardContent className="py-6 text-center">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              <h2 className="text-xl font-semibold text-[var(--color-text)] mb-2">
                 {workoutDay.name}
               </h2>
-              <p className="text-gray-500 mb-6">
+              <p className="text-[var(--color-text-muted)] mb-6">
                 {workoutDay.sections.reduce(
                   (acc, s) => acc + s.exercises.length,
                   0
@@ -122,58 +128,115 @@ export function WorkoutPage() {
           </Card>
 
           <div className="space-y-4">
-            {workoutDay.sections.map((section) => (
-              <div key={section.id}>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 px-1">
-                  {section.name}
-                  {section.duration_minutes && ` (${section.duration_minutes} min)`}
-                </h3>
-                <div className="space-y-2">
-                  {section.exercises.map((exercise) => (
-                    <Card key={exercise.id}>
-                      <CardContent className="py-3">
-                        <p className="font-medium text-gray-900">{exercise.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {exercise.sets && `${exercise.sets} sets`}
-                          {exercise.reps_min && ` × ${exercise.reps_min}${exercise.reps_max && exercise.reps_max !== exercise.reps_min ? `-${exercise.reps_max}` : ''} ${exercise.reps_unit || 'reps'}`}
-                          {exercise.is_per_side && '/side'}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
+            {workoutDay.sections.map((section) => {
+              const isWarmup = isWarmupSection(section.name)
+              const subtitle = section.duration_minutes ? `${section.duration_minutes} min` : undefined
+
+              if (isWarmup) {
+                return (
+                  <CollapsibleSection
+                    key={section.id}
+                    title={section.name}
+                    subtitle={subtitle}
+                    defaultOpen={false}
+                  >
+                    {section.exercises.map((exercise) => (
+                      <Card key={exercise.id}>
+                        <CardContent className="py-3">
+                          <p className="font-medium text-[var(--color-text)]">{exercise.name}</p>
+                          <p className="text-sm text-[var(--color-text-muted)]">
+                            {exercise.sets && `${exercise.sets} sets`}
+                            {exercise.reps_min && ` × ${exercise.reps_min}${exercise.reps_max && exercise.reps_max !== exercise.reps_min ? `-${exercise.reps_max}` : ''} ${exercise.reps_unit || 'reps'}`}
+                            {exercise.is_per_side && '/side'}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </CollapsibleSection>
+                )
+              }
+
+              return (
+                <div key={section.id}>
+                  <h3 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-2 px-1">
+                    {section.name}
+                    {subtitle && ` (${subtitle})`}
+                  </h3>
+                  <div className="space-y-2">
+                    {section.exercises.map((exercise) => (
+                      <Card key={exercise.id}>
+                        <CardContent className="py-3">
+                          <p className="font-medium text-[var(--color-text)]">{exercise.name}</p>
+                          <p className="text-sm text-[var(--color-text-muted)]">
+                            {exercise.sets && `${exercise.sets} sets`}
+                            {exercise.reps_min && ` × ${exercise.reps_min}${exercise.reps_max && exercise.reps_max !== exercise.reps_min ? `-${exercise.reps_max}` : ''} ${exercise.reps_unit || 'reps'}`}
+                            {exercise.is_per_side && '/side'}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </AppShell>
     )
   }
 
+  // Active workout session view
   return (
     <AppShell title={workoutDay.name} showBack hideNav>
       <div className="p-4 space-y-4">
         <RestTimer />
 
-        {workoutDay.sections.map((section) => (
-          <div key={section.id}>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 px-1">
-              {section.name}
-            </h3>
-            <div className="space-y-3">
-              {section.exercises.map((exercise) => (
-                <ExerciseCard
-                  key={exercise.id}
-                  exercise={exercise}
-                  completedSets={completedSets.get(exercise.id) || []}
-                  onExerciseComplete={(reps, weight) =>
-                    handleExerciseComplete(exercise.id, reps, weight)
-                  }
-                />
-              ))}
+        {workoutDay.sections.map((section) => {
+          const isWarmup = isWarmupSection(section.name)
+          const subtitle = section.duration_minutes ? `${section.duration_minutes} min` : undefined
+
+          if (isWarmup) {
+            return (
+              <CollapsibleSection
+                key={section.id}
+                title={section.name}
+                subtitle={subtitle}
+                defaultOpen={false}
+              >
+                {section.exercises.map((exercise) => (
+                  <ExerciseCard
+                    key={exercise.id}
+                    exercise={exercise}
+                    completedSets={completedSets.get(exercise.id) || []}
+                    onExerciseComplete={(reps, weight) =>
+                      handleExerciseComplete(exercise.id, reps, weight)
+                    }
+                  />
+                ))}
+              </CollapsibleSection>
+            )
+          }
+
+          return (
+            <div key={section.id}>
+              <h3 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-3 px-1">
+                {section.name}
+              </h3>
+              <div className="space-y-3">
+                {section.exercises.map((exercise) => (
+                  <ExerciseCard
+                    key={exercise.id}
+                    exercise={exercise}
+                    completedSets={completedSets.get(exercise.id) || []}
+                    onExerciseComplete={(reps, weight) =>
+                      handleExerciseComplete(exercise.id, reps, weight)
+                    }
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
 
         <div className="pt-4 pb-8">
           <Button

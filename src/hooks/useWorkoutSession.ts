@@ -64,11 +64,11 @@ export function useLastWeight(planExerciseId: string | undefined) {
   })
 }
 
-export function useSessionExerciseDetails(sessionId: string | undefined, workoutDayId: string | undefined) {
+export function useSessionExerciseDetails(sessionId: string | undefined) {
   return useQuery({
     queryKey: ['session-exercise-details', sessionId],
-    queryFn: () => getSessionExerciseDetails(sessionId!, workoutDayId!),
-    enabled: !!sessionId && !!workoutDayId
+    queryFn: () => getSessionExerciseDetails(sessionId!),
+    enabled: !!sessionId
   })
 }
 

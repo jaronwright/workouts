@@ -30,6 +30,16 @@ export async function getWorkoutDays(planId: string): Promise<WorkoutDay[]> {
   return data as WorkoutDay[]
 }
 
+export async function getAllWorkoutDays(): Promise<WorkoutDay[]> {
+  const { data, error } = await supabase
+    .from('workout_days')
+    .select('*')
+    .order('day_number')
+
+  if (error) throw error
+  return data as WorkoutDay[]
+}
+
 export async function getWorkoutDayWithSections(dayId: string): Promise<WorkoutDayWithSections | null> {
   const { data: day, error: dayError } = await supabase
     .from('workout_days')
@@ -255,7 +265,7 @@ export async function getSessionWithSets(sessionId: string): Promise<SessionWith
   }
 }
 
-export async function getSessionExerciseDetails(sessionId: string, _workoutDayId: string) {
+export async function getSessionExerciseDetails(sessionId: string) {
   // Get all exercise sets for this session
   const { data: sets, error: setsError } = await supabase
     .from('exercise_sets')

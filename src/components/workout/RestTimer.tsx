@@ -49,14 +49,14 @@ export function RestTimer() {
 
   if (!isRestTimerActive && restTimerSeconds === 0) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <p className="text-sm font-medium text-gray-700 mb-3">Timer</p>
+      <div className="bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)] p-4">
+        <p className="text-sm font-medium text-[var(--color-text)] mb-3">Timer</p>
         <div className="flex flex-wrap gap-2">
           {PRESET_TIMES.map(({ seconds, label }) => (
             <button
               key={seconds}
               onClick={() => startRestTimer(seconds)}
-              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700"
+              className="px-3 py-2 bg-[var(--color-surface-hover)] hover:bg-[var(--color-primary)]/20 rounded-lg text-sm font-medium text-[var(--color-text)] transition-colors"
             >
               {label}
             </button>
@@ -69,7 +69,7 @@ export function RestTimer() {
   const progress = restTimerSeconds > 0 ? (restTimerSeconds / 300) * 100 : 0
 
   return (
-    <div className="bg-blue-600 rounded-lg p-4 text-white">
+    <div className="bg-[var(--color-primary)] rounded-lg p-4 text-[var(--color-text-inverse)]">
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-medium opacity-90">Timer</p>
         <button

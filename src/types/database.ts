@@ -116,6 +116,7 @@ export interface Database {
           started_at: string
           completed_at: string | null
           notes: string | null
+          is_public: boolean
         }
         Insert: {
           id?: string
@@ -124,6 +125,7 @@ export interface Database {
           started_at?: string
           completed_at?: string | null
           notes?: string | null
+          is_public?: boolean
         }
         Update: {
           id?: string
@@ -132,6 +134,7 @@ export interface Database {
           started_at?: string
           completed_at?: string | null
           notes?: string | null
+          is_public?: boolean
         }
       }
       exercise_sets: {
@@ -163,6 +166,166 @@ export interface Database {
           reps_completed?: number | null
           weight_used?: number | null
           completed?: boolean
+          created_at?: string
+        }
+      }
+      user_profiles: {
+        Row: {
+          id: string
+          display_name: string | null
+          gender: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say' | null
+          current_cycle_day: number
+          last_workout_date: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          display_name?: string | null
+          gender?: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say' | null
+          current_cycle_day?: number
+          last_workout_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          display_name?: string | null
+          gender?: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say' | null
+          current_cycle_day?: number
+          last_workout_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      workout_templates: {
+        Row: {
+          id: string
+          name: string
+          type: 'weights' | 'cardio' | 'mobility'
+          category: string | null
+          description: string | null
+          icon: string | null
+          duration_minutes: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          type: 'weights' | 'cardio' | 'mobility'
+          category?: string | null
+          description?: string | null
+          icon?: string | null
+          duration_minutes?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          type?: 'weights' | 'cardio' | 'mobility'
+          category?: string | null
+          description?: string | null
+          icon?: string | null
+          duration_minutes?: number | null
+          created_at?: string
+        }
+      }
+      user_schedules: {
+        Row: {
+          id: string
+          user_id: string
+          day_number: number
+          template_id: string | null
+          workout_day_id: string | null
+          is_rest_day: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          day_number: number
+          template_id?: string | null
+          workout_day_id?: string | null
+          is_rest_day?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          day_number?: number
+          template_id?: string | null
+          workout_day_id?: string | null
+          is_rest_day?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      personal_records: {
+        Row: {
+          id: string
+          user_id: string
+          plan_exercise_id: string
+          weight: number
+          reps: number | null
+          achieved_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          plan_exercise_id: string
+          weight: number
+          reps?: number | null
+          achieved_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          plan_exercise_id?: string
+          weight?: number
+          reps?: number | null
+          achieved_at?: string
+        }
+      }
+      template_workout_sessions: {
+        Row: {
+          id: string
+          user_id: string
+          template_id: string | null
+          started_at: string
+          completed_at: string | null
+          duration_minutes: number | null
+          distance_value: number | null
+          distance_unit: 'miles' | 'km' | 'yards' | 'meters' | null
+          notes: string | null
+          is_public: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          template_id?: string | null
+          started_at?: string
+          completed_at?: string | null
+          duration_minutes?: number | null
+          distance_value?: number | null
+          distance_unit?: 'miles' | 'km' | 'yards' | 'meters' | null
+          notes?: string | null
+          is_public?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          template_id?: string | null
+          started_at?: string
+          completed_at?: string | null
+          duration_minutes?: number | null
+          distance_value?: number | null
+          distance_unit?: 'miles' | 'km' | 'yards' | 'meters' | null
+          notes?: string | null
+          is_public?: boolean
           created_at?: string
         }
       }

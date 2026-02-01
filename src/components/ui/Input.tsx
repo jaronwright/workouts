@@ -12,7 +12,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={id}
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-semibold text-[var(--color-text)] mb-2"
           >
             {label}
           </label>
@@ -21,16 +21,27 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={id}
           className={`
-            w-full px-3 py-2 border rounded-lg text-gray-900
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-            disabled:bg-gray-100 disabled:cursor-not-allowed
-            ${error ? 'border-red-500' : 'border-gray-300'}
+            w-full px-4 py-3
+            bg-[var(--color-surface)]
+            border-2 rounded-[var(--radius-lg)]
+            text-[var(--color-text)] text-base
+            placeholder:text-[var(--color-text-muted)]
+            focus:outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10
+            disabled:opacity-50 disabled:cursor-not-allowed
+            transition-all duration-200
+            ${error
+              ? 'border-[var(--color-danger)] focus:border-[var(--color-danger)] focus:ring-[var(--color-danger)]/10'
+              : 'border-[var(--color-border)]'
+            }
             ${className}
           `}
           {...props}
         />
         {error && (
-          <p className="mt-1 text-sm text-red-600">{error}</p>
+          <p className="mt-2 text-sm font-medium text-[var(--color-danger)] flex items-center gap-1.5">
+            <span className="w-1 h-1 rounded-full bg-[var(--color-danger)]" />
+            {error}
+          </p>
         )}
       </div>
     )

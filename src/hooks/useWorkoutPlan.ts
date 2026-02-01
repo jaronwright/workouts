@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getWorkoutPlans, getWorkoutDays, getWorkoutDayWithSections } from '@/services/workoutService'
+import { getWorkoutPlans, getWorkoutDays, getWorkoutDayWithSections, getAllWorkoutDays } from '@/services/workoutService'
 
 export function useWorkoutPlans() {
   return useQuery({
@@ -8,11 +8,10 @@ export function useWorkoutPlans() {
   })
 }
 
-export function useWorkoutDays(planId: string | undefined) {
+export function useWorkoutDays(planId?: string) {
   return useQuery({
-    queryKey: ['workout-days', planId],
-    queryFn: () => getWorkoutDays(planId!),
-    enabled: !!planId
+    queryKey: ['workout-days', planId || 'all'],
+    queryFn: () => planId ? getWorkoutDays(planId) : getAllWorkoutDays(),
   })
 }
 

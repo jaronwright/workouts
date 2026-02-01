@@ -1,3 +1,6 @@
+export { CollapsibleSection } from './CollapsibleSection'
 export { ExerciseCard } from './ExerciseCard'
+export { PRCelebration } from './PRCelebration'
+export { ProgressionBadge } from './ProgressionBadge'
 export { RestTimer } from './RestTimer'
 export { WorkoutDayCard } from './WorkoutDayCard'

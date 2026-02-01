@@ -18,9 +18,9 @@ export function AppShell({
   hideNav = false
 }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--color-background)]">
       <Header title={title} showBack={showBack} showLogout={showLogout} />
-      <main className={`${hideNav ? 'pb-4' : 'pb-20'}`}>
+      <main className={`${hideNav ? 'pb-6' : 'pb-28'}`}>
         {children}
       </main>
       {!hideNav && <BottomNav />}

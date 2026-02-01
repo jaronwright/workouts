@@ -1,20 +1,261 @@
 @import "tailwindcss";
 
-/* Custom CSS Variables */
+/* Modern 2026 Color Palette - Optimized */
 :root {
-  --color-primary: #3b82f6;
-  --color-primary-dark: #2563eb;
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
+  /* Primary colors */
+  --color-primary: #3B82F6;
+  --color-primary-hover: #2563EB;
+  --color-accent: #F97316;
+  --color-accent-hover: #EA580C;
+
+  /* Workout type colors */
+  --color-cardio: #EC4899;
+  --color-weights: #8B5CF6;
+  --color-mobility: #10B981;
+
+  /* Background and surface */
+  --color-background: #FAFAF9;
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-hover: #F5F5F4;
+  --color-border: rgba(0, 0, 0, 0.06);
+  --color-border-strong: rgba(0, 0, 0, 0.1);
+
+  /* Glass effect - simplified */
+  --glass-bg: rgba(255, 255, 255, 0.92);
+  --glass-border: rgba(0, 0, 0, 0.04);
+
+  /* Text colors */
+  --color-text: #1C1917;
+  --color-text-secondary: #44403C;
+  --color-text-muted: #78716C;
+  --color-text-inverse: #FFFFFF;
+
+  /* Status colors */
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+
+  /* Shadows - simplified for performance */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* Timing - snappy and responsive */
+  --transition-instant: 50ms ease-out;
+  --transition-fast: 100ms ease-out;
+  --transition-base: 150ms ease-out;
+  --transition-slow: 200ms ease-out;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+}
+
+/* Dark mode */
+.dark {
+  --color-primary: #60A5FA;
+  --color-primary-hover: #3B82F6;
+  --color-accent: #FB923C;
+  --color-accent-hover: #F97316;
+
+  --color-cardio: #F472B6;
+  --color-weights: #A78BFA;
+  --color-mobility: #34D399;
+
+  --color-background: #0C0A09;
+  --color-surface: #1C1917;
+  --color-surface-elevated: #252524;
+  --color-surface-hover: #292524;
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-strong: rgba(255, 255, 255, 0.1);
+
+  --glass-bg: rgba(28, 25, 23, 0.92);
+  --glass-border: rgba(255, 255, 255, 0.06);
+
+  --color-text: #FAFAF9;
+  --color-text-secondary: #D6D3D1;
+  --color-text-muted: #A8A29E;
+  --color-text-inverse: #0C0A09;
+
+  --color-success: #4ADE80;
+  --color-warning: #FBBF24;
+  --color-danger: #F87171;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 /* Base styles */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+/* GPU-accelerated animations only */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes checkmark {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 100ms ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 150ms ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 150ms ease-out;
+}
+
+.animate-pop-in {
+  animation: popIn 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-checkmark {
+  animation: checkmark 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Skeleton loading - simplified */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-hover) 0%,
+    var(--color-surface) 50%,
+    var(--color-surface-hover) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+/* Glass effect - optimized (no blur on mobile for performance) */
+.glass {
+  background: var(--glass-bg);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+@media (min-width: 768px) {
+  .glass {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #8B5CF6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Instant feedback on touch */
+.pressable {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.pressable:active {
+  transform: scale(0.97);
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Optimized scrolling */
+.scroll-smooth {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* PWA-specific styles */
@@ -24,5 +265,16 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

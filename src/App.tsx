@@ -2,7 +2,19 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
-import { AuthPage, HomePage, WorkoutPage, HistoryPage, SessionDetailPage } from '@/pages'
+import { useTheme } from '@/hooks/useTheme'
+import {
+  AuthPage,
+  HomePage,
+  WorkoutPage,
+  HistoryPage,
+  SessionDetailPage,
+  ProfilePage,
+  SchedulePage,
+  CardioWorkoutPage,
+  MobilityWorkoutPage,
+  RestDayPage
+} from '@/pages'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,8 +30,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!initialized || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)]">
+        <div className="w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -36,8 +48,8 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
   if (!initialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)]">
+        <div className="w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -51,9 +63,11 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   const { initialize } = useAuth()
+  const { initializeTheme } = useTheme()
 
   useEffect(() => {
     initialize()
+    initializeTheme()
   }, [])
 
   return (
@@ -99,6 +113,22 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/cardio/:templateId"
+        element={
+          <ProtectedRoute>
+            <CardioWorkoutPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mobility/:templateId"
+        element={
+          <ProtectedRoute>
+            <MobilityWorkoutPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/history"
         element={
           <ProtectedRoute>
@@ -111,6 +141,30 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SessionDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/schedule"
+        element={
+          <ProtectedRoute>
+            <SchedulePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/rest-day"
+        element={
+          <ProtectedRoute>
+            <RestDayPage />
           </ProtectedRoute>
         }
       />

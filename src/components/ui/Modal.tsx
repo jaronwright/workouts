@@ -31,24 +31,45 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-black/50 animate-fade-in"
         onClick={onClose}
       />
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-auto">
+
+      {/* Modal */}
+      <div className="
+        relative w-full sm:max-w-md sm:mx-4
+        max-h-[85vh] overflow-auto
+        bg-[var(--color-surface)]
+        rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)]
+        shadow-xl
+        animate-slide-up
+      ">
+        {/* Handle for mobile */}
+        <div className="sm:hidden flex justify-center pt-2 pb-1">
+          <div className="w-10 h-1 rounded-full bg-[var(--color-border-strong)]" />
+        </div>
+
         {title && (
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+          <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--color-border)]">
+            <h2 className="text-lg font-bold text-[var(--color-text)]">{title}</h2>
             <button
               onClick={onClose}
-              className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+              className="
+                w-8 h-8 flex items-center justify-center
+                text-[var(--color-text-muted)]
+                rounded-full
+                active:scale-90 active:bg-[var(--color-surface-hover)]
+                transition-transform duration-100
+              "
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         )}
-        <div className="p-4">
+        <div className="p-5">
           {children}
         </div>
       </div>

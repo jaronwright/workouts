@@ -1,26 +1,51 @@
 import { type ButtonHTMLAttributes, forwardRef } from 'react'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'gradient'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'primary', size = 'md', loading, disabled, children, ...props }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+    const baseStyles = `
+      relative inline-flex items-center justify-center font-semibold
+      rounded-[var(--radius-lg)]
+      transition-transform duration-100 ease-out
+      focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-primary)]
+      disabled:opacity-50 disabled:cursor-not-allowed
+      active:scale-[0.97]
+      select-none
+    `
 
     const variants = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-      secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500',
-      danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-      ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500'
+      primary: `
+        bg-[var(--color-primary)] text-[var(--color-text-inverse)]
+        shadow-sm
+      `,
+      secondary: `
+        bg-[var(--color-surface)] text-[var(--color-text)]
+        border border-[var(--color-border-strong)]
+        shadow-xs
+      `,
+      danger: `
+        bg-[var(--color-danger)] text-[var(--color-text-inverse)]
+        shadow-sm
+      `,
+      ghost: `
+        bg-transparent text-[var(--color-text)]
+      `,
+      gradient: `
+        bg-gradient-to-r from-[var(--color-primary)] to-[#8B5CF6]
+        text-[var(--color-text-inverse)]
+        shadow-sm
+      `
     }
 
     const sizes = {
-      sm: 'px-3 py-1.5 text-sm',
-      md: 'px-4 py-2 text-base',
-      lg: 'px-6 py-3 text-lg'
+      sm: 'px-4 py-2 text-sm gap-1.5',
+      md: 'px-5 py-2.5 text-base gap-2',
+      lg: 'px-7 py-3.5 text-lg gap-2.5'
     }
 
     return (
