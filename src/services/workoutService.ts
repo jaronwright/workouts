@@ -255,7 +255,7 @@ export async function getSessionWithSets(sessionId: string): Promise<SessionWith
   }
 }
 
-export async function getSessionExerciseDetails(sessionId: string, workoutDayId: string) {
+export async function getSessionExerciseDetails(sessionId: string, _workoutDayId: string) {
   // Get all exercise sets for this session
   const { data: sets, error: setsError } = await supabase
     .from('exercise_sets')
