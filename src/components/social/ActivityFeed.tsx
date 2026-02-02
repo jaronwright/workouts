@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui'
 import { useSocialFeed } from '@/hooks/useSocial'
-import { formatRelativeTime } from '@/utils/formatters'
+import { formatRelativeTime, normalizeWorkoutName } from '@/utils/formatters'
 import { Dumbbell, Heart, Activity, User } from 'lucide-react'
 import type { SocialWorkout } from '@/services/socialService'
 
@@ -17,7 +17,7 @@ function getWorkoutIcon(workout: SocialWorkout) {
 
 function getWorkoutName(workout: SocialWorkout): string {
   if (workout.workout_day?.name) {
-    return workout.workout_day.name
+    return normalizeWorkoutName(workout.workout_day.name)
   }
   if (workout.template?.name) {
     return workout.template.name

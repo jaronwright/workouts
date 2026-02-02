@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout'
 import { Card, CardContent } from '@/components/ui'
-import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
+import { formatDate, formatTime, formatDuration, normalizeWorkoutName } from '@/utils/formatters'
 import { Calendar, Clock, CheckCircle, Dumbbell } from 'lucide-react'
 import { supabase } from '@/services/supabase'
 
@@ -124,7 +124,7 @@ export function SessionDetailPage() {
 
   return (
     <AppShell
-      title={data?.session.workout_day?.name || 'Workout Details'}
+      title={normalizeWorkoutName(data?.session.workout_day?.name || 'Workout Details')}
       showBack
     >
       <div className="p-4 space-y-4">

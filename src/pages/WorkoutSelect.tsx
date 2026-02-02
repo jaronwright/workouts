@@ -8,6 +8,7 @@ import { useActiveSession } from '@/hooks/useWorkoutSession'
 import { useWorkoutTemplatesByType, useTodaysWorkout } from '@/hooks/useSchedule'
 import { useProfile } from '@/hooks/useProfile'
 import type { WorkoutTemplate } from '@/services/scheduleService'
+import { normalizeWorkoutName } from '@/utils/formatters'
 import {
   getCardioStyle,
   getMobilityStyle,
@@ -184,7 +185,7 @@ export function WorkoutSelectPage() {
                     In Progress
                   </p>
                   <p className="text-base font-bold text-[var(--color-text)]">
-                    {activeSession.workout_day?.name || 'Workout'}
+                    {normalizeWorkoutName(activeSession.workout_day?.name || 'Workout')}
                   </p>
                 </div>
                 <Button size="sm" onClick={handleContinueWorkout}>

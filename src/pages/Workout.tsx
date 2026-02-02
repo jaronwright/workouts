@@ -7,6 +7,7 @@ import { useWorkoutDay } from '@/hooks/useWorkoutPlan'
 import { useStartWorkout, useCompleteWorkout, useLogSet, useSessionSets } from '@/hooks/useWorkoutSession'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { useAuthStore } from '@/stores/authStore'
+import { normalizeWorkoutName } from '@/utils/formatters'
 
 // Check if a section is a warm-up section (should be collapsible, default closed)
 function isWarmupSection(sectionName: string): boolean {
@@ -107,12 +108,12 @@ export function WorkoutPage() {
 
   if (!activeSession) {
     return (
-      <AppShell title={workoutDay.name} showBack>
+      <AppShell title={normalizeWorkoutName(workoutDay.name)} showBack>
         <div className="p-4 space-y-6">
           <Card>
             <CardContent className="py-6 text-center">
               <h2 className="text-xl font-semibold text-[var(--color-text)] mb-2">
-                {workoutDay.name}
+                {normalizeWorkoutName(workoutDay.name)}
               </h2>
               <p className="text-[var(--color-text-muted)] mb-6">
                 {workoutDay.sections.reduce(
@@ -187,7 +188,7 @@ export function WorkoutPage() {
 
   // Active workout session view
   return (
-    <AppShell title={workoutDay.name} showBack hideNav>
+    <AppShell title={normalizeWorkoutName(workoutDay.name)} showBack hideNav>
       <div className="p-4 space-y-4">
         {/* Rest Timer */}
         <RestTimer />

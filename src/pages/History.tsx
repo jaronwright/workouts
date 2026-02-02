@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Card, CardContent, Modal, Button } from '@/components/ui'
 import { useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
-import { formatDate, formatTime, formatRelativeTime } from '@/utils/formatters'
+import { formatDate, formatTime, formatRelativeTime, normalizeWorkoutName } from '@/utils/formatters'
 import { Calendar, Clock, CheckCircle, Circle, ChevronRight, Trash2 } from 'lucide-react'
 import type { SessionWithDay } from '@/services/workoutService'
 
@@ -89,7 +89,7 @@ function SwipeableCard({ session, onDelete, onClick }: SwipeableCardProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-[var(--color-text)]">
-                  {session.workout_day?.name || 'Workout'}
+                  {normalizeWorkoutName(session.workout_day?.name || 'Workout')}
                 </h3>
                 <div className="flex items-center gap-4 mt-1 text-sm text-[var(--color-text-muted)]">
                   <span className="flex items-center gap-1">
@@ -191,7 +191,7 @@ export function HistoryPage() {
             Are you sure you want to delete this workout session?
           </p>
           <p className="text-sm font-medium text-[var(--color-text)]">
-            {sessionToDelete?.workout_day?.name || 'Workout'} - {sessionToDelete && formatDate(sessionToDelete.started_at)}
+            {normalizeWorkoutName(sessionToDelete?.workout_day?.name || 'Workout')} - {sessionToDelete && formatDate(sessionToDelete.started_at)}
           </p>
           <p className="text-sm text-[var(--color-danger)]">
             This action cannot be undone.

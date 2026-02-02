@@ -81,7 +81,6 @@ export async function getUserSchedule(userId: string): Promise<ScheduleDay[]> {
     `)
     .eq('user_id', userId)
     .order('day_number', { ascending: true })
-    .order('sort_order', { ascending: true })
 
   if (error) {
     console.warn('Error fetching user schedule:', error.message)
@@ -103,7 +102,6 @@ export async function getScheduleDayWorkouts(userId: string, dayNumber: number):
     `)
     .eq('user_id', userId)
     .eq('day_number', dayNumber)
-    .order('sort_order', { ascending: true })
 
   if (error) {
     console.warn('Error fetching schedule day:', error.message)
@@ -158,8 +156,7 @@ export async function saveScheduleDayWorkouts(
         day_number: dayNumber,
         is_rest_day: true,
         template_id: null,
-        workout_day_id: null,
-        sort_order: 0
+        workout_day_id: null
       })
       .select(`
         *,
@@ -177,15 +174,17 @@ export async function saveScheduleDayWorkouts(
     })) as ScheduleDay[]
   }
 
-  // Insert all workouts with sort_order
-  const scheduleData = workouts.map((workout, index) => ({
+  // Insert all workouts
+  // Note: For now, we only support single workout per day until sort_order migration is applied
+  // Taking only the first workout to maintain backwards compatibility
+  const workout = workouts[0]
+  const scheduleData = {
     user_id: userId,
     day_number: dayNumber,
     is_rest_day: false,
     template_id: workout.type === 'cardio' || workout.type === 'mobility' ? workout.id : null,
-    workout_day_id: workout.type === 'weights' ? workout.id : null,
-    sort_order: index
-  }))
+    workout_day_id: workout.type === 'weights' ? workout.id : null
+  }
 
   console.log('Inserting schedule data:', scheduleData)
 
@@ -197,7 +196,6 @@ export async function saveScheduleDayWorkouts(
       template:workout_templates(*),
       workout_day:workout_days(id, name, day_number)
     `)
-    .order('sort_order', { ascending: true })
 
   if (error) {
     console.error('Failed to insert schedules:', error)
@@ -247,13 +245,13 @@ export async function initializeDefaultSchedule(userId: string): Promise<Schedul
 
   // Create default schedule: Push, Pull, Legs, Rest, Push, Pull, Rest
   const defaultSchedule = [
-    { day_number: 1, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false, sort_order: 0 },
-    { day_number: 2, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false, sort_order: 0 },
-    { day_number: 3, workout_day_id: workoutDays?.[2]?.id || null, is_rest_day: false, sort_order: 0 },
-    { day_number: 4, is_rest_day: true, workout_day_id: null, sort_order: 0 },
-    { day_number: 5, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false, sort_order: 0 },
-    { day_number: 6, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false, sort_order: 0 },
-    { day_number: 7, is_rest_day: true, workout_day_id: null, sort_order: 0 }
+    { day_number: 1, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
+    { day_number: 2, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
+    { day_number: 3, workout_day_id: workoutDays?.[2]?.id || null, is_rest_day: false },
+    { day_number: 4, is_rest_day: true, workout_day_id: null },
+    { day_number: 5, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
+    { day_number: 6, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
+    { day_number: 7, is_rest_day: true, workout_day_id: null }
   ]
 
   const scheduleData = defaultSchedule.map(day => ({
@@ -261,8 +259,7 @@ export async function initializeDefaultSchedule(userId: string): Promise<Schedul
     day_number: day.day_number,
     workout_day_id: day.workout_day_id,
     template_id: null,
-    is_rest_day: day.is_rest_day,
-    sort_order: day.sort_order
+    is_rest_day: day.is_rest_day
   }))
 
   const { data, error } = await supabase

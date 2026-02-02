@@ -6,7 +6,7 @@ import { ActivityFeed } from '@/components/social'
 import { useActiveSession, useUserSessions } from '@/hooks/useWorkoutSession'
 import { useProfile } from '@/hooks/useProfile'
 import { useTodaysWorkout } from '@/hooks/useSchedule'
-import { formatRelativeTime } from '@/utils/formatters'
+import { formatRelativeTime, normalizeWorkoutName } from '@/utils/formatters'
 import type { SessionWithDay } from '@/services/workoutService'
 
 // Curated Unsplash images for each workout type
@@ -185,7 +185,7 @@ export function HomePage() {
                   {heroWorkoutType}
                 </p>
                 <h2 className="text-white text-xl font-bold leading-tight mb-2.5">
-                  {heroWorkoutName || 'Start a Workout'}
+                  {normalizeWorkoutName(heroWorkoutName || 'Start a Workout')}
                 </h2>
               </>
             )}
@@ -289,7 +289,7 @@ export function HomePage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-[var(--color-text)] text-sm truncate">
-                        {session.workout_day?.name || 'Workout'}
+                        {normalizeWorkoutName(session.workout_day?.name || 'Workout')}
                       </p>
                       <p className="text-xs text-[var(--color-text-muted)]">
                         {formatRelativeTime(session.started_at)}

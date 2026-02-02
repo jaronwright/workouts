@@ -9,8 +9,10 @@ import {
   WEIGHTS_CONFIG,
   getCardioStyle,
   getMobilityStyle,
-  CATEGORY_DEFAULTS
+  CATEGORY_DEFAULTS,
+  getCategoryLabel
 } from '@/config/workoutConfig'
+import { normalizeWorkoutName } from '@/utils/formatters'
 
 interface ScheduleDayEditorProps {
   isOpen: boolean
@@ -189,8 +191,8 @@ export function ScheduleDayEditor({
                       <Icon className="w-5 h-5" style={{ color: style.color }} />
                     </div>
                     <div>
-                      <span className="font-medium text-[var(--color-text)]">{workout.label}</span>
-                      <p className="text-xs capitalize" style={{ color: style.color }}>{workout.type}</p>
+                      <span className="font-medium text-[var(--color-text)]">{normalizeWorkoutName(workout.label || '')}</span>
+                      <p className="text-xs" style={{ color: style.color }}>{getCategoryLabel(workout.type)}</p>
                     </div>
                   </div>
                   <button
