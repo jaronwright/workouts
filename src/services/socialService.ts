@@ -28,7 +28,7 @@ export interface SocialWorkout {
 }
 
 export async function getSocialFeed(limit = 20): Promise<SocialWorkout[]> {
-  // Get weights workouts
+  // Get weights workouts (removed user_profile join - no FK relationship)
   const { data: weightsData, error: weightsError } = await supabase
     .from('workout_sessions')
     .select(`
@@ -38,8 +38,7 @@ export async function getSocialFeed(limit = 20): Promise<SocialWorkout[]> {
       completed_at,
       notes,
       is_public,
-      workout_day:workout_days(name),
-      user_profile:user_profiles(display_name)
+      workout_day:workout_days(name)
     `)
     .eq('is_public', true)
     .not('completed_at', 'is', null)
@@ -50,7 +49,7 @@ export async function getSocialFeed(limit = 20): Promise<SocialWorkout[]> {
     console.warn('Error fetching weights sessions for feed:', weightsError.message)
   }
 
-  // Get template workouts (cardio/mobility)
+  // Get template workouts (cardio/mobility) - removed user_profile join
   const { data: templateData, error: templateError } = await supabase
     .from('template_workout_sessions')
     .select(`
@@ -63,8 +62,7 @@ export async function getSocialFeed(limit = 20): Promise<SocialWorkout[]> {
       duration_minutes,
       distance_value,
       distance_unit,
-      template:workout_templates(name, type, category),
-      user_profile:user_profiles(display_name)
+      template:workout_templates(name, type, category)
     `)
     .eq('is_public', true)
     .not('completed_at', 'is', null)
@@ -82,7 +80,6 @@ export async function getSocialFeed(limit = 20): Promise<SocialWorkout[]> {
     weightsData.forEach(w => {
       // Handle array returns from Supabase joins
       const workoutDay = Array.isArray(w.workout_day) ? w.workout_day[0] : w.workout_day
-      const userProfile = Array.isArray(w.user_profile) ? w.user_profile[0] : w.user_profile
 
       allWorkouts.push({
         id: w.id,
@@ -92,7 +89,6 @@ export async function getSocialFeed(limit = 20): Promise<SocialWorkout[]> {
         notes: w.notes,
         type: 'weights' as const,
         workout_day: workoutDay as { name: string } | null,
-        user_profile: userProfile as { display_name: string | null } | null,
         is_public: w.is_public ?? true
       })
     })
@@ -102,7 +98,6 @@ export async function getSocialFeed(limit = 20): Promise<SocialWorkout[]> {
     templateData.forEach(t => {
       // Handle array returns from Supabase joins
       const template = Array.isArray(t.template) ? t.template[0] : t.template
-      const userProfile = Array.isArray(t.user_profile) ? t.user_profile[0] : t.user_profile
 
       allWorkouts.push({
         id: t.id,
@@ -112,7 +107,6 @@ export async function getSocialFeed(limit = 20): Promise<SocialWorkout[]> {
         notes: t.notes,
         type: ((template as { type?: string })?.type as 'cardio' | 'mobility') || 'cardio',
         template: template as { name: string; type: string; category: string | null } | null,
-        user_profile: userProfile as { display_name: string | null } | null,
         is_public: t.is_public ?? true,
         duration_minutes: t.duration_minutes,
         distance_value: t.distance_value,

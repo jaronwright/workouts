@@ -9,6 +9,8 @@ export function useAuth() {
   const signUp = useAuthStore((s) => s.signUp)
   const signIn = useAuthStore((s) => s.signIn)
   const signOut = useAuthStore((s) => s.signOut)
+  const resetPassword = useAuthStore((s) => s.resetPassword)
+  const updatePassword = useAuthStore((s) => s.updatePassword)
   const initialize = useAuthStore((s) => s.initialize)
 
   useEffect(() => {
@@ -23,6 +25,8 @@ export function useAuth() {
     signUp,
     signIn,
     signOut,
+    resetPassword,
+    updatePassword,
     initialize
   }
 }

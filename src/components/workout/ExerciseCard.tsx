@@ -6,11 +6,13 @@ import { formatSetReps } from '@/utils/parseSetReps'
 import { useLastWeight } from '@/hooks/useWorkoutSession'
 import { useProgressionSuggestion } from '@/hooks/useProgression'
 import { ProgressionBadge } from './ProgressionBadge'
+import { updateExerciseWeightUnit } from '@/services/workoutService'
 
 interface ExerciseCardProps {
   exercise: PlanExercise
   completedSets: ExerciseSet[]
   onExerciseComplete: (reps: number | null, weight: number | null) => void
+  onExerciseUpdate?: (exercise: PlanExercise) => void
 }
 
 function isBodyweightOrCardio(exercise: PlanExercise): boolean {
@@ -32,14 +34,36 @@ function isBodyweightOrCardio(exercise: PlanExercise): boolean {
 export function ExerciseCard({
   exercise,
   completedSets,
-  onExerciseComplete
+  onExerciseComplete,
+  onExerciseUpdate
 }: ExerciseCardProps) {
   const [showNotes, setShowNotes] = useState(false)
   const [weight, setWeight] = useState<string>(exercise.target_weight?.toString() || '')
   const [weightInitialized, setWeightInitialized] = useState(false)
   const [justCompleted, setJustCompleted] = useState(false)
+  const [localWeightUnit, setLocalWeightUnit] = useState<'lbs' | 'kg'>(exercise.weight_unit || 'lbs')
+
+  // Sync local unit when exercise updates
+  useEffect(() => {
+    setLocalWeightUnit(exercise.weight_unit || 'lbs')
+  }, [exercise.weight_unit])
 
   const noWeight = isBodyweightOrCardio(exercise)
+
+  // Toggle weight unit for this exercise
+  const handleToggleUnit = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const newUnit = localWeightUnit === 'lbs' ? 'kg' : 'lbs'
+    setLocalWeightUnit(newUnit)
+    try {
+      const updated = await updateExerciseWeightUnit(exercise.id, newUnit)
+      onExerciseUpdate?.(updated)
+    } catch (error) {
+      // Revert on error
+      setLocalWeightUnit(localWeightUnit)
+      console.error('Failed to update weight unit:', error)
+    }
+  }
   const { data: lastWeight } = useLastWeight(noWeight ? undefined : exercise.id)
   const { data: progressionSuggestion } = useProgressionSuggestion(
     noWeight ? undefined : exercise.id,
@@ -121,28 +145,45 @@ export function ExerciseCard({
           </p>
         </div>
 
-        {/* Weight Input */}
+        {/* Weight Input - uses text type with numeric inputMode for clean mobile keypad */}
         {!noWeight && !isCompleted && (
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <input
-              type="number"
+              type="text"
               inputMode="decimal"
+              pattern="[0-9]*\.?[0-9]*"
               placeholder="0"
               value={weight}
-              onChange={(e) => setWeight(e.target.value)}
+              onChange={(e) => {
+                // Only allow numbers and decimal point
+                const val = e.target.value.replace(/[^0-9.]/g, '')
+                setWeight(val)
+              }}
               onClick={(e) => e.stopPropagation()}
+              onFocus={(e) => e.target.select()}
               className="
-                w-16 h-9 px-2 text-center
+                w-16 h-10 px-2 text-center
                 bg-[var(--color-surface-hover)]
-                border border-transparent
+                border-2 border-transparent
                 rounded-[var(--radius-md)]
-                text-base font-semibold
+                text-lg font-bold tabular-nums
                 text-[var(--color-text)]
                 focus:outline-none focus:border-[var(--color-primary)] focus:bg-[var(--color-surface)]
                 placeholder:text-[var(--color-text-muted)]
+                select-all
               "
             />
-            <span className="text-xs font-medium text-[var(--color-text-muted)]">lbs</span>
+            <button
+              onClick={handleToggleUnit}
+              className="
+                text-sm font-medium text-[var(--color-text-muted)]
+                px-1.5 py-0.5 rounded
+                hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]
+                active:scale-95 transition-all duration-100
+              "
+            >
+              {localWeightUnit}
+            </button>
           </div>
         )}
 
@@ -151,7 +192,7 @@ export function ExerciseCard({
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--color-success)]/15 flex-shrink-0">
             <Sparkles className="w-3.5 h-3.5 text-[var(--color-success)]" />
             <span className="text-sm text-[var(--color-success)] font-bold">
-              {completedSets[0].weight_used}
+              {completedSets[0].weight_used} {localWeightUnit}
             </span>
           </div>
         )}
@@ -188,7 +229,7 @@ export function ExerciseCard({
               bg-[var(--color-primary)]/10
               px-2.5 py-1 rounded-full
             ">
-              Last: {lastWeight} lbs
+              Last: {lastWeight} {localWeightUnit}
             </span>
           )}
           {progressionSuggestion && (

@@ -14,6 +14,7 @@ import {
   deleteWorkoutSession,
   type SessionWithDay
 } from '@/services/workoutService'
+import { advanceCycleDay } from '@/services/profileService'
 import type { ExerciseSet } from '@/types/workout'
 
 export function useActiveSession() {
@@ -89,15 +90,24 @@ export function useStartWorkout() {
 
 export function useCompleteWorkout() {
   const queryClient = useQueryClient()
+  const user = useAuthStore((s) => s.user)
   const { clearWorkout } = useWorkoutStore()
 
   return useMutation({
-    mutationFn: ({ sessionId, notes }: { sessionId: string; notes?: string }) =>
-      completeWorkoutSession(sessionId, notes),
+    mutationFn: async ({ sessionId, notes }: { sessionId: string; notes?: string }) => {
+      const session = await completeWorkoutSession(sessionId, notes)
+      // Advance to next day in cycle after completing workout
+      if (user?.id) {
+        await advanceCycleDay(user.id)
+      }
+      return session
+    },
     onSuccess: () => {
       clearWorkout()
       queryClient.invalidateQueries({ queryKey: ['active-session'] })
       queryClient.invalidateQueries({ queryKey: ['user-sessions'] })
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: ['todays-workout'] })
     }
   })
 }

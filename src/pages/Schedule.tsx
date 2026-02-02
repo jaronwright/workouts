@@ -1,30 +1,58 @@
 import { useState } from 'react'
 import { AppShell } from '@/components/layout'
-import { Card, CardContent, Button } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { ScheduleDayEditor } from '@/components/schedule'
 import { useUserSchedule, useInitializeSchedule } from '@/hooks/useSchedule'
 import { useProfile } from '@/hooks/useProfile'
-import { getDayName, type ScheduleDay } from '@/services/scheduleService'
-import { Dumbbell, Heart, Activity, Moon, Edit2, Plus } from 'lucide-react'
+import { type ScheduleDay } from '@/services/scheduleService'
+import { Moon, Plus, ChevronRight } from 'lucide-react'
+import {
+  getWeightsStyleByDayNumber,
+  getWeightsLabel,
+  getCardioStyle,
+  getMobilityStyle
+} from '@/config/workoutConfig'
 
-function getWorkoutIcon(schedule: ScheduleDay | null) {
-  if (!schedule || schedule.is_rest_day) {
-    return { Icon: Moon, color: 'var(--color-text-muted)', label: 'Rest Day' }
-  }
-  if (schedule.workout_day) {
-    return { Icon: Dumbbell, color: 'var(--color-weights)', label: schedule.workout_day.name }
-  }
-  if (schedule.template) {
-    switch (schedule.template.type) {
-      case 'cardio':
-        return { Icon: Heart, color: 'var(--color-cardio)', label: schedule.template.name }
-      case 'mobility':
-        return { Icon: Activity, color: 'var(--color-mobility)', label: schedule.template.name }
-      default:
-        return { Icon: Dumbbell, color: 'var(--color-weights)', label: schedule.template.name }
+function getWorkoutChip(schedule: ScheduleDay) {
+  if (schedule.is_rest_day) {
+    return {
+      Icon: Moon,
+      color: '#6B7280',
+      label: 'Rest',
+      bgColor: 'rgba(107, 114, 128, 0.15)'
     }
   }
-  return { Icon: Plus, color: 'var(--color-text-muted)', label: 'Not set' }
+  if (schedule.workout_day) {
+    const style = getWeightsStyleByDayNumber(schedule.workout_day.day_number)
+    const label = getWeightsLabel(schedule.workout_day.day_number)
+    return {
+      Icon: style.icon,
+      color: style.color,
+      label: label,
+      bgColor: style.bgColor
+    }
+  }
+  if (schedule.template) {
+    if (schedule.template.type === 'cardio') {
+      const style = getCardioStyle(schedule.template.category)
+      return {
+        Icon: style.icon,
+        color: style.color,
+        label: schedule.template.name,
+        bgColor: style.bgColor
+      }
+    }
+    if (schedule.template.type === 'mobility') {
+      const style = getMobilityStyle(schedule.template.category)
+      return {
+        Icon: style.icon,
+        color: style.color,
+        label: schedule.template.name,
+        bgColor: style.bgColor
+      }
+    }
+  }
+  return null
 }
 
 export function SchedulePage() {
@@ -34,9 +62,13 @@ export function SchedulePage() {
 
   const [editingDay, setEditingDay] = useState<number | null>(null)
 
-  // Create a map of day number to schedule
-  const scheduleMap = new Map<number, ScheduleDay>()
-  schedule?.forEach(s => scheduleMap.set(s.day_number, s))
+  // Group schedules by day number (supports multiple workouts per day)
+  const schedulesByDay = new Map<number, ScheduleDay[]>()
+  schedule?.forEach(s => {
+    const existing = schedulesByDay.get(s.day_number) || []
+    existing.push(s)
+    schedulesByDay.set(s.day_number, existing)
+  })
 
   const handleInitialize = () => {
     initializeSchedule()
@@ -47,7 +79,7 @@ export function SchedulePage() {
       <AppShell title="Schedule">
         <div className="p-4 space-y-3">
           {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <div key={i} className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
+            <div key={i} className="h-20 bg-[var(--color-surface-hover)] animate-pulse rounded-2xl" />
           ))}
         </div>
       </AppShell>
@@ -56,74 +88,106 @@ export function SchedulePage() {
 
   return (
     <AppShell title="Schedule">
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-3">
         {/* Current Day Indicator */}
         {profile?.current_cycle_day && (
-          <div className="text-center py-2">
-            <span className="text-sm text-[var(--color-text-muted)]">Current cycle day: </span>
-            <span className="text-sm font-semibold text-[var(--color-primary)]">
-              Day {profile.current_cycle_day} of 7
+          <div className="flex items-center justify-center gap-2 py-3 mb-2">
+            <div className="h-2 w-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
+            <span className="text-sm font-medium text-[var(--color-text-muted)]">
+              Currently on <span className="text-[var(--color-primary)] font-semibold">Day {profile.current_cycle_day}</span>
             </span>
           </div>
         )}
 
-        {/* Schedule Grid */}
+        {/* Schedule List */}
         <div className="space-y-2">
           {[1, 2, 3, 4, 5, 6, 7].map((dayNumber) => {
-            const daySchedule = scheduleMap.get(dayNumber) || null
-            const { Icon, color, label } = getWorkoutIcon(daySchedule)
+            const daySchedules = schedulesByDay.get(dayNumber) || []
             const isCurrentDay = profile?.current_cycle_day === dayNumber
+            const hasWorkouts = daySchedules.length > 0 && !daySchedules[0]?.is_rest_day
+            const isRestDay = daySchedules.length > 0 && daySchedules[0]?.is_rest_day
 
             return (
-              <Card
+              <div
                 key={dayNumber}
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  isCurrentDay ? 'ring-2 ring-[var(--color-primary)]' : ''
-                }`}
                 onClick={() => setEditingDay(dayNumber)}
+                className={`
+                  relative rounded-2xl p-4 cursor-pointer
+                  transition-all duration-200 active:scale-[0.98]
+                  ${isCurrentDay
+                    ? 'bg-[var(--color-primary)]/10 ring-2 ring-[var(--color-primary)]/30'
+                    : 'bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)]'
+                  }
+                `}
               >
-                <CardContent className="py-3">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: `${color}20` }}
-                    >
-                      <Icon className="w-5 h-5" style={{ color }} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-[var(--color-text)]">
-                          {getDayName(dayNumber)}
-                        </h3>
-                        {isCurrentDay && (
-                          <span className="text-xs bg-[var(--color-primary)]/20 text-[var(--color-primary)] px-2 py-0.5 rounded-full">
-                            Today
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-[var(--color-text-muted)]">{label}</p>
-                    </div>
-                    <Edit2 className="w-4 h-4 text-[var(--color-text-muted)]" />
+                <div className="flex items-start gap-3">
+                  {/* Day Number Badge */}
+                  <div className={`
+                    w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0
+                    ${isCurrentDay
+                      ? 'bg-[var(--color-primary)] text-white'
+                      : 'bg-[var(--color-surface-hover)] text-[var(--color-text)]'
+                    }
+                  `}>
+                    <span className="text-[10px] font-medium uppercase tracking-wide opacity-70">Day</span>
+                    <span className="text-lg font-bold -mt-0.5">{dayNumber}</span>
                   </div>
-                </CardContent>
-              </Card>
+
+                  {/* Workout Content */}
+                  <div className="flex-1 min-w-0 py-0.5">
+                    {isRestDay ? (
+                      <div className="flex items-center gap-2 text-[var(--color-text-muted)]">
+                        <Moon className="w-4 h-4" />
+                        <span className="text-sm font-medium">Rest Day</span>
+                      </div>
+                    ) : hasWorkouts ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {daySchedules.map((s, idx) => {
+                          const chip = getWorkoutChip(s)
+                          if (!chip) return null
+                          const { Icon, color, label, bgColor } = chip
+                          return (
+                            <div
+                              key={idx}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium"
+                              style={{ backgroundColor: bgColor, color }}
+                            >
+                              <Icon className="w-3.5 h-3.5" />
+                              <span className="truncate max-w-[140px]">{label}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-[var(--color-text-muted)] bg-[var(--color-surface-hover)] border border-dashed border-[var(--color-border)]">
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Choose workout</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Arrow indicator */}
+                  <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0 mt-3" />
+                </div>
+              </div>
             )
           })}
         </div>
 
         {/* Initialize Schedule Button (if no schedule exists) */}
         {(!schedule || schedule.length === 0) && (
-          <div className="pt-4">
-            <Card>
-              <CardContent className="py-6 text-center">
-                <p className="text-[var(--color-text-muted)] mb-4">
-                  No schedule set up yet. Create a default Push/Pull/Legs schedule?
-                </p>
-                <Button onClick={handleInitialize} loading={isInitializing}>
-                  Create Default Schedule
-                </Button>
-              </CardContent>
-            </Card>
+          <div className="pt-6">
+            <div className="text-center p-6 rounded-2xl bg-[var(--color-surface)] border border-dashed border-[var(--color-border)]">
+              <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center mx-auto mb-3">
+                <Plus className="w-6 h-6 text-[var(--color-primary)]" />
+              </div>
+              <p className="text-[var(--color-text-muted)] mb-4">
+                Set up your 7-day workout cycle
+              </p>
+              <Button onClick={handleInitialize} loading={isInitializing}>
+                Create Default Schedule
+              </Button>
+            </div>
           </div>
         )}
       </div>
@@ -133,7 +197,7 @@ export function SchedulePage() {
         isOpen={editingDay !== null}
         onClose={() => setEditingDay(null)}
         dayNumber={editingDay || 1}
-        currentSchedule={editingDay ? scheduleMap.get(editingDay) : null}
+        currentSchedules={editingDay ? schedulesByDay.get(editingDay) || [] : []}
       />
     </AppShell>
   )

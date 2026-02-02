@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Workout Tracker PWA - A Progressive Web App for tracking Push/Pull/Legs workouts with Supabase backend. Users can manage a 3-day workout split, log exercises, track weights/reps, and view workout history with offline support.
+Workout Tracker PWA - A Progressive Web App for tracking workouts with Supabase backend. Users can manage customizable workout schedules (weights, cardio, mobility), log exercises, track weights/reps, and view workout history with offline support.
 
 ## Commands
 

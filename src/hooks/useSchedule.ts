@@ -3,7 +3,9 @@ import { useAuthStore } from '@/stores/authStore'
 import {
   getUserSchedule,
   getScheduleDay,
+  getScheduleDayWorkouts,
   upsertScheduleDay,
+  saveScheduleDayWorkouts,
   deleteScheduleDay,
   initializeDefaultSchedule,
   getWorkoutTemplates,
@@ -11,7 +13,8 @@ import {
   getTodaysScheduledWorkout,
   type ScheduleDay,
   type WorkoutTemplate,
-  type UpdateScheduleDayData
+  type UpdateScheduleDayData,
+  type ScheduleWorkoutItem
 } from '@/services/scheduleService'
 
 export function useWorkoutTemplates() {
@@ -48,6 +51,16 @@ export function useScheduleDay(dayNumber: number) {
   })
 }
 
+export function useScheduleDayWorkouts(dayNumber: number) {
+  const user = useAuthStore((s) => s.user)
+
+  return useQuery<ScheduleDay[]>({
+    queryKey: ['schedule-day-workouts', user?.id, dayNumber],
+    queryFn: () => getScheduleDayWorkouts(user!.id, dayNumber),
+    enabled: !!user?.id
+  })
+}
+
 export function useTodaysWorkout(currentCycleDay: number) {
   const user = useAuthStore((s) => s.user)
 
@@ -68,7 +81,27 @@ export function useUpsertScheduleDay() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-schedule'] })
       queryClient.invalidateQueries({ queryKey: ['schedule-day'] })
+      queryClient.invalidateQueries({ queryKey: ['schedule-day-workouts'] })
       queryClient.invalidateQueries({ queryKey: ['todays-workout'] })
+    }
+  })
+}
+
+export function useSaveScheduleDayWorkouts() {
+  const queryClient = useQueryClient()
+  const user = useAuthStore((s) => s.user)
+
+  return useMutation({
+    mutationFn: ({ dayNumber, workouts }: { dayNumber: number; workouts: ScheduleWorkoutItem[] }) =>
+      saveScheduleDayWorkouts(user!.id, dayNumber, workouts),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-schedule'] })
+      queryClient.invalidateQueries({ queryKey: ['schedule-day'] })
+      queryClient.invalidateQueries({ queryKey: ['schedule-day-workouts'] })
+      queryClient.invalidateQueries({ queryKey: ['todays-workout'] })
+    },
+    onError: (error) => {
+      console.error('Schedule save mutation failed:', error)
     }
   })
 }
@@ -82,6 +115,7 @@ export function useDeleteScheduleDay() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-schedule'] })
       queryClient.invalidateQueries({ queryKey: ['schedule-day'] })
+      queryClient.invalidateQueries({ queryKey: ['schedule-day-workouts'] })
       queryClient.invalidateQueries({ queryKey: ['todays-workout'] })
     }
   })

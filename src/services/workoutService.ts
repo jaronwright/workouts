@@ -300,3 +300,18 @@ export async function deleteWorkoutSession(sessionId: string): Promise<void> {
 
   if (sessionError) throw sessionError
 }
+
+export async function updateExerciseWeightUnit(
+  exerciseId: string,
+  weightUnit: 'lbs' | 'kg'
+): Promise<PlanExercise> {
+  const { data, error } = await supabase
+    .from('plan_exercises')
+    .update({ weight_unit: weightUnit })
+    .eq('id', exerciseId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as PlanExercise
+}

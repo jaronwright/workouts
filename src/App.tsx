@@ -3,10 +3,12 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/hooks/useTheme'
+import { ToastProvider } from '@/components/ui'
 import {
   AuthPage,
   HomePage,
   WorkoutPage,
+  WorkoutSelectPage,
   HistoryPage,
   SessionDetailPage,
   ProfilePage,
@@ -92,7 +94,7 @@ function AppRoutes() {
         path="/workout"
         element={
           <ProtectedRoute>
-            <HomePage />
+            <WorkoutSelectPage />
           </ProtectedRoute>
         }
       />
@@ -178,6 +180,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AppRoutes />
+        <ToastProvider />
       </BrowserRouter>
     </QueryClientProvider>
   )

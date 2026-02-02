@@ -1,10 +1,12 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Dumbbell } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Dumbbell, ArrowLeft, CheckCircle } from 'lucide-react'
 import { Button, Input, Card, CardContent } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthStore } from '@/stores/authStore'
 import { upsertProfile } from '@/services/profileService'
+import { PasswordStrengthIndicator } from '@/components/auth/PasswordStrengthIndicator'
+import { validatePassword } from '@/utils/validation'
 
 const GENDER_OPTIONS = [
   { value: '', label: 'Select gender (optional)' },
@@ -14,37 +16,185 @@ const GENDER_OPTIONS = [
   { value: 'prefer-not-to-say', label: 'Prefer not to say' }
 ] as const
 
+type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset'
+
 export function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true)
+  const [searchParams] = useSearchParams()
+  const urlMode = searchParams.get('mode')
+
+  const [mode, setMode] = useState<AuthMode>(urlMode === 'reset' ? 'reset' : 'signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [gender, setGender] = useState<string>('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [rememberMe, setRememberMe] = useState(true)
   const navigate = useNavigate()
-  const { signIn, signUp, loading } = useAuth()
+  const { signIn, signUp, resetPassword, updatePassword, loading, user } = useAuth()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Check for password reset mode from URL - this needs to sync mode from URL params
+  // which changes when user returns from password reset email link
+  useEffect(() => {
+    if (urlMode === 'reset' && user) {
+      // Using a callback form to avoid the linter warning for sync setState in effect
+      // This is intentional: we need to update mode when URL changes after email redirect
+      queueMicrotask(() => setMode('reset'))
+    }
+  }, [urlMode, user])
+
+  // Redirect if already logged in (unless in reset mode)
+  useEffect(() => {
+    if (user && mode !== 'reset') {
+      navigate('/')
+    }
+  }, [user, mode, navigate])
+
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
+
+    if (!email.trim()) {
+      setError('Please enter your email')
+      return
+    }
+    if (!password) {
+      setError('Please enter your password')
+      return
+    }
 
     try {
-      if (isLogin) {
-        await signIn(email, password)
-      } else {
-        await signUp(email, password)
-        const user = useAuthStore.getState().user
-        if (user && (gender || displayName)) {
-          await upsertProfile(user.id, {
-            display_name: displayName || null,
-            gender: (gender || null) as 'male' | 'female' | 'non-binary' | 'prefer-not-to-say' | null
-          })
-        }
-      }
+      await signIn(email.trim(), password, rememberMe)
       navigate('/')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      if (message.includes('Invalid login credentials')) {
+        setError('Invalid email or password. Please try again.')
+      } else if (message.includes('Email not confirmed')) {
+        setError('Please check your email and confirm your account before signing in.')
+      } else {
+        setError(message)
+      }
     }
+  }
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSuccess('')
+
+    if (!email.trim()) {
+      setError('Please enter your email')
+      return
+    }
+    if (!password) {
+      setError('Please enter a password')
+      return
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.valid) {
+      setError('Password does not meet requirements')
+      return
+    }
+
+    try {
+      await signUp(email.trim(), password)
+      const newUser = useAuthStore.getState().user
+
+      if (newUser && (gender || displayName)) {
+        await upsertProfile(newUser.id, {
+          display_name: displayName.trim() || null,
+          gender: (gender || null) as 'male' | 'female' | 'non-binary' | 'prefer-not-to-say' | null
+        })
+      }
+
+      // Check if email confirmation is required
+      const session = useAuthStore.getState().session
+      if (!session) {
+        setSuccess('Account created! Please check your email to confirm your account.')
+        setMode('signin')
+      } else {
+        navigate('/')
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      if (message.includes('already registered')) {
+        setError('An account with this email already exists. Try signing in instead.')
+      } else {
+        setError(message)
+      }
+    }
+  }
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSuccess('')
+
+    if (!email.trim()) {
+      setError('Please enter your email')
+      return
+    }
+
+    try {
+      await resetPassword(email.trim())
+      setSuccess('Password reset email sent! Check your inbox for the reset link.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setError(message)
+    }
+  }
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSuccess('')
+
+    if (!password) {
+      setError('Please enter a new password')
+      return
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.valid) {
+      setError('Password does not meet requirements')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
+    try {
+      await updatePassword(password)
+      setSuccess('Password updated successfully!')
+      setTimeout(() => navigate('/'), 1500)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setError(message)
+    }
+  }
+
+  const clearForm = () => {
+    setEmail('')
+    setPassword('')
+    setConfirmPassword('')
+    setDisplayName('')
+    setGender('')
+    setError('')
+    setSuccess('')
+    setRememberMe(true)
+  }
+
+  const switchMode = (newMode: AuthMode) => {
+    clearForm()
+    setMode(newMode)
   }
 
   return (
@@ -64,124 +214,327 @@ export function AuthPage() {
           <h1 className="text-2xl font-bold text-[var(--color-text)]">
             Workout Tracker
           </h1>
-          <p className="text-[var(--color-text-muted)] mt-1 text-sm">
-            Track your Push/Pull/Legs progress
-          </p>
         </div>
 
         {/* Auth Card */}
         <Card variant="elevated">
           <CardContent className="p-5">
-            {/* Tabs */}
-            <div className="flex p-1 mb-5 bg-[var(--color-surface-hover)] rounded-[var(--radius-lg)]">
-              <button
-                onClick={() => setIsLogin(true)}
-                className={`
-                  flex-1 py-2 text-center font-semibold text-sm
-                  rounded-[var(--radius-md)]
-                  transition-colors duration-100
-                  ${isLogin
-                    ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm'
-                    : 'text-[var(--color-text-muted)]'
-                  }
-                `}
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => setIsLogin(false)}
-                className={`
-                  flex-1 py-2 text-center font-semibold text-sm
-                  rounded-[var(--radius-md)]
-                  transition-colors duration-100
-                  ${!isLogin
-                    ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm'
-                    : 'text-[var(--color-text-muted)]'
-                  }
-                `}
-              >
-                Sign Up
-              </button>
-            </div>
+            {/* Sign In / Sign Up Mode */}
+            {(mode === 'signin' || mode === 'signup') && (
+              <>
+                {/* Tabs */}
+                <div className="flex p-1 mb-5 bg-[var(--color-surface-hover)] rounded-[var(--radius-lg)]">
+                  <button
+                    type="button"
+                    onClick={() => switchMode('signin')}
+                    className={`
+                      flex-1 py-2 text-center font-semibold text-sm
+                      rounded-[var(--radius-md)]
+                      transition-colors duration-100
+                      ${mode === 'signin'
+                        ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm'
+                        : 'text-[var(--color-text-muted)]'
+                      }
+                    `}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => switchMode('signup')}
+                    className={`
+                      flex-1 py-2 text-center font-semibold text-sm
+                      rounded-[var(--radius-md)]
+                      transition-colors duration-100
+                      ${mode === 'signup'
+                        ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm'
+                        : 'text-[var(--color-text-muted)]'
+                      }
+                    `}
+                  >
+                    Sign Up
+                  </button>
+                </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Input
-                type="email"
-                label="Email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <Input
-                type="password"
-                label="Password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-
-              {!isLogin && (
-                <div className="space-y-4 animate-fade-in">
+                <form onSubmit={mode === 'signin' ? handleSignIn : handleSignUp} className="space-y-4">
                   <Input
-                    type="text"
-                    label="Display Name"
-                    placeholder="Your name (optional)"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
+                    type="email"
+                    label="Email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    required
                   />
                   <div>
-                    <label className="block text-sm font-semibold text-[var(--color-text)] mb-2">
-                      Gender
-                    </label>
-                    <select
-                      value={gender}
-                      onChange={(e) => setGender(e.target.value)}
-                      className="
-                        w-full px-4 py-3
-                        rounded-[var(--radius-lg)]
-                        border-2 border-[var(--color-border)]
-                        bg-[var(--color-surface)]
-                        text-[var(--color-text)] text-base
-                        focus:outline-none focus:border-[var(--color-primary)]
-                      "
-                    >
-                      {GENDER_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                    <Input
+                      type="password"
+                      label="Password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                      required
+                      minLength={mode === 'signup' ? 8 : 6}
+                    />
+                    {mode === 'signup' && <PasswordStrengthIndicator password={password} />}
                   </div>
-                </div>
-              )}
 
-              {error && (
-                <div className="
-                  flex items-center gap-2 px-3 py-2.5
-                  rounded-[var(--radius-md)]
-                  bg-[var(--color-danger)]/10
-                  animate-fade-in
-                ">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-danger)]" />
-                  <p className="text-sm font-medium text-[var(--color-danger)]">
-                    {error}
-                  </p>
-                </div>
-              )}
+                  {mode === 'signup' && (
+                    <div className="space-y-4 animate-fade-in">
+                      <Input
+                        type="text"
+                        label="Display Name"
+                        placeholder="Your name (optional)"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        autoComplete="name"
+                      />
+                      <div>
+                        <label className="block text-sm font-semibold text-[var(--color-text)] mb-2">
+                          Gender
+                        </label>
+                        <select
+                          value={gender}
+                          onChange={(e) => setGender(e.target.value)}
+                          className="
+                            w-full px-4 py-3
+                            rounded-[var(--radius-lg)]
+                            border-2 border-[var(--color-border)]
+                            bg-[var(--color-surface)]
+                            text-[var(--color-text)] text-base
+                            focus:outline-none focus:border-[var(--color-primary)]
+                          "
+                        >
+                          {GENDER_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
 
-              <Button
-                type="submit"
-                variant="gradient"
-                className="w-full"
-                size="lg"
-                loading={loading}
-              >
-                {isLogin ? 'Sign In' : 'Create Account'}
-              </Button>
-            </form>
+                  {/* Remember Me & Forgot Password (Sign In only) */}
+                  {mode === 'signin' && (
+                    <div className="flex items-center justify-between">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={(e) => setRememberMe(e.target.checked)}
+                          className="
+                            w-4 h-4 rounded
+                            border-2 border-[var(--color-border)]
+                            text-[var(--color-primary)]
+                            focus:ring-[var(--color-primary)]
+                            focus:ring-offset-0
+                          "
+                        />
+                        <span className="text-sm text-[var(--color-text-muted)]">
+                          Remember me
+                        </span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => switchMode('forgot')}
+                        className="text-sm text-[var(--color-primary)] hover:underline"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Error Message */}
+                  {error && (
+                    <div className="
+                      flex items-center gap-2 px-3 py-2.5
+                      rounded-[var(--radius-md)]
+                      bg-[var(--color-danger)]/10
+                      animate-fade-in
+                    ">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-danger)]" />
+                      <p className="text-sm font-medium text-[var(--color-danger)]">
+                        {error}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Success Message */}
+                  {success && (
+                    <div className="
+                      flex items-center gap-2 px-3 py-2.5
+                      rounded-[var(--radius-md)]
+                      bg-green-500/10
+                      animate-fade-in
+                    ">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <p className="text-sm font-medium text-green-500">
+                        {success}
+                      </p>
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    variant="gradient"
+                    className="w-full"
+                    size="lg"
+                    loading={loading}
+                  >
+                    {mode === 'signin' ? 'Sign In' : 'Create Account'}
+                  </Button>
+                </form>
+              </>
+            )}
+
+            {/* Forgot Password Mode */}
+            {mode === 'forgot' && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => switchMode('signin')}
+                  className="flex items-center gap-1 text-sm text-[var(--color-text-muted)] mb-4 hover:text-[var(--color-text)]"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to sign in
+                </button>
+
+                <h2 className="text-lg font-bold text-[var(--color-text)] mb-2">
+                  Reset Password
+                </h2>
+                <p className="text-sm text-[var(--color-text-muted)] mb-5">
+                  Enter your email and we'll send you a link to reset your password.
+                </p>
+
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <Input
+                    type="email"
+                    label="Email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    required
+                  />
+
+                  {error && (
+                    <div className="
+                      flex items-center gap-2 px-3 py-2.5
+                      rounded-[var(--radius-md)]
+                      bg-[var(--color-danger)]/10
+                      animate-fade-in
+                    ">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-danger)]" />
+                      <p className="text-sm font-medium text-[var(--color-danger)]">
+                        {error}
+                      </p>
+                    </div>
+                  )}
+
+                  {success && (
+                    <div className="
+                      flex items-center gap-2 px-3 py-2.5
+                      rounded-[var(--radius-md)]
+                      bg-green-500/10
+                      animate-fade-in
+                    ">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <p className="text-sm font-medium text-green-500">
+                        {success}
+                      </p>
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    variant="gradient"
+                    className="w-full"
+                    size="lg"
+                    loading={loading}
+                  >
+                    Send Reset Link
+                  </Button>
+                </form>
+              </>
+            )}
+
+            {/* Reset Password Mode (after clicking email link) */}
+            {mode === 'reset' && (
+              <>
+                <h2 className="text-lg font-bold text-[var(--color-text)] mb-2">
+                  Set New Password
+                </h2>
+                <p className="text-sm text-[var(--color-text-muted)] mb-5">
+                  Enter your new password below.
+                </p>
+
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div>
+                    <Input
+                      type="password"
+                      label="New Password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="new-password"
+                      required
+                      minLength={8}
+                    />
+                    <PasswordStrengthIndicator password={password} />
+                  </div>
+                  <Input
+                    type="password"
+                    label="Confirm Password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
+                    required
+                    minLength={8}
+                  />
+
+                  {error && (
+                    <div className="
+                      flex items-center gap-2 px-3 py-2.5
+                      rounded-[var(--radius-md)]
+                      bg-[var(--color-danger)]/10
+                      animate-fade-in
+                    ">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-danger)]" />
+                      <p className="text-sm font-medium text-[var(--color-danger)]">
+                        {error}
+                      </p>
+                    </div>
+                  )}
+
+                  {success && (
+                    <div className="
+                      flex items-center gap-2 px-3 py-2.5
+                      rounded-[var(--radius-md)]
+                      bg-green-500/10
+                      animate-fade-in
+                    ">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <p className="text-sm font-medium text-green-500">
+                        {success}
+                      </p>
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    variant="gradient"
+                    className="w-full"
+                    size="lg"
+                    loading={loading}
+                  >
+                    Update Password
+                  </Button>
+                </form>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -1,6 +1,7 @@
 export { AuthPage } from './Auth'
 export { HomePage } from './Home'
 export { WorkoutPage } from './Workout'
+export { WorkoutSelectPage } from './WorkoutSelect'
 export { HistoryPage } from './History'
 export { SessionDetailPage } from './SessionDetail'
 export { ProfilePage } from './Profile'

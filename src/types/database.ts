@@ -78,6 +78,7 @@ export interface Database {
           reps_unit: string
           is_per_side: boolean
           target_weight: number | null
+          weight_unit: 'lbs' | 'kg'
           notes: string | null
           sort_order: number
         }
@@ -91,6 +92,7 @@ export interface Database {
           reps_unit?: string
           is_per_side?: boolean
           target_weight?: number | null
+          weight_unit?: 'lbs' | 'kg'
           notes?: string | null
           sort_order: number
         }
@@ -104,6 +106,7 @@ export interface Database {
           reps_unit?: string
           is_per_side?: boolean
           target_weight?: number | null
+          weight_unit?: 'lbs' | 'kg'
           notes?: string | null
           sort_order?: number
         }

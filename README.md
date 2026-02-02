@@ -1,6 +1,6 @@
 # Workout Tracker PWA
 
-A Progressive Web App for tracking Push/Pull/Legs workouts with Supabase backend.
+A Progressive Web App for tracking your workouts with Supabase backend. Supports weights, cardio, and mobility workouts.
 
 ## Setup
 
@@ -35,8 +35,9 @@ npm run dev
 
 ## Features
 
-- 3-day Push/Pull/Legs workout plan
+- Customizable workout schedules
 - Track sets, reps, and weights
+- Cardio and mobility workouts
 - Rest timer with presets
 - Workout history
 - Works offline (PWA)

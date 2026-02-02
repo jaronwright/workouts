@@ -14,7 +14,7 @@ export default defineConfig({
       manifest: {
         name: 'Workout Tracker',
         short_name: 'Workouts',
-        description: 'Track your Push/Pull/Legs workouts',
+        description: 'Track your workouts and fitness progress',
         theme_color: '#3b82f6',
         background_color: '#ffffff',
         display: 'standalone',

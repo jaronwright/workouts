@@ -189,6 +189,7 @@ export function WorkoutPage() {
   return (
     <AppShell title={workoutDay.name} showBack hideNav>
       <div className="p-4 space-y-4">
+        {/* Rest Timer */}
         <RestTimer />
 
         {workoutDay.sections.map((section) => {

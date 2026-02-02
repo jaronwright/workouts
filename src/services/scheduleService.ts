@@ -18,6 +18,7 @@ export interface ScheduleDay {
   template_id: string | null
   workout_day_id: string | null
   is_rest_day: boolean
+  sort_order: number
   created_at: string
   updated_at: string
   // Joined data
@@ -33,12 +34,16 @@ export interface UpdateScheduleDayData {
   template_id?: string | null
   workout_day_id?: string | null
   is_rest_day?: boolean
+  sort_order?: number
 }
 
-const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+export interface ScheduleWorkoutItem {
+  type: 'rest' | 'weights' | 'cardio' | 'mobility'
+  id?: string // workout_day_id or template_id
+}
 
 export function getDayName(dayNumber: number): string {
-  return DAY_NAMES[dayNumber - 1] || `Day ${dayNumber}`
+  return `Day ${dayNumber}`
 }
 
 export async function getWorkoutTemplates(): Promise<WorkoutTemplate[]> {
@@ -76,15 +81,19 @@ export async function getUserSchedule(userId: string): Promise<ScheduleDay[]> {
     `)
     .eq('user_id', userId)
     .order('day_number', { ascending: true })
+    .order('sort_order', { ascending: true })
 
   if (error) {
     console.warn('Error fetching user schedule:', error.message)
     return []
   }
-  return data as ScheduleDay[]
+  return (data || []).map(d => ({
+    ...d,
+    sort_order: d.sort_order ?? 0
+  })) as ScheduleDay[]
 }
 
-export async function getScheduleDay(userId: string, dayNumber: number): Promise<ScheduleDay | null> {
+export async function getScheduleDayWorkouts(userId: string, dayNumber: number): Promise<ScheduleDay[]> {
   const { data, error } = await supabase
     .from('user_schedules')
     .select(`
@@ -94,51 +103,22 @@ export async function getScheduleDay(userId: string, dayNumber: number): Promise
     `)
     .eq('user_id', userId)
     .eq('day_number', dayNumber)
-    .maybeSingle()
+    .order('sort_order', { ascending: true })
 
   if (error) {
     console.warn('Error fetching schedule day:', error.message)
-    return null
+    return []
   }
-  return data as ScheduleDay | null
+  return (data || []).map(d => ({
+    ...d,
+    sort_order: d.sort_order ?? 0
+  })) as ScheduleDay[]
 }
 
-export async function upsertScheduleDay(
-  userId: string,
-  dayNumber: number,
-  data: UpdateScheduleDayData
-): Promise<ScheduleDay> {
-  // Build the update data, ensuring constraint is satisfied
-  // Either is_rest_day = true, OR template_id/workout_day_id is set
-  const updateData = data.is_rest_day
-    ? { is_rest_day: true, template_id: null, workout_day_id: null }
-    : {
-        is_rest_day: false,
-        template_id: data.template_id || null,
-        workout_day_id: data.workout_day_id || null
-      }
-
-  const { data: schedule, error } = await supabase
-    .from('user_schedules')
-    .upsert(
-      {
-        user_id: userId,
-        day_number: dayNumber,
-        ...updateData
-      },
-      {
-        onConflict: 'user_id,day_number'
-      }
-    )
-    .select(`
-      *,
-      template:workout_templates(*),
-      workout_day:workout_days(id, name, day_number)
-    `)
-    .single()
-
-  if (error) throw error
-  return schedule as ScheduleDay
+// Legacy function for backwards compatibility - returns first workout
+export async function getScheduleDay(userId: string, dayNumber: number): Promise<ScheduleDay | null> {
+  const workouts = await getScheduleDayWorkouts(userId, dayNumber)
+  return workouts[0] || null
 }
 
 export async function deleteScheduleDay(userId: string, dayNumber: number): Promise<void> {
@@ -149,6 +129,109 @@ export async function deleteScheduleDay(userId: string, dayNumber: number): Prom
     .eq('day_number', dayNumber)
 
   if (error) throw error
+}
+
+// Save multiple workouts for a day (replaces all existing)
+export async function saveScheduleDayWorkouts(
+  userId: string,
+  dayNumber: number,
+  workouts: ScheduleWorkoutItem[]
+): Promise<ScheduleDay[]> {
+  console.log('saveScheduleDayWorkouts called:', { userId, dayNumber, workouts })
+
+  // Delete existing schedules for this day
+  try {
+    await deleteScheduleDay(userId, dayNumber)
+    console.log('Deleted existing schedules for day', dayNumber)
+  } catch (deleteError) {
+    console.error('Failed to delete existing schedules:', deleteError)
+    throw new Error(`Failed to clear existing schedule: ${deleteError instanceof Error ? deleteError.message : String(deleteError)}`)
+  }
+
+  // If no workouts or rest day, insert single rest entry
+  if (workouts.length === 0 || workouts[0]?.type === 'rest') {
+    console.log('Inserting rest day')
+    const { data, error } = await supabase
+      .from('user_schedules')
+      .insert({
+        user_id: userId,
+        day_number: dayNumber,
+        is_rest_day: true,
+        template_id: null,
+        workout_day_id: null,
+        sort_order: 0
+      })
+      .select(`
+        *,
+        template:workout_templates(*),
+        workout_day:workout_days(id, name, day_number)
+      `)
+
+    if (error) {
+      console.error('Failed to insert rest day:', error)
+      throw new Error(`Failed to save rest day: ${error.message}`)
+    }
+    return (data || []).map(d => ({
+      ...d,
+      sort_order: d.sort_order ?? 0
+    })) as ScheduleDay[]
+  }
+
+  // Insert all workouts with sort_order
+  const scheduleData = workouts.map((workout, index) => ({
+    user_id: userId,
+    day_number: dayNumber,
+    is_rest_day: false,
+    template_id: workout.type === 'cardio' || workout.type === 'mobility' ? workout.id : null,
+    workout_day_id: workout.type === 'weights' ? workout.id : null,
+    sort_order: index
+  }))
+
+  console.log('Inserting schedule data:', scheduleData)
+
+  const { data, error } = await supabase
+    .from('user_schedules')
+    .insert(scheduleData)
+    .select(`
+      *,
+      template:workout_templates(*),
+      workout_day:workout_days(id, name, day_number)
+    `)
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Failed to insert schedules:', error)
+    throw new Error(`Failed to save schedule: ${error.message}`)
+  }
+  console.log('Successfully saved schedules:', data)
+  return (data || []).map(d => ({
+    ...d,
+    sort_order: d.sort_order ?? 0
+  })) as ScheduleDay[]
+}
+
+// Legacy upsert function - now wraps saveScheduleDayWorkouts for single workout
+export async function upsertScheduleDay(
+  userId: string,
+  dayNumber: number,
+  data: UpdateScheduleDayData
+): Promise<ScheduleDay> {
+  let workoutItem: ScheduleWorkoutItem
+
+  if (data.is_rest_day) {
+    workoutItem = { type: 'rest' }
+  } else if (data.workout_day_id) {
+    workoutItem = { type: 'weights', id: data.workout_day_id }
+  } else if (data.template_id) {
+    // We need to determine if it's cardio or mobility
+    // For simplicity, default to cardio - the actual type is stored in the template
+    workoutItem = { type: 'cardio', id: data.template_id }
+  } else {
+    workoutItem = { type: 'rest' }
+  }
+
+  const result = await saveScheduleDayWorkouts(userId, dayNumber, [workoutItem])
+  return result[0]
 }
 
 // Initialize a default schedule for a new user
@@ -164,26 +247,27 @@ export async function initializeDefaultSchedule(userId: string): Promise<Schedul
 
   // Create default schedule: Push, Pull, Legs, Rest, Push, Pull, Rest
   const defaultSchedule = [
-    { day_number: 1, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
-    { day_number: 2, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
-    { day_number: 3, workout_day_id: workoutDays?.[2]?.id || null, is_rest_day: false },
-    { day_number: 4, is_rest_day: true },
-    { day_number: 5, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
-    { day_number: 6, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
-    { day_number: 7, is_rest_day: true }
+    { day_number: 1, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false, sort_order: 0 },
+    { day_number: 2, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false, sort_order: 0 },
+    { day_number: 3, workout_day_id: workoutDays?.[2]?.id || null, is_rest_day: false, sort_order: 0 },
+    { day_number: 4, is_rest_day: true, workout_day_id: null, sort_order: 0 },
+    { day_number: 5, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false, sort_order: 0 },
+    { day_number: 6, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false, sort_order: 0 },
+    { day_number: 7, is_rest_day: true, workout_day_id: null, sort_order: 0 }
   ]
 
   const scheduleData = defaultSchedule.map(day => ({
     user_id: userId,
     day_number: day.day_number,
-    workout_day_id: day.workout_day_id || null,
+    workout_day_id: day.workout_day_id,
     template_id: null,
-    is_rest_day: day.is_rest_day
+    is_rest_day: day.is_rest_day,
+    sort_order: day.sort_order
   }))
 
   const { data, error } = await supabase
     .from('user_schedules')
-    .upsert(scheduleData)
+    .insert(scheduleData)
     .select(`
       *,
       template:workout_templates(*),
@@ -191,10 +275,18 @@ export async function initializeDefaultSchedule(userId: string): Promise<Schedul
     `)
 
   if (error) throw error
-  return data as ScheduleDay[]
+  return (data || []).map(d => ({
+    ...d,
+    sort_order: d.sort_order ?? 0
+  })) as ScheduleDay[]
 }
 
-// Get what workout is scheduled for the user's current cycle day
+// Get all workouts scheduled for the user's current cycle day
+export async function getTodaysScheduledWorkouts(userId: string, currentCycleDay: number): Promise<ScheduleDay[]> {
+  return getScheduleDayWorkouts(userId, currentCycleDay)
+}
+
+// Legacy function - returns first workout
 export async function getTodaysScheduledWorkout(userId: string, currentCycleDay: number): Promise<ScheduleDay | null> {
   return getScheduleDay(userId, currentCycleDay)
 }

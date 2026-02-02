@@ -31,7 +31,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 animate-fade-in"
@@ -39,14 +39,17 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
       />
 
       {/* Modal */}
-      <div className="
-        relative w-full sm:max-w-md sm:mx-4
-        max-h-[85vh] overflow-auto
-        bg-[var(--color-surface)]
-        rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)]
-        shadow-xl
-        animate-slide-up
-      ">
+      <div
+        className="
+          relative w-full sm:max-w-md sm:mx-4
+          max-h-[85vh] overflow-auto
+          bg-[var(--color-surface)]
+          rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)]
+          shadow-xl
+          animate-slide-up
+        "
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Handle for mobile */}
         <div className="sm:hidden flex justify-center pt-2 pb-1">
           <div className="w-10 h-1 rounded-full bg-[var(--color-border-strong)]" />

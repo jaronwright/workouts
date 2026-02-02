@@ -98,3 +98,10 @@ export async function advanceCycleDay(userId: string): Promise<UserProfile> {
   if (updateError) throw updateError
   return profile as UserProfile
 }
+
+export async function deleteUserAccount(): Promise<void> {
+  // Call the RPC function to delete user account and all associated data
+  const { error } = await supabase.rpc('delete_user_account')
+
+  if (error) throw error
+}

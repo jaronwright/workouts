@@ -185,11 +185,15 @@ export function CardioWorkoutPage() {
             </label>
             <div className="flex gap-2">
               <Input
-                type="number"
+                type="text"
                 inputMode="decimal"
+                pattern="[0-9]*\.?[0-9]*"
                 placeholder="0.00"
                 value={distance}
-                onChange={(e) => setDistance(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9.]/g, '')
+                  setDistance(val)
+                }}
                 className="flex-1"
               />
               <select

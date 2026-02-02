@@ -22,9 +22,9 @@ export function formatDuration(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
-export function formatWeight(weight: number | null): string {
+export function formatWeight(weight: number | null, unit: 'lbs' | 'kg' = 'lbs'): string {
   if (weight === null) return '—'
-  return `${weight} lbs`
+  return `${weight} ${unit}`
 }
 
 export function formatReps(reps: number | null): string {

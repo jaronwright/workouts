@@ -1,10 +1,13 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react'
 import { AppShell } from '@/components/layout'
-import { Button, Input, Card, CardContent } from '@/components/ui'
+import { Button, Input, Card, CardContent, Modal } from '@/components/ui'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useAuthStore } from '@/stores/authStore'
-import { User, Calendar } from 'lucide-react'
+import { useToast } from '@/hooks/useToast'
+import { PasswordStrengthIndicator } from '@/components/auth/PasswordStrengthIndicator'
+import { validatePassword } from '@/utils/validation'
+import { deleteUserAccount } from '@/services/profileService'
+import { User, Calendar, Shield, Mail, AlertTriangle, ChevronDown, ChevronUp, LogOut } from 'lucide-react'
 
 const GENDER_OPTIONS = [
   { value: '', label: 'Select gender' },
@@ -16,12 +19,33 @@ const GENDER_OPTIONS = [
 
 export function ProfilePage() {
   const user = useAuthStore((s) => s.user)
+  const updatePassword = useAuthStore((s) => s.updatePassword)
+  const updateEmail = useAuthStore((s) => s.updateEmail)
+  const signOut = useAuthStore((s) => s.signOut)
+  const signOutAllDevices = useAuthStore((s) => s.signOutAllDevices)
   const { data: profile, isLoading } = useProfile()
   const { mutate: updateProfile, isPending: isSaving } = useUpdateProfile()
+  const { success, error: showError } = useToast()
 
   const [displayName, setDisplayName] = useState('')
   const [gender, setGender] = useState<string>('')
   const [saved, setSaved] = useState(false)
+
+  // Security section state
+  const [securityExpanded, setSecurityExpanded] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+
+  // Email section state
+  const [emailExpanded, setEmailExpanded] = useState(false)
+  const [newEmail, setNewEmail] = useState('')
+  const [isChangingEmail, setIsChangingEmail] = useState(false)
+
+  // Delete account state
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Initialize form from profile data
   useEffect(() => {
@@ -40,10 +64,106 @@ export function ProfilePage() {
       {
         onSuccess: () => {
           setSaved(true)
+          success('Profile saved')
           setTimeout(() => setSaved(false), 2000)
+        },
+        onError: () => {
+          showError('Failed to save profile')
         }
       }
     )
+  }
+
+  const handleChangePassword = async () => {
+    if (!newPassword) {
+      showError('Please enter a new password')
+      return
+    }
+
+    const validation = validatePassword(newPassword)
+    if (!validation.valid) {
+      showError('Password does not meet requirements')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      showError('Passwords do not match')
+      return
+    }
+
+    setIsChangingPassword(true)
+    try {
+      await updatePassword(newPassword)
+      success('Password updated successfully')
+      setNewPassword('')
+      setConfirmPassword('')
+      setSecurityExpanded(false)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to update password'
+      showError(message)
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
+  const handleChangeEmail = async () => {
+    if (!newEmail) {
+      showError('Please enter a new email')
+      return
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(newEmail)) {
+      showError('Please enter a valid email address')
+      return
+    }
+
+    if (newEmail === user?.email) {
+      showError('New email must be different from current email')
+      return
+    }
+
+    setIsChangingEmail(true)
+    try {
+      await updateEmail(newEmail)
+      success('Confirmation email sent! Check your new email to confirm the change.')
+      setNewEmail('')
+      setEmailExpanded(false)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to update email'
+      showError(message)
+    } finally {
+      setIsChangingEmail(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmation !== 'DELETE') {
+      showError('Please type DELETE to confirm')
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      await deleteUserAccount()
+      await signOut()
+      // The user will be redirected to auth page by the protected route
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete account'
+      showError(message)
+      setIsDeleting(false)
+    }
+  }
+
+  const handleSignOutAllDevices = async () => {
+    try {
+      await signOutAllDevices()
+      success('Signed out from all devices')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to sign out'
+      showError(message)
+    }
   }
 
   if (isLoading) {
@@ -113,6 +233,128 @@ export function ProfilePage() {
           </CardContent>
         </Card>
 
+        {/* Security Section */}
+        <Card>
+          <CardContent className="py-4">
+            <button
+              onClick={() => setSecurityExpanded(!securityExpanded)}
+              className="w-full flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[var(--color-primary)]/20 rounded-full flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-[var(--color-primary)]" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-[var(--color-text)]">Security</h3>
+                  <p className="text-sm text-[var(--color-text-muted)]">Change password & sessions</p>
+                </div>
+              </div>
+              {securityExpanded ? (
+                <ChevronUp className="w-5 h-5 text-[var(--color-text-muted)]" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-[var(--color-text-muted)]" />
+              )}
+            </button>
+
+            {securityExpanded && (
+              <div className="mt-4 pt-4 border-t border-[var(--color-border)] space-y-4 animate-fade-in">
+                <h4 className="text-sm font-medium text-[var(--color-text)]">Change Password</h4>
+                <div>
+                  <Input
+                    type="password"
+                    label="New Password"
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                  <PasswordStrengthIndicator password={newPassword} />
+                </div>
+                <Input
+                  type="password"
+                  label="Confirm Password"
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
+                <Button
+                  onClick={handleChangePassword}
+                  loading={isChangingPassword}
+                  className="w-full"
+                  disabled={!newPassword || !confirmPassword}
+                >
+                  Update Password
+                </Button>
+
+                <div className="pt-4 border-t border-[var(--color-border)]">
+                  <h4 className="text-sm font-medium text-[var(--color-text)] mb-3">Session Management</h4>
+                  <Button
+                    variant="secondary"
+                    onClick={handleSignOutAllDevices}
+                    className="w-full flex items-center justify-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out All Devices
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Change Email Section */}
+        <Card>
+          <CardContent className="py-4">
+            <button
+              onClick={() => setEmailExpanded(!emailExpanded)}
+              className="w-full flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-blue-500" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-[var(--color-text)]">Email</h3>
+                  <p className="text-sm text-[var(--color-text-muted)]">Change your email address</p>
+                </div>
+              </div>
+              {emailExpanded ? (
+                <ChevronUp className="w-5 h-5 text-[var(--color-text-muted)]" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-[var(--color-text-muted)]" />
+              )}
+            </button>
+
+            {emailExpanded && (
+              <div className="mt-4 pt-4 border-t border-[var(--color-border)] space-y-4 animate-fade-in">
+                <p className="text-sm text-[var(--color-text-muted)]">
+                  Current email: <span className="font-medium text-[var(--color-text)]">{user?.email}</span>
+                </p>
+                <Input
+                  type="email"
+                  label="New Email"
+                  placeholder="Enter new email address"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  autoComplete="email"
+                />
+                <p className="text-xs text-[var(--color-text-muted)]">
+                  A confirmation link will be sent to your new email address.
+                </p>
+                <Button
+                  onClick={handleChangeEmail}
+                  loading={isChangingEmail}
+                  className="w-full"
+                  disabled={!newEmail}
+                >
+                  Update Email
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Workout Cycle Info */}
         <Card>
           <CardContent className="py-4">
@@ -134,7 +376,85 @@ export function ProfilePage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Danger Zone */}
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-[var(--color-danger)]/20 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-[var(--color-danger)]" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-[var(--color-danger)]">Danger Zone</h3>
+                <p className="text-sm text-[var(--color-text-muted)]">Irreversible actions</p>
+              </div>
+            </div>
+            <Button
+              variant="danger"
+              onClick={() => setShowDeleteModal(true)}
+              className="w-full"
+            >
+              Delete Account
+            </Button>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Delete Account Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setDeleteConfirmation('')
+        }}
+        title="Delete Account"
+      >
+        <div className="space-y-4">
+          <div className="p-3 bg-[var(--color-danger)]/10 rounded-lg">
+            <p className="text-sm text-[var(--color-danger)] font-medium">
+              This action cannot be undone. This will permanently delete your account and all associated data including:
+            </p>
+            <ul className="mt-2 text-sm text-[var(--color-danger)] list-disc list-inside">
+              <li>Your profile information</li>
+              <li>All workout sessions and history</li>
+              <li>All exercise logs and progress</li>
+            </ul>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+              Type <span className="font-bold">DELETE</span> to confirm
+            </label>
+            <Input
+              value={deleteConfirmation}
+              onChange={(e) => setDeleteConfirmation(e.target.value)}
+              placeholder="Type DELETE"
+            />
+          </div>
+
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowDeleteModal(false)
+                setDeleteConfirmation('')
+              }}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDeleteAccount}
+              loading={isDeleting}
+              disabled={deleteConfirmation !== 'DELETE'}
+              className="flex-1"
+            >
+              Delete Account
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </AppShell>
   )
 }

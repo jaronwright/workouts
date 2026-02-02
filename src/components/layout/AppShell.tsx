@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Header } from './Header'
 import { BottomNav } from './BottomNav'
+import { VerificationBanner } from '@/components/auth/VerificationBanner'
 
 interface AppShellProps {
   children: ReactNode
@@ -19,6 +20,7 @@ export function AppShell({
 }: AppShellProps) {
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
+      <VerificationBanner />
       <Header title={title} showBack={showBack} showLogout={showLogout} />
       <main className={`${hideNav ? 'pb-6' : 'pb-28'}`}>
         {children}
