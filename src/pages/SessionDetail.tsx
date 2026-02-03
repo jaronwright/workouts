@@ -1,9 +1,14 @@
-import { useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout'
-import { Card, CardContent } from '@/components/ui'
-import { formatDate, formatTime, formatDuration, normalizeWorkoutName } from '@/utils/formatters'
-import { Calendar, Clock, CheckCircle, Dumbbell } from 'lucide-react'
+import { Card, CardContent, Modal, Button } from '@/components/ui'
+import { useDeleteSession, useUpdateSession, useUpdateSet, useDeleteSet } from '@/hooks/useWorkoutSession'
+import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
+import { getWorkoutDisplayName } from '@/config/workoutConfig'
+import {
+  Calendar, Clock, CheckCircle, Dumbbell, Trash2, Edit2, X, Save, MoreVertical
+} from 'lucide-react'
 import { supabase } from '@/services/supabase'
 
 interface SetWithExercise {
@@ -19,6 +24,7 @@ interface SetWithExercise {
     reps_min: number | null
     reps_max: number | null
     reps_unit: string | null
+    weight_unit: string | null
     section: {
       name: string
       sort_order: number
@@ -60,6 +66,7 @@ async function getSessionDetail(sessionId: string) {
         reps_min,
         reps_max,
         reps_unit,
+        weight_unit,
         section:exercise_sections(name, sort_order)
       )
     `)
@@ -74,14 +81,204 @@ async function getSessionDetail(sessionId: string) {
   }
 }
 
+// Edit Set Modal Component
+interface EditSetModalProps {
+  set: SetWithExercise | null
+  isOpen: boolean
+  onClose: () => void
+  onSave: (setId: string, reps: number | null, weight: number | null) => void
+  onDelete: (setId: string) => void
+  isLoading: boolean
+}
+
+function EditSetModal({ set, isOpen, onClose, onSave, onDelete, isLoading }: EditSetModalProps) {
+  const [reps, setReps] = useState<string>('')
+  const [weight, setWeight] = useState<string>('')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  // Reset form when set changes
+  useEffect(() => {
+    if (set) {
+      setReps(set.reps_completed?.toString() || '')
+      setWeight(set.weight_used?.toString() || '')
+      setShowDeleteConfirm(false)
+    }
+  }, [set])
+
+  const handleSave = () => {
+    if (!set) return
+    onSave(
+      set.id,
+      reps ? parseInt(reps, 10) : null,
+      weight ? parseFloat(weight) : null
+    )
+  }
+
+  const handleDelete = () => {
+    if (!set) return
+    onDelete(set.id)
+  }
+
+  if (!set) return null
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={`Edit Set ${set.set_number}`}>
+      {showDeleteConfirm ? (
+        <div className="space-y-4">
+          <p className="text-[var(--color-text-muted)]">
+            Delete this set? This cannot be undone.
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => setShowDeleteConfirm(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDelete}
+              loading={isLoading}
+              className="flex-1"
+            >
+              Delete
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">
+              {set.plan_exercise.reps_unit || 'Reps'}
+            </label>
+            <input
+              type="number"
+              value={reps}
+              onChange={(e) => setReps(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)]"
+              placeholder="0"
+            />
+          </div>
+          {set.plan_exercise.weight_unit !== null && (
+            <div>
+              <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">
+                Weight ({set.plan_exercise.weight_unit || 'lbs'})
+              </label>
+              <input
+                type="number"
+                step="0.5"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)]"
+                placeholder="0"
+              />
+            </div>
+          )}
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="danger"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-12"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={onClose}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              loading={isLoading}
+              className="flex-1"
+            >
+              <Save className="w-4 h-4 mr-1" />
+              Save
+            </Button>
+          </div>
+        </div>
+      )}
+    </Modal>
+  )
+}
+
 export function SessionDetailPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
-  const { data, isLoading } = useQuery({
+  // CRUD Hooks
+  const { mutate: deleteSession, isPending: isDeleting } = useDeleteSession()
+  const { mutate: updateSession, isPending: isUpdatingNotes } = useUpdateSession()
+  const { mutate: updateSet, isPending: isUpdatingSet } = useUpdateSet()
+  const { mutate: deleteSet, isPending: isDeletingSet } = useDeleteSet()
+
+  // State
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [isEditingNotes, setIsEditingNotes] = useState(false)
+  const [editedNotes, setEditedNotes] = useState('')
+  const [editingSet, setEditingSet] = useState<SetWithExercise | null>(null)
+  const [showActionsMenu, setShowActionsMenu] = useState(false)
+
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['session-detail', sessionId],
     queryFn: () => getSessionDetail(sessionId!),
     enabled: !!sessionId
   })
+
+  // Handlers
+  const handleDeleteSession = () => {
+    if (!sessionId) return
+    deleteSession(sessionId, {
+      onSuccess: () => {
+        navigate('/history', { replace: true })
+      }
+    })
+  }
+
+  const handleStartEditNotes = () => {
+    setEditedNotes(data?.session.notes || '')
+    setIsEditingNotes(true)
+    setShowActionsMenu(false)
+  }
+
+  const handleSaveNotes = () => {
+    if (!sessionId) return
+    updateSession(
+      { sessionId, notes: editedNotes || null },
+      {
+        onSuccess: () => {
+          setIsEditingNotes(false)
+          refetch()
+        }
+      }
+    )
+  }
+
+  const handleSaveSet = (setId: string, reps: number | null, weight: number | null) => {
+    updateSet(
+      { setId, updates: { reps_completed: reps, weight_used: weight } },
+      {
+        onSuccess: () => {
+          setEditingSet(null)
+          refetch()
+        }
+      }
+    )
+  }
+
+  const handleDeleteSet = (setId: string) => {
+    deleteSet(setId, {
+      onSuccess: () => {
+        setEditingSet(null)
+        refetch()
+      }
+    })
+  }
 
   // Group sets by exercise
   const exerciseGroups = data?.sets.reduce((acc, set) => {
@@ -124,8 +321,47 @@ export function SessionDetailPage() {
 
   return (
     <AppShell
-      title={normalizeWorkoutName(data?.session.workout_day?.name || 'Workout Details')}
+      title={getWorkoutDisplayName(data?.session.workout_day?.name) || 'Workout Details'}
       showBack
+      headerAction={
+        data && (
+          <div className="relative">
+            <button
+              onClick={() => setShowActionsMenu(!showActionsMenu)}
+              className="p-2 rounded-lg hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]"
+            >
+              <MoreVertical className="w-5 h-5" />
+            </button>
+            {showActionsMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowActionsMenu(false)}
+                />
+                <div className="absolute right-0 top-full mt-1 w-48 bg-[var(--color-surface)] rounded-lg shadow-lg border border-[var(--color-border)] z-50 overflow-hidden">
+                  <button
+                    onClick={handleStartEditNotes}
+                    className="w-full px-4 py-3 text-left text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] flex items-center gap-2"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Edit Notes
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowDeleteModal(true)
+                      setShowActionsMenu(false)
+                    }}
+                    className="w-full px-4 py-3 text-left text-sm text-[var(--color-danger)] hover:bg-[var(--color-surface-hover)] flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete Workout
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )
+      }
     >
       <div className="p-4 space-y-4">
         {isLoading ? (
@@ -160,10 +396,52 @@ export function SessionDetailPage() {
                     Completed
                   </div>
                 )}
-                {data.session.notes && (
-                  <p className="mt-3 text-sm text-[var(--color-text-muted)] bg-[var(--color-surface-hover)] p-2 rounded-lg">
+
+                {/* Notes Section */}
+                {isEditingNotes ? (
+                  <div className="mt-3 space-y-2">
+                    <textarea
+                      value={editedNotes}
+                      onChange={(e) => setEditedNotes(e.target.value)}
+                      placeholder="Add notes about this workout..."
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-sm resize-none"
+                      rows={3}
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => setIsEditingNotes(false)}
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={handleSaveNotes}
+                        loading={isUpdatingNotes}
+                      >
+                        <Save className="w-4 h-4 mr-1" />
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                ) : data.session.notes ? (
+                  <button
+                    onClick={handleStartEditNotes}
+                    className="mt-3 w-full text-left text-sm text-[var(--color-text-muted)] bg-[var(--color-surface-hover)] p-2 rounded-lg hover:bg-[var(--color-surface-hover)]/80 transition-colors"
+                  >
                     {data.session.notes}
-                  </p>
+                    <span className="text-xs text-[var(--color-primary)] ml-2">(tap to edit)</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleStartEditNotes}
+                    className="mt-3 text-sm text-[var(--color-primary)] hover:underline"
+                  >
+                    + Add notes
+                  </button>
                 )}
               </CardContent>
             </Card>
@@ -185,9 +463,10 @@ export function SessionDetailPage() {
                           <h4 className="font-medium text-[var(--color-text)]">{exercise.name}</h4>
                           <div className="flex flex-wrap gap-2 mt-2">
                             {sets.map((set) => (
-                              <div
+                              <button
                                 key={set.id}
-                                className="text-xs bg-[var(--color-surface-hover)] px-2 py-1 rounded-lg"
+                                onClick={() => setEditingSet(set)}
+                                className="text-xs bg-[var(--color-surface-hover)] px-2 py-1 rounded-lg hover:bg-[var(--color-surface-hover)]/80 transition-colors active:scale-95"
                               >
                                 <span className="font-medium text-[var(--color-text)]">Set {set.set_number}</span>
                                 {set.reps_completed && (
@@ -197,12 +476,15 @@ export function SessionDetailPage() {
                                 )}
                                 {set.weight_used && (
                                   <span className="text-[var(--color-text-muted)]">
-                                    {' '}@ {set.weight_used} lbs
+                                    {' '}@ {set.weight_used} {exercise.weight_unit || 'lbs'}
                                   </span>
                                 )}
-                              </div>
+                              </button>
                             ))}
                           </div>
+                          <p className="text-[10px] text-[var(--color-text-muted)] mt-1.5 opacity-70">
+                            Tap a set to edit
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -227,6 +509,53 @@ export function SessionDetailPage() {
           </Card>
         )}
       </div>
+
+      {/* Delete Session Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete Workout"
+      >
+        <div className="space-y-4">
+          <p className="text-[var(--color-text-muted)]">
+            Are you sure you want to delete this workout session?
+          </p>
+          <p className="text-sm font-medium text-[var(--color-text)]">
+            {getWorkoutDisplayName(data?.session.workout_day?.name)} - {data && formatDate(data.session.started_at)}
+          </p>
+          <p className="text-sm text-[var(--color-danger)]">
+            This will permanently delete all logged sets and cannot be undone.
+          </p>
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="secondary"
+              onClick={() => setShowDeleteModal(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDeleteSession}
+              loading={isDeleting}
+              className="flex-1"
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              Delete
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Set Modal */}
+      <EditSetModal
+        set={editingSet}
+        isOpen={!!editingSet}
+        onClose={() => setEditingSet(null)}
+        onSave={handleSaveSet}
+        onDelete={handleDeleteSet}
+        isLoading={isUpdatingSet || isDeletingSet}
+      />
     </AppShell>
   )
 }

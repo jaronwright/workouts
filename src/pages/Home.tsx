@@ -1,40 +1,43 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Play, TrendingUp, ChevronRight, Clock, Flame, Trophy, Calendar } from 'lucide-react'
+import {
+  Play, TrendingUp, ChevronRight, ChevronDown, Clock, Flame, Trophy, Calendar,
+  Zap, Dumbbell, Heart, Activity, X
+} from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
-import { ActivityFeed } from '@/components/social'
-import { useActiveSession, useUserSessions } from '@/hooks/useWorkoutSession'
+import { ScheduleWidget } from '@/components/workout'
+import { useActiveSession, useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
 import { useProfile } from '@/hooks/useProfile'
-import { useTodaysWorkout } from '@/hooks/useSchedule'
-import { formatRelativeTime, normalizeWorkoutName } from '@/utils/formatters'
+import { useWorkoutPlans, useWorkoutDays } from '@/hooks/useWorkoutPlan'
+import { useWorkoutTemplatesByType } from '@/hooks/useSchedule'
+import { formatRelativeTime } from '@/utils/formatters'
+import {
+  getWorkoutDisplayName,
+  getCardioStyle,
+  getMobilityStyle,
+  CATEGORY_DEFAULTS,
+  getCategoryLabel
+} from '@/config/workoutConfig'
 import type { SessionWithDay } from '@/services/workoutService'
+import type { WorkoutTemplate } from '@/services/scheduleService'
 
-// Curated Unsplash images for each workout type
-const WORKOUT_IMAGES = {
-  push: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&h=600&fit=crop&crop=faces',
-  pull: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&h=600&fit=crop&crop=faces',
-  legs: 'https://images.unsplash.com/photo-1434608519344-49d77a699e1d?w=800&h=600&fit=crop&crop=faces',
-  rest: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&h=600&fit=crop&crop=faces',
-  default: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=600&fit=crop&crop=faces'
+// Get greeting based on time of day
+function getGreeting(): string {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
 }
 
-function getWorkoutImage(workoutName: string | undefined): string {
-  if (!workoutName) return WORKOUT_IMAGES.default
-  const name = workoutName.toLowerCase()
-  if (name.includes('push')) return WORKOUT_IMAGES.push
-  if (name.includes('pull')) return WORKOUT_IMAGES.pull
-  if (name.includes('leg')) return WORKOUT_IMAGES.legs
-  if (name.includes('rest')) return WORKOUT_IMAGES.rest
-  return WORKOUT_IMAGES.default
-}
-
-function getWorkoutType(workoutName: string | undefined): string {
-  if (!workoutName) return 'Workout'
-  const name = workoutName.toLowerCase()
-  if (name.includes('push')) return 'Push Day'
-  if (name.includes('pull')) return 'Pull Day'
-  if (name.includes('leg')) return 'Leg Day'
-  return 'Workout'
+// Get motivational message based on stats
+function getMotivationalMessage(streak: number, thisWeek: number, hasActiveSession: boolean): string {
+  if (hasActiveSession) return "You have a workout in progress!"
+  if (streak >= 7) return "You're on fire! Keep the momentum going!"
+  if (streak >= 3) return "Great consistency! You're building a habit."
+  if (thisWeek >= 3) return "Solid week! One more workout to crush it."
+  if (thisWeek >= 1) return "Good start this week. Keep pushing!"
+  return "Ready to start strong? Let's go!"
 }
 
 // Calculate streak from sessions
@@ -47,7 +50,6 @@ function calculateStreak(sessions: SessionWithDay[]): number {
   let streak = 0
   const checkDate = new Date(today)
 
-  // Get unique workout days
   const workoutDays = new Set(
     sessions
       .filter(s => s.completed_at)
@@ -58,12 +60,10 @@ function calculateStreak(sessions: SessionWithDay[]): number {
       })
   )
 
-  // Count consecutive days (allowing for rest days in PPL split)
   for (let i = 0; i < 30; i++) {
     if (workoutDays.has(checkDate.getTime())) {
       streak++
     } else if (streak > 0 && i > 1) {
-      // Allow 1-2 rest days between workouts
       const nextDay = new Date(checkDate)
       nextDay.setDate(nextDay.getDate() - 1)
       if (!workoutDays.has(nextDay.getTime())) {
@@ -77,197 +77,365 @@ function calculateStreak(sessions: SessionWithDay[]): number {
 }
 
 // Count workouts this week
-function countThisWeek(sessions: SessionWithDay[]): number {
+function getWeeklyCount(sessions: SessionWithDay[]): number {
   const now = new Date()
   const startOfWeek = new Date(now)
   startOfWeek.setDate(now.getDate() - now.getDay())
   startOfWeek.setHours(0, 0, 0, 0)
 
-  return sessions.filter(s => {
-    if (!s.completed_at) return false
-    return new Date(s.completed_at) >= startOfWeek
-  }).length
+  const days = new Set<number>()
+  sessions.forEach(s => {
+    if (!s.completed_at) return
+    const completedDate = new Date(s.completed_at)
+    if (completedDate >= startOfWeek) {
+      days.add(completedDate.getDay())
+    }
+  })
+
+  return days.size
+}
+
+// Workout Day Card Component
+interface WorkoutDayCardProps {
+  day: { id: string; name: string; day_number: number }
+  onClick: () => void
+}
+
+function WorkoutDayCard({ day, onClick }: WorkoutDayCardProps) {
+  const style = CATEGORY_DEFAULTS.weights
+
+  return (
+    <Card interactive onClick={onClick}>
+      <CardContent className="flex items-center gap-4 py-4">
+        <div
+          className={`w-12 h-12 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center shadow-sm`}
+        >
+          <Dumbbell className="w-6 h-6 text-white" strokeWidth={2.5} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: style.color }}>
+            Weights
+          </span>
+          <h3 className="font-semibold text-[var(--color-text)] text-base leading-tight mt-0.5">
+            {getWorkoutDisplayName(day.name)}
+          </h3>
+        </div>
+        <div className="w-8 h-8 rounded-full bg-[var(--color-surface-hover)] flex items-center justify-center text-[var(--color-text-muted)]">
+          <ChevronRight className="w-5 h-5" />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Template Card Component
+interface TemplateCardProps {
+  template: WorkoutTemplate
+  onClick: () => void
+}
+
+function TemplateCard({ template, onClick }: TemplateCardProps) {
+  const style = template.type === 'cardio'
+    ? getCardioStyle(template.category)
+    : getMobilityStyle(template.category)
+  const Icon = style.icon
+  const typeLabel = getCategoryLabel(template.type)
+
+  return (
+    <Card interactive onClick={onClick}>
+      <CardContent className="flex items-center gap-4 py-4">
+        <div
+          className={`w-12 h-12 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center shadow-sm`}
+        >
+          <Icon className="w-6 h-6 text-white" strokeWidth={2.5} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: style.color }}>
+            {typeLabel}
+          </span>
+          <h3 className="font-semibold text-[var(--color-text)] text-base leading-tight mt-0.5">
+            {template.name}
+          </h3>
+          {template.duration_minutes && (
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+              ~{template.duration_minutes} min
+            </p>
+          )}
+        </div>
+        <div className="w-8 h-8 rounded-full bg-[var(--color-surface-hover)] flex items-center justify-center text-[var(--color-text-muted)]">
+          <ChevronRight className="w-5 h-5" />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Collapsible Section Component
+interface CollapsibleSectionProps {
+  title: string
+  icon: React.ElementType
+  iconColor: string
+  children: React.ReactNode
+  defaultOpen?: boolean
+}
+
+function CollapsibleSection({ title, icon: Icon, iconColor, children, defaultOpen = false }: CollapsibleSectionProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+
+  return (
+    <section>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between py-2 active:opacity-70"
+      >
+        <div className="flex items-center gap-2">
+          <Icon className="w-5 h-5" style={{ color: iconColor }} />
+          <h2 className="text-base font-bold text-[var(--color-text)]">{title}</h2>
+        </div>
+        <ChevronDown
+          className={`w-5 h-5 text-[var(--color-text-muted)] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {isOpen && <div className="space-y-3 mt-1">{children}</div>}
+    </section>
+  )
 }
 
 export function HomePage() {
   const navigate = useNavigate()
   const { data: activeSession } = useActiveSession()
+  const deleteSession = useDeleteSession()
   const { data: sessions, isLoading: sessionsLoading } = useUserSessions()
-  const { data: profile, isLoading: profileLoading } = useProfile()
-  const { data: todaysWorkout, isLoading: todaysLoading } = useTodaysWorkout(profile?.current_cycle_day || 0)
+  const { data: profile } = useProfile()
+  const { data: plans } = useWorkoutPlans()
+  const { data: days, isLoading: daysLoading } = useWorkoutDays(plans?.[0]?.id)
+  const { data: cardioTemplates, isLoading: cardioLoading } = useWorkoutTemplatesByType('cardio')
+  const { data: mobilityTemplates, isLoading: mobilityLoading } = useWorkoutTemplatesByType('mobility')
 
-  const recentSessions = (sessions?.slice(0, 3) || []) as SessionWithDay[]
   const allSessions = (sessions || []) as SessionWithDay[]
+  const recentSessions = allSessions.slice(0, 3)
 
   // Stats
   const streak = calculateStreak(allSessions)
-  const thisWeek = countThisWeek(allSessions)
+  const thisWeek = getWeeklyCount(allSessions)
   const totalWorkouts = allSessions.filter(s => s.completed_at).length
   const statsLoading = sessionsLoading
 
-  // Determine hero content
-  const hasActiveSession = !!activeSession
-  const heroLoading = profileLoading || todaysLoading
-  const heroWorkoutName = hasActiveSession
-    ? activeSession.workout_day?.name
-    : todaysWorkout?.workout_day?.name || todaysWorkout?.template?.name
-  const heroImage = getWorkoutImage(heroWorkoutName)
-  const heroWorkoutType = getWorkoutType(heroWorkoutName)
+  // Greeting
+  const greeting = getGreeting()
+  const displayName = profile?.display_name || 'there'
+  const motivation = getMotivationalMessage(streak, thisWeek, !!activeSession)
 
-  const handleHeroAction = () => {
-    if (hasActiveSession) {
+  // Handlers
+  const handleStartWorkout = (dayId: string) => navigate(`/workout/${dayId}`)
+  const handleStartCardio = (templateId: string) => navigate(`/cardio/${templateId}`)
+  const handleStartMobility = (templateId: string) => navigate(`/mobility/${templateId}`)
+  const handleContinueWorkout = () => {
+    if (activeSession) {
       navigate(`/workout/${activeSession.workout_day_id}/active`)
-    } else if (todaysWorkout?.is_rest_day) {
-      navigate('/rest-day')
-    } else if (todaysWorkout?.workout_day_id) {
-      navigate(`/workout/${todaysWorkout.workout_day_id}`)
-    } else if (todaysWorkout?.template_id && todaysWorkout?.template) {
-      if (todaysWorkout.template.type === 'cardio') {
-        navigate(`/cardio/${todaysWorkout.template_id}`)
-      } else if (todaysWorkout.template.type === 'mobility') {
-        navigate(`/mobility/${todaysWorkout.template_id}`)
-      }
-    } else {
-      // No scheduled workout, go to workout selection
-      navigate('/workout')
+    }
+  }
+  const handleDismissSession = () => {
+    if (activeSession) {
+      deleteSession.mutate(activeSession.id)
     }
   }
 
   return (
     <AppShell title="Home" showLogout>
-      <div className="space-y-5 pb-4">
-        {/* Hero Banner */}
-        <div
-          className="relative h-48 mx-4 mt-4 rounded-[var(--radius-xl)] overflow-hidden cursor-pointer active:scale-[0.98] transition-transform duration-100"
-          onClick={handleHeroAction}
-        >
-          {/* Background Image */}
-          {heroLoading ? (
-            <div className="absolute inset-0 bg-[var(--color-surface-hover)] animate-pulse" />
-          ) : (
-            <img
-              src={heroImage}
-              alt={heroWorkoutType}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          )}
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
-
-          {/* Content */}
-          <div className="absolute inset-0 flex flex-col justify-end p-4">
-            {/* Status Badge */}
-            <div className="flex items-center gap-2 mb-1.5">
-              {hasActiveSession ? (
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500 text-white text-[10px] font-bold uppercase tracking-wide">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                  In Progress
-                </span>
-              ) : heroLoading ? (
-                <div className="h-5 w-16 rounded-full bg-white/20 animate-pulse" />
-              ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-bold uppercase tracking-wide">
-                  <Clock className="w-3 h-3" />
-                  Up Next
-                </span>
-              )}
-            </div>
-
-            {/* Workout Info */}
-            {heroLoading ? (
-              <>
-                <div className="h-3 w-16 rounded bg-white/20 animate-pulse mb-1" />
-                <div className="h-6 w-40 rounded bg-white/30 animate-pulse mb-2.5" />
-              </>
-            ) : (
-              <>
-                <p className="text-white/60 text-xs font-medium">
-                  {heroWorkoutType}
-                </p>
-                <h2 className="text-white text-xl font-bold leading-tight mb-2.5">
-                  {normalizeWorkoutName(heroWorkoutName || 'Start a Workout')}
-                </h2>
-              </>
-            )}
-
-            {/* Action Button */}
-            <Button
-              variant={hasActiveSession ? 'primary' : 'gradient'}
-              size="md"
-              className="self-start"
-              disabled={heroLoading}
-            >
-              {hasActiveSession ? (
-                <>
-                  <Play className="w-4 h-4 mr-1" fill="currentColor" />
-                  Continue
-                </>
-              ) : todaysWorkout?.is_rest_day ? (
-                'View Rest Day'
-              ) : (
-                <>
-                  <Play className="w-4 h-4 mr-1" fill="currentColor" />
-                  Start
-                </>
-              )}
-            </Button>
-          </div>
+      <div className="p-4 space-y-5 pb-4">
+        {/* Greeting */}
+        <div>
+          <h2 className="text-xl font-bold text-[var(--color-text)]">
+            {greeting}, {displayName}!
+          </h2>
+          <p className="text-sm text-[var(--color-text-muted)] mt-0.5 flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-yellow-500" />
+            {motivation}
+          </p>
         </div>
 
-        {/* Quick Stats */}
-        <div className="px-4">
-          <div className="grid grid-cols-3 gap-3">
-            <Card className="text-center">
-              <CardContent className="py-3 px-2">
-                <div className="w-8 h-8 mx-auto mb-1.5 rounded-full bg-orange-500/15 flex items-center justify-center">
-                  <Flame className="w-4 h-4 text-orange-500" />
+        {/* Active Session Banner */}
+        {activeSession && (
+          <Card highlight>
+            <CardContent className="py-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
+                  <Play className="w-6 h-6 text-white ml-0.5" fill="white" />
                 </div>
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-green-500 uppercase tracking-wide">
+                    In Progress
+                  </p>
+                  <p className="text-base font-bold text-[var(--color-text)]">
+                    {getWorkoutDisplayName(activeSession.workout_day?.name)}
+                  </p>
+                </div>
+                <Button size="sm" onClick={handleContinueWorkout}>
+                  Continue
+                </Button>
+                <button
+                  onClick={handleDismissSession}
+                  className="p-2 rounded-full hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] transition-colors"
+                  title="Dismiss session"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Schedule Widget - Today's Workout + 7-Day Overview */}
+        <ScheduleWidget />
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <Card className="overflow-hidden">
+            <CardContent className="py-3 px-2 text-center relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent" />
+              <div className="relative">
+                <Flame className="w-5 h-5 text-orange-500 mx-auto mb-1" />
                 {statsLoading ? (
-                  <div className="h-8 w-8 mx-auto mb-0.5 rounded bg-[var(--color-surface-hover)] animate-pulse" />
+                  <div className="h-7 w-8 mx-auto mb-0.5 rounded bg-[var(--color-surface-hover)] animate-pulse" />
                 ) : (
                   <p className="text-2xl font-bold text-[var(--color-text)]">{streak}</p>
                 )}
-                <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Day Streak</p>
-              </CardContent>
-            </Card>
+                <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Streak</p>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="text-center">
-              <CardContent className="py-3 px-2">
-                <div className="w-8 h-8 mx-auto mb-1.5 rounded-full bg-blue-500/15 flex items-center justify-center">
-                  <Calendar className="w-4 h-4 text-blue-500" />
-                </div>
+          <Card
+            className="overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
+            onClick={() => navigate('/history')}
+          >
+            <CardContent className="py-3 px-2 text-center relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent" />
+              <div className="relative">
+                <Calendar className="w-5 h-5 text-blue-500 mx-auto mb-1" />
                 {statsLoading ? (
-                  <div className="h-8 w-8 mx-auto mb-0.5 rounded bg-[var(--color-surface-hover)] animate-pulse" />
+                  <div className="h-7 w-8 mx-auto mb-0.5 rounded bg-[var(--color-surface-hover)] animate-pulse" />
                 ) : (
                   <p className="text-2xl font-bold text-[var(--color-text)]">{thisWeek}</p>
                 )}
-                <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">This Week</p>
-              </CardContent>
-            </Card>
+                <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">This Week</p>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="text-center">
-              <CardContent className="py-3 px-2">
-                <div className="w-8 h-8 mx-auto mb-1.5 rounded-full bg-purple-500/15 flex items-center justify-center">
-                  <Trophy className="w-4 h-4 text-purple-500" />
-                </div>
+          <Card
+            className="overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
+            onClick={() => navigate('/history')}
+          >
+            <CardContent className="py-3 px-2 text-center relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent" />
+              <div className="relative">
+                <Trophy className="w-5 h-5 text-purple-500 mx-auto mb-1" />
                 {statsLoading ? (
-                  <div className="h-8 w-8 mx-auto mb-0.5 rounded bg-[var(--color-surface-hover)] animate-pulse" />
+                  <div className="h-7 w-8 mx-auto mb-0.5 rounded bg-[var(--color-surface-hover)] animate-pulse" />
                 ) : (
                   <p className="text-2xl font-bold text-[var(--color-text)]">{totalWorkouts}</p>
                 )}
-                <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Total</p>
+                <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Total</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Workout Categories */}
+        <CollapsibleSection
+          title="Weights"
+          icon={Dumbbell}
+          iconColor={CATEGORY_DEFAULTS.weights.color}
+          defaultOpen={false}
+        >
+          {daysLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-20 rounded-[var(--radius-xl)] skeleton" />
+              ))}
+            </div>
+          ) : days?.length ? (
+            days.map((day) => (
+              <WorkoutDayCard
+                key={day.id}
+                day={day}
+                onClick={() => handleStartWorkout(day.id)}
+              />
+            ))
+          ) : (
+            <Card variant="outlined">
+              <CardContent className="py-6 text-center">
+                <p className="text-[var(--color-text-muted)]">No weight workouts found.</p>
               </CardContent>
             </Card>
-          </div>
-        </div>
+          )}
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          title="Cardio"
+          icon={Heart}
+          iconColor={CATEGORY_DEFAULTS.cardio.color}
+          defaultOpen={false}
+        >
+          {cardioLoading ? (
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <div key={i} className="h-20 rounded-[var(--radius-xl)] skeleton" />
+              ))}
+            </div>
+          ) : cardioTemplates?.length ? (
+            cardioTemplates.map((template) => (
+              <TemplateCard
+                key={template.id}
+                template={template}
+                onClick={() => handleStartCardio(template.id)}
+              />
+            ))
+          ) : (
+            <Card variant="outlined">
+              <CardContent className="py-6 text-center">
+                <p className="text-[var(--color-text-muted)]">No cardio workouts available.</p>
+              </CardContent>
+            </Card>
+          )}
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          title="Mobility"
+          icon={Activity}
+          iconColor={CATEGORY_DEFAULTS.mobility.color}
+          defaultOpen={false}
+        >
+          {mobilityLoading ? (
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <div key={i} className="h-20 rounded-[var(--radius-xl)] skeleton" />
+              ))}
+            </div>
+          ) : mobilityTemplates?.length ? (
+            mobilityTemplates.map((template) => (
+              <TemplateCard
+                key={template.id}
+                template={template}
+                onClick={() => handleStartMobility(template.id)}
+              />
+            ))
+          ) : (
+            <Card variant="outlined">
+              <CardContent className="py-6 text-center">
+                <p className="text-[var(--color-text-muted)]">No mobility workouts available.</p>
+              </CardContent>
+            </Card>
+          )}
+        </CollapsibleSection>
 
         {/* Recent Activity */}
         {recentSessions.length > 0 && (
-          <section className="px-4">
+          <section>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold text-[var(--color-text)]">
-                Recent Activity
-              </h2>
+              <h2 className="text-base font-bold text-[var(--color-text)]">Recent Activity</h2>
               <button
                 onClick={() => navigate('/history')}
                 className="text-xs font-semibold text-[var(--color-primary)] flex items-center gap-0.5 active:opacity-70"
@@ -289,7 +457,7 @@ export function HomePage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-[var(--color-text)] text-sm truncate">
-                        {normalizeWorkoutName(session.workout_day?.name || 'Workout')}
+                        {getWorkoutDisplayName(session.workout_day?.name)}
                       </p>
                       <p className="text-xs text-[var(--color-text-muted)]">
                         {formatRelativeTime(session.started_at)}
@@ -306,14 +474,6 @@ export function HomePage() {
             </div>
           </section>
         )}
-
-        {/* Community */}
-        <section className="px-4">
-          <h2 className="text-base font-bold text-[var(--color-text)] mb-3">
-            Community
-          </h2>
-          <ActivityFeed />
-        </section>
       </div>
     </AppShell>
   )

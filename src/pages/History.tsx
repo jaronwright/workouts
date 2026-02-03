@@ -1,14 +1,31 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Card, CardContent, Modal, Button } from '@/components/ui'
 import { useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
-import { formatDate, formatTime, formatRelativeTime, normalizeWorkoutName } from '@/utils/formatters'
+import { useUserTemplateWorkouts } from '@/hooks/useTemplateWorkout'
+import { formatDate, formatTime, formatRelativeTime } from '@/utils/formatters'
+import { getWorkoutDisplayName } from '@/config/workoutConfig'
 import { Calendar, Clock, CheckCircle, Circle, ChevronRight, Trash2 } from 'lucide-react'
 import type { SessionWithDay } from '@/services/workoutService'
+import type { TemplateWorkoutSession } from '@/services/templateWorkoutService'
+
+// Unified session type for display
+interface UnifiedSession {
+  id: string
+  type: 'weights' | 'cardio'
+  name: string
+  started_at: string
+  completed_at: string | null
+  notes: string | null
+  duration_minutes?: number | null
+  distance_value?: number | null
+  distance_unit?: string | null
+  originalSession: SessionWithDay | TemplateWorkoutSession
+}
 
 interface SwipeableCardProps {
-  session: SessionWithDay
+  session: UnifiedSession
   onDelete: () => void
   onClick: () => void
 }
@@ -89,7 +106,7 @@ function SwipeableCard({ session, onDelete, onClick }: SwipeableCardProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-[var(--color-text)]">
-                  {normalizeWorkoutName(session.workout_day?.name || 'Workout')}
+                  {session.name}
                 </h3>
                 <div className="flex items-center gap-4 mt-1 text-sm text-[var(--color-text-muted)]">
                   <span className="flex items-center gap-1">
@@ -101,6 +118,12 @@ function SwipeableCard({ session, onDelete, onClick }: SwipeableCardProps) {
                     {formatTime(session.started_at)}
                   </span>
                 </div>
+                {session.type === 'cardio' && session.distance_value && (
+                  <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                    {session.distance_value} {session.distance_unit || 'miles'}
+                    {session.duration_minutes && ` • ${session.duration_minutes} min`}
+                  </p>
+                )}
                 <p className="text-xs text-[var(--color-text-muted)] opacity-70 mt-1">
                   {formatRelativeTime(session.started_at)}
                 </p>
@@ -132,17 +155,74 @@ function SwipeableCard({ session, onDelete, onClick }: SwipeableCardProps) {
 
 export function HistoryPage() {
   const navigate = useNavigate()
-  const { data: sessions, isLoading } = useUserSessions()
+  const { data: weightsSessions, isLoading: isLoadingWeights } = useUserSessions()
+  const { data: templateSessions, isLoading: isLoadingTemplates } = useUserTemplateWorkouts()
   const { mutate: deleteSession, isPending: isDeleting } = useDeleteSession()
-  const [sessionToDelete, setSessionToDelete] = useState<SessionWithDay | null>(null)
+  const [sessionToDelete, setSessionToDelete] = useState<UnifiedSession | null>(null)
+
+  const isLoading = isLoadingWeights || isLoadingTemplates
+
+  // Merge and sort all sessions
+  const allSessions = useMemo(() => {
+    const unified: UnifiedSession[] = []
+
+    // Add weights sessions
+    if (weightsSessions) {
+      for (const session of weightsSessions) {
+        unified.push({
+          id: session.id,
+          type: 'weights',
+          name: getWorkoutDisplayName(session.workout_day?.name),
+          started_at: session.started_at,
+          completed_at: session.completed_at,
+          notes: session.notes,
+          originalSession: session
+        })
+      }
+    }
+
+    // Add template/cardio sessions
+    if (templateSessions) {
+      for (const session of templateSessions) {
+        unified.push({
+          id: session.id,
+          type: 'cardio',
+          name: session.template?.name || 'Workout',
+          started_at: session.started_at,
+          completed_at: session.completed_at,
+          notes: session.notes,
+          duration_minutes: session.duration_minutes,
+          distance_value: session.distance_value,
+          distance_unit: session.distance_unit,
+          originalSession: session
+        })
+      }
+    }
+
+    // Sort by date (newest first)
+    return unified.sort((a, b) =>
+      new Date(b.started_at).getTime() - new Date(a.started_at).getTime()
+    )
+  }, [weightsSessions, templateSessions])
 
   const handleDeleteConfirm = () => {
-    if (sessionToDelete) {
+    if (sessionToDelete && sessionToDelete.type === 'weights') {
       deleteSession(sessionToDelete.id, {
         onSuccess: () => {
           setSessionToDelete(null)
         }
       })
+    } else {
+      // TODO: Add delete for template sessions
+      setSessionToDelete(null)
+    }
+  }
+
+  const handleSessionClick = (session: UnifiedSession) => {
+    if (session.type === 'weights') {
+      navigate(`/history/${session.id}`)
+    } else {
+      navigate(`/history/cardio/${session.id}`)
     }
   }
 
@@ -155,16 +235,16 @@ export function HistoryPage() {
               <div key={i} className="h-24 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
             ))}
           </div>
-        ) : sessions?.length ? (
+        ) : allSessions.length > 0 ? (
           <>
             <p className="text-sm text-[var(--color-text-muted)] mb-3">Swipe left to delete</p>
             <div className="space-y-3">
-              {(sessions as SessionWithDay[]).map((session) => (
+              {allSessions.map((session) => (
                 <SwipeableCard
-                  key={session.id}
+                  key={`${session.type}-${session.id}`}
                   session={session}
                   onDelete={() => setSessionToDelete(session)}
-                  onClick={() => navigate(`/history/${session.id}`)}
+                  onClick={() => handleSessionClick(session)}
                 />
               ))}
             </div>
@@ -191,7 +271,7 @@ export function HistoryPage() {
             Are you sure you want to delete this workout session?
           </p>
           <p className="text-sm font-medium text-[var(--color-text)]">
-            {normalizeWorkoutName(sessionToDelete?.workout_day?.name || 'Workout')} - {sessionToDelete && formatDate(sessionToDelete.started_at)}
+            {sessionToDelete?.name} - {sessionToDelete && formatDate(sessionToDelete.started_at)}
           </p>
           <p className="text-sm text-[var(--color-danger)]">
             This action cannot be undone.

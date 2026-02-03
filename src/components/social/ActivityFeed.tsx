@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui'
 import { useSocialFeed } from '@/hooks/useSocial'
-import { formatRelativeTime, normalizeWorkoutName } from '@/utils/formatters'
+import { formatRelativeTime } from '@/utils/formatters'
+import { getWorkoutDisplayName } from '@/config/workoutConfig'
 import { Dumbbell, Heart, Activity, User } from 'lucide-react'
 import type { SocialWorkout } from '@/services/socialService'
 
@@ -17,7 +18,7 @@ function getWorkoutIcon(workout: SocialWorkout) {
 
 function getWorkoutName(workout: SocialWorkout): string {
   if (workout.workout_day?.name) {
-    return normalizeWorkoutName(workout.workout_day.name)
+    return getWorkoutDisplayName(workout.workout_day.name)
   }
   if (workout.template?.name) {
     return workout.template.name
@@ -74,7 +75,11 @@ function ActivityFeedItem({ workout }: ActivityFeedItemProps) {
   )
 }
 
-export function ActivityFeed() {
+interface ActivityFeedProps {
+  limit?: number
+}
+
+export function ActivityFeed({ limit }: ActivityFeedProps) {
   const { data: workouts, isLoading, error } = useSocialFeed()
 
   if (isLoading) {
@@ -99,9 +104,11 @@ export function ActivityFeed() {
     )
   }
 
+  const displayedWorkouts = limit ? workouts.slice(0, limit) : workouts
+
   return (
     <div className="space-y-2">
-      {workouts.map((workout) => (
+      {displayedWorkouts.map((workout) => (
         <ActivityFeedItem key={workout.id} workout={workout} />
       ))}
     </div>

@@ -67,6 +67,12 @@ export const CARDIO_CONFIG: Record<string, WorkoutStyle> = {
     bgColor: 'rgba(244, 114, 182, 0.15)',
     gradient: 'from-pink-400 to-pink-300',
     icon: Waves
+  },
+  rower: {
+    color: '#A855F7',
+    bgColor: 'rgba(168, 85, 247, 0.15)',
+    gradient: 'from-purple-500 to-purple-400',
+    icon: Waves
   }
 }
 
@@ -127,6 +133,60 @@ export const CATEGORY_LABELS: Record<string, string> = {
   cardio: 'Cardio',
   mobility: 'Mobility',
   rest: 'Rest Day'
+}
+
+// Centralized workout display names
+// Maps database workout names (or patterns) to simplified display names
+// This is the single source of truth for how workouts appear in the UI
+export const WORKOUT_DISPLAY_NAMES: Record<string, string> = {
+  // Weights workouts - map full DB names to simple names
+  'push': 'Push',
+  'pull': 'Pull',
+  'legs': 'Legs',
+
+  // Cardio workouts
+  'cycling': 'Cycling',
+  'running': 'Running',
+  'stair stepper': 'Stair Stepper',
+  'swimming': 'Swimming',
+  'rower': 'Rower',
+
+  // Mobility workouts
+  'core stability': 'Core Stability',
+  'hip, knee & ankle flow': 'Hip, Knee & Ankle Flow',
+  'spine mobility': 'Spine Mobility',
+  'upper body flow': 'Upper Body Flow'
+}
+
+/**
+ * Gets the display name for a workout from the database name.
+ * This is the central function for converting database workout names to UI display names.
+ *
+ * Examples:
+ * - "PUSH (Chest, Shoulders, Triceps)" → "Push"
+ * - "Pull (Back, Biceps, Rear Delts)" → "Pull"
+ * - "LEGS (Quads, Hamstrings, Calves)" → "Legs"
+ * - "Cycling" → "Cycling"
+ */
+export function getWorkoutDisplayName(dbName: string | null | undefined): string {
+  if (!dbName) return 'Workout'
+
+  // Extract the first word before any parenthesis or description
+  const firstWord = dbName.split(/[\s(]/)[0].toLowerCase()
+
+  // Check if we have a mapped display name
+  if (WORKOUT_DISPLAY_NAMES[firstWord]) {
+    return WORKOUT_DISPLAY_NAMES[firstWord]
+  }
+
+  // Check full name (lowercase) for exact matches
+  const lowerName = dbName.toLowerCase().trim()
+  if (WORKOUT_DISPLAY_NAMES[lowerName]) {
+    return WORKOUT_DISPLAY_NAMES[lowerName]
+  }
+
+  // Fallback: return the first word in Title Case
+  return firstWord.charAt(0).toUpperCase() + firstWord.slice(1)
 }
 
 // Helper to get category display label

@@ -8,9 +8,9 @@ import {
   AuthPage,
   HomePage,
   WorkoutPage,
-  WorkoutSelectPage,
   HistoryPage,
   SessionDetailPage,
+  CardioSessionDetailPage,
   ProfilePage,
   SchedulePage,
   CardioWorkoutPage,
@@ -92,11 +92,7 @@ function AppRoutes() {
       />
       <Route
         path="/workout"
-        element={
-          <ProtectedRoute>
-            <WorkoutSelectPage />
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/" replace />}
       />
       <Route
         path="/workout/:dayId"
@@ -143,6 +139,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SessionDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history/cardio/:sessionId"
+        element={
+          <ProtectedRoute>
+            <CardioSessionDetailPage />
           </ProtectedRoute>
         }
       />

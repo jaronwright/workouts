@@ -304,14 +304,84 @@ export async function deleteWorkoutSession(sessionId: string): Promise<void> {
 export async function updateExerciseWeightUnit(
   exerciseId: string,
   weightUnit: 'lbs' | 'kg'
-): Promise<PlanExercise> {
+): Promise<PlanExercise | null> {
   const { data, error } = await supabase
     .from('plan_exercises')
     .update({ weight_unit: weightUnit })
     .eq('id', exerciseId)
     .select()
+    .maybeSingle()
+
+  // If update fails (e.g., RLS restriction on seed data), return null silently
+  // The UI will handle this by keeping the local state
+  if (error) {
+    console.warn('Could not persist weight unit preference:', error.message)
+    return null
+  }
+  return data as PlanExercise | null
+}
+
+// ============================================
+// CRUD Operations for Sessions
+// ============================================
+
+export async function updateWorkoutSession(
+  sessionId: string,
+  updates: {
+    notes?: string | null
+  }
+): Promise<WorkoutSession> {
+  const { data, error } = await supabase
+    .from('workout_sessions')
+    .update(updates)
+    .eq('id', sessionId)
+    .select()
     .single()
 
   if (error) throw error
-  return data as PlanExercise
+  return data as WorkoutSession
+}
+
+export async function getWorkoutSession(sessionId: string): Promise<SessionWithDay | null> {
+  const { data, error } = await supabase
+    .from('workout_sessions')
+    .select(`
+      *,
+      workout_day:workout_days(*)
+    `)
+    .eq('id', sessionId)
+    .single()
+
+  if (error) {
+    if (error.code === 'PGRST116') return null // Not found
+    throw error
+  }
+  return data as SessionWithDay
+}
+
+// ============================================
+// CRUD Operations for Exercise Sets
+// ============================================
+
+export async function deleteExerciseSet(setId: string): Promise<void> {
+  const { error } = await supabase
+    .from('exercise_sets')
+    .delete()
+    .eq('id', setId)
+
+  if (error) throw error
+}
+
+export async function getExerciseSet(setId: string): Promise<ExerciseSet | null> {
+  const { data, error } = await supabase
+    .from('exercise_sets')
+    .select('*')
+    .eq('id', setId)
+    .single()
+
+  if (error) {
+    if (error.code === 'PGRST116') return null // Not found
+    throw error
+  }
+  return data as ExerciseSet
 }

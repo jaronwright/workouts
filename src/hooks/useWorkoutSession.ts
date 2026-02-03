@@ -12,6 +12,10 @@ import {
   getLastWeightForExercise,
   getSessionExerciseDetails,
   deleteWorkoutSession,
+  updateWorkoutSession,
+  updateExerciseSet,
+  deleteExerciseSet,
+  getWorkoutSession,
   type SessionWithDay
 } from '@/services/workoutService'
 import { advanceCycleDay } from '@/services/profileService'
@@ -146,6 +150,74 @@ export function useDeleteSession() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-sessions'] })
       queryClient.invalidateQueries({ queryKey: ['active-session'] })
+    }
+  })
+}
+
+// ============================================
+// Session CRUD Hooks
+// ============================================
+
+export function useSession(sessionId: string | undefined) {
+  return useQuery<SessionWithDay | null>({
+    queryKey: ['session', sessionId],
+    queryFn: () => getWorkoutSession(sessionId!),
+    enabled: !!sessionId
+  })
+}
+
+export function useUpdateSession() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ sessionId, notes }: { sessionId: string; notes?: string | null }) =>
+      updateWorkoutSession(sessionId, { notes }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['session', variables.sessionId] })
+      queryClient.invalidateQueries({ queryKey: ['session-detail', variables.sessionId] })
+      queryClient.invalidateQueries({ queryKey: ['user-sessions'] })
+    }
+  })
+}
+
+// ============================================
+// Exercise Set CRUD Hooks
+// ============================================
+
+export function useUpdateSet() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      setId,
+      updates
+    }: {
+      setId: string
+      updates: {
+        reps_completed?: number | null
+        weight_used?: number | null
+        completed?: boolean
+      }
+    }) => updateExerciseSet(setId, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['session-sets'] })
+      queryClient.invalidateQueries({ queryKey: ['session-detail'] })
+      queryClient.invalidateQueries({ queryKey: ['session-exercise-details'] })
+      queryClient.invalidateQueries({ queryKey: ['exercise-history'] })
+    }
+  })
+}
+
+export function useDeleteSet() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (setId: string) => deleteExerciseSet(setId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['session-sets'] })
+      queryClient.invalidateQueries({ queryKey: ['session-detail'] })
+      queryClient.invalidateQueries({ queryKey: ['session-exercise-details'] })
+      queryClient.invalidateQueries({ queryKey: ['exercise-history'] })
     }
   })
 }

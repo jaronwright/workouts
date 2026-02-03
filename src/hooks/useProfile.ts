@@ -24,7 +24,8 @@ export function useUpdateProfile() {
   const user = useAuthStore((s) => s.user)
 
   return useMutation({
-    mutationFn: (data: UpdateProfileData) => updateProfile(user!.id, data),
+    // Use upsertProfile to create profile if it doesn't exist
+    mutationFn: (data: UpdateProfileData) => upsertProfile(user!.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] })
     }

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, LogOut, Sun, Moon, Monitor } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
@@ -7,9 +8,10 @@ interface HeaderProps {
   title: string
   showBack?: boolean
   showLogout?: boolean
+  headerAction?: ReactNode
 }
 
-export function Header({ title, showBack = false, showLogout = false }: HeaderProps) {
+export function Header({ title, showBack = false, showLogout = false, headerAction }: HeaderProps) {
   const navigate = useNavigate()
   const signOut = useAuthStore((s) => s.signOut)
   const { theme, toggleTheme } = useTheme()
@@ -71,6 +73,7 @@ export function Header({ title, showBack = false, showLogout = false }: HeaderPr
               <LogOut className="w-5 h-5" />
             </button>
           )}
+          {headerAction}
         </div>
       </div>
     </header>

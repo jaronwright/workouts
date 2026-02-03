@@ -71,15 +71,19 @@ export async function upsertProfile(userId: string, data: UpdateProfileData): Pr
   return profile as UserProfile
 }
 
-export async function advanceCycleDay(userId: string): Promise<UserProfile> {
+export async function advanceCycleDay(userId: string): Promise<UserProfile | null> {
   // Get current profile
   const { data: current, error: fetchError } = await supabase
     .from('user_profiles')
     .select('current_cycle_day')
     .eq('id', userId)
-    .single()
+    .maybeSingle()
 
-  if (fetchError) throw fetchError
+  // If profile doesn't exist or fetch failed, return null silently
+  if (fetchError || !current) {
+    console.warn('Could not advance cycle day - profile may not exist:', fetchError?.message)
+    return null
+  }
 
   // Calculate next day (wrap 7 -> 1)
   const nextDay = current.current_cycle_day >= 7 ? 1 : current.current_cycle_day + 1
@@ -93,10 +97,14 @@ export async function advanceCycleDay(userId: string): Promise<UserProfile> {
     })
     .eq('id', userId)
     .select()
-    .single()
+    .maybeSingle()
 
-  if (updateError) throw updateError
-  return profile as UserProfile
+  if (updateError) {
+    console.warn('Could not update cycle day:', updateError.message)
+    return null
+  }
+
+  return profile as UserProfile | null
 }
 
 export async function deleteUserAccount(): Promise<void> {

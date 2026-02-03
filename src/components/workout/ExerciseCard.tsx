@@ -6,6 +6,7 @@ import { formatSetReps } from '@/utils/parseSetReps'
 import { useLastWeight } from '@/hooks/useWorkoutSession'
 import { useProgressionSuggestion } from '@/hooks/useProgression'
 import { ProgressionBadge } from './ProgressionBadge'
+import { ExerciseDetailModal } from './ExerciseDetailModal'
 import { updateExerciseWeightUnit } from '@/services/workoutService'
 
 interface ExerciseCardProps {
@@ -37,7 +38,7 @@ export function ExerciseCard({
   onExerciseComplete,
   onExerciseUpdate
 }: ExerciseCardProps) {
-  const [showNotes, setShowNotes] = useState(false)
+  const [showDetailModal, setShowDetailModal] = useState(false)
   const [weight, setWeight] = useState<string>(exercise.target_weight?.toString() || '')
   const [weightInitialized, setWeightInitialized] = useState(false)
   const [justCompleted, setJustCompleted] = useState(false)
@@ -57,7 +58,11 @@ export function ExerciseCard({
     setLocalWeightUnit(newUnit)
     try {
       const updated = await updateExerciseWeightUnit(exercise.id, newUnit)
-      onExerciseUpdate?.(updated)
+      // Only call update callback if we got data back (update succeeded)
+      if (updated) {
+        onExerciseUpdate?.(updated)
+      }
+      // Otherwise, keep local state change (unit switch works visually)
     } catch (error) {
       // Revert on error
       setLocalWeightUnit(localWeightUnit)
@@ -197,25 +202,23 @@ export function ExerciseCard({
           </div>
         )}
 
-        {/* Notes button */}
-        {exercise.notes && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              setShowNotes(!showNotes)
-            }}
-            className={`
-              w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
-              active:scale-90 transition-transform duration-100
-              ${showNotes
-                ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)]'
-                : 'text-[var(--color-text-muted)]'
-              }
-            `}
-          >
-            <Info className="w-4 h-4" />
-          </button>
-        )}
+        {/* Info button - opens detail modal with GIF and notes */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            setShowDetailModal(true)
+          }}
+          className={`
+            w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
+            active:scale-90 transition-transform duration-100
+            ${exercise.notes
+              ? 'text-[var(--color-primary)]'
+              : 'text-[var(--color-text-muted)]'
+            }
+          `}
+        >
+          <Info className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Badges */}
@@ -241,16 +244,13 @@ export function ExerciseCard({
         </div>
       )}
 
-      {/* Notes */}
-      {showNotes && exercise.notes && (
-        <div className="px-4 pb-3 animate-fade-in">
-          <div className="px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-primary)]/5">
-            <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
-              {exercise.notes}
-            </p>
-          </div>
-        </div>
-      )}
+      {/* Exercise Detail Modal */}
+      <ExerciseDetailModal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        exerciseName={exercise.name}
+        notes={exercise.notes}
+      />
     </div>
   )
 }
