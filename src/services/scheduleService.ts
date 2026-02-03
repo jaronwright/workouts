@@ -174,17 +174,15 @@ export async function saveScheduleDayWorkouts(
     })) as ScheduleDay[]
   }
 
-  // Insert all workouts
-  // Note: For now, we only support single workout per day until sort_order migration is applied
-  // Taking only the first workout to maintain backwards compatibility
-  const workout = workouts[0]
-  const scheduleData = {
+  // Try inserting all workouts with sort_order
+  const scheduleData = workouts.map((workout, index) => ({
     user_id: userId,
     day_number: dayNumber,
     is_rest_day: false,
     template_id: workout.type === 'cardio' || workout.type === 'mobility' ? workout.id : null,
-    workout_day_id: workout.type === 'weights' ? workout.id : null
-  }
+    workout_day_id: workout.type === 'weights' ? workout.id : null,
+    sort_order: index
+  }))
 
   console.log('Inserting schedule data:', scheduleData)
 
@@ -196,9 +194,47 @@ export async function saveScheduleDayWorkouts(
       template:workout_templates(*),
       workout_day:workout_days(id, name, day_number)
     `)
+    .order('sort_order', { ascending: true })
 
   if (error) {
     console.error('Failed to insert schedules:', error)
+
+    // Check if it's a column/constraint error (migration not applied)
+    if (error.code === 'PGRST204' || error.message?.includes('sort_order') ||
+        error.code === '23505' || error.message?.includes('unique constraint')) {
+      // Fall back to single workout if multiple workouts not supported
+      if (workouts.length > 1) {
+        console.warn('Multiple workouts per day not supported. Apply migration 20240205000001_multiple_workouts_per_day.sql')
+        throw new Error('Multiple workouts per day requires a database migration. Please save one workout at a time, or apply the migration.')
+      }
+
+      // Try inserting single workout without sort_order
+      const singleData = {
+        user_id: userId,
+        day_number: dayNumber,
+        is_rest_day: false,
+        template_id: workouts[0].type === 'cardio' || workouts[0].type === 'mobility' ? workouts[0].id : null,
+        workout_day_id: workouts[0].type === 'weights' ? workouts[0].id : null
+      }
+
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('user_schedules')
+        .insert(singleData)
+        .select(`
+          *,
+          template:workout_templates(*),
+          workout_day:workout_days(id, name, day_number)
+        `)
+
+      if (fallbackError) {
+        throw new Error(`Failed to save schedule: ${fallbackError.message}`)
+      }
+      return (fallbackData || []).map(d => ({
+        ...d,
+        sort_order: d.sort_order ?? 0
+      })) as ScheduleDay[]
+    }
+
     throw new Error(`Failed to save schedule: ${error.message}`)
   }
   console.log('Successfully saved schedules:', data)
