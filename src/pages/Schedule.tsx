@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { AppShell } from '@/components/layout'
-import { Button } from '@/components/ui'
 import { ScheduleDayEditor } from '@/components/schedule'
-import { useUserSchedule, useInitializeSchedule } from '@/hooks/useSchedule'
+import { useUserSchedule } from '@/hooks/useSchedule'
 import { useProfile } from '@/hooks/useProfile'
 import { type ScheduleDay } from '@/services/scheduleService'
 import { Moon, Plus, ChevronRight } from 'lucide-react'
@@ -58,7 +57,6 @@ function getWorkoutChip(schedule: ScheduleDay) {
 export function SchedulePage() {
   const { data: schedule, isLoading } = useUserSchedule()
   const { data: profile } = useProfile()
-  const { mutate: initializeSchedule, isPending: isInitializing } = useInitializeSchedule()
 
   const [editingDay, setEditingDay] = useState<number | null>(null)
 
@@ -69,10 +67,6 @@ export function SchedulePage() {
     existing.push(s)
     schedulesByDay.set(s.day_number, existing)
   })
-
-  const handleInitialize = () => {
-    initializeSchedule()
-  }
 
   if (isLoading) {
     return (
@@ -173,23 +167,6 @@ export function SchedulePage() {
             )
           })}
         </div>
-
-        {/* Initialize Schedule Button (if no schedule exists) */}
-        {(!schedule || schedule.length === 0) && (
-          <div className="pt-6">
-            <div className="text-center p-6 rounded-2xl bg-[var(--color-surface)] border border-dashed border-[var(--color-border)]">
-              <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center mx-auto mb-3">
-                <Plus className="w-6 h-6 text-[var(--color-primary)]" />
-              </div>
-              <p className="text-[var(--color-text-muted)] mb-4">
-                Set up your 7-day workout cycle
-              </p>
-              <Button onClick={handleInitialize} loading={isInitializing}>
-                Create Default Schedule
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Day Editor Modal */}

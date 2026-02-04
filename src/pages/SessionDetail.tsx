@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout'
 import { Card, CardContent, Modal, Button } from '@/components/ui'
 import { useDeleteSession, useUpdateSession, useUpdateSet, useDeleteSet } from '@/hooks/useWorkoutSession'
@@ -209,7 +209,6 @@ function EditSetModal({ set, isOpen, onClose, onSave, onDelete, isLoading }: Edi
 export function SessionDetailPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
   // CRUD Hooks
   const { mutate: deleteSession, isPending: isDeleting } = useDeleteSession()

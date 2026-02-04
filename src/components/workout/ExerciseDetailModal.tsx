@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { useExerciseInfo } from '@/hooks/useExerciseGif'
 import { Dumbbell, Target, Loader2, AlertCircle, StickyNote, Info } from 'lucide-react'
@@ -22,7 +22,12 @@ export function ExerciseDetailModal({
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
 
-  // Reset image state when modal opens with new exercise
+  // Reset image state when exercise changes or modal opens/closes
+  useEffect(() => {
+    setImageLoaded(false)
+    setImageError(false)
+  }, [exerciseName, isOpen, gifUrl])
+
   const handleImageLoad = () => setImageLoaded(true)
   const handleImageError = () => setImageError(true)
 

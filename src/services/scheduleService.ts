@@ -146,8 +146,14 @@ export async function saveScheduleDayWorkouts(
     throw new Error(`Failed to clear existing schedule: ${deleteError instanceof Error ? deleteError.message : String(deleteError)}`)
   }
 
-  // If no workouts or rest day, insert single rest entry
-  if (workouts.length === 0 || workouts[0]?.type === 'rest') {
+  // If no workouts selected, just clear the day (don't insert anything)
+  if (workouts.length === 0) {
+    console.log('No workouts selected, day cleared')
+    return []
+  }
+
+  // If rest day explicitly selected, insert rest entry
+  if (workouts[0]?.type === 'rest') {
     console.log('Inserting rest day')
     const { data, error } = await supabase
       .from('user_schedules')
@@ -249,23 +255,22 @@ export async function upsertScheduleDay(
   userId: string,
   dayNumber: number,
   data: UpdateScheduleDayData
-): Promise<ScheduleDay> {
-  let workoutItem: ScheduleWorkoutItem
+): Promise<ScheduleDay | null> {
+  let workoutItems: ScheduleWorkoutItem[] = []
 
   if (data.is_rest_day) {
-    workoutItem = { type: 'rest' }
+    workoutItems = [{ type: 'rest' }]
   } else if (data.workout_day_id) {
-    workoutItem = { type: 'weights', id: data.workout_day_id }
+    workoutItems = [{ type: 'weights', id: data.workout_day_id }]
   } else if (data.template_id) {
     // We need to determine if it's cardio or mobility
     // For simplicity, default to cardio - the actual type is stored in the template
-    workoutItem = { type: 'cardio', id: data.template_id }
-  } else {
-    workoutItem = { type: 'rest' }
+    workoutItems = [{ type: 'cardio', id: data.template_id }]
   }
+  // If no data provided, workoutItems stays empty (clears the day)
 
-  const result = await saveScheduleDayWorkouts(userId, dayNumber, [workoutItem])
-  return result[0]
+  const result = await saveScheduleDayWorkouts(userId, dayNumber, workoutItems)
+  return result[0] || null
 }
 
 // Initialize a default schedule for a new user

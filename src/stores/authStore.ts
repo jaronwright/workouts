@@ -14,6 +14,7 @@ interface AuthState {
   setInitialized: (initialized: boolean) => void
   signUp: (email: string, password: string) => Promise<void>
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<void>
+  signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
   updatePassword: (newPassword: string) => Promise<void>
@@ -69,6 +70,27 @@ export const useAuthStore = create<AuthState>()(
           }
 
           set({ user: data.user, session: data.session })
+        } finally {
+          set({ loading: false })
+        }
+      },
+
+      signInWithGoogle: async () => {
+        set({ loading: true })
+        try {
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: `${window.location.origin}/auth/callback`,
+              queryParams: {
+                access_type: 'offline',
+                prompt: 'consent'
+              }
+            }
+          })
+          if (error) throw error
+          // Note: User will be redirected to Google, then back to /auth/callback
+          // The initialize() function will pick up the session after redirect
         } finally {
           set({ loading: false })
         }

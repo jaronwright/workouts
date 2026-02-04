@@ -9,10 +9,17 @@ Workout Tracker PWA - A Progressive Web App for tracking workouts with Supabase 
 ## Commands
 
 ```bash
-npm run dev       # Start Vite dev server (http://localhost:5173)
-npm run build     # TypeScript compilation + Vite production build
-npm run lint      # Run ESLint on all files
-npm run preview   # Preview production build locally
+npm run dev           # Start Vite dev server (http://localhost:5173)
+npm run build         # TypeScript compilation + Vite production build
+npm run lint          # Run ESLint on all files
+npm run preview       # Preview production build locally
+
+# Testing (Vitest)
+npm test              # Run tests in watch mode
+npm run test:run      # Run tests once
+npm run test:ui       # Run tests with interactive UI
+npm run test:coverage # Run tests with coverage report
+npx vitest run src/utils/__tests__/formatters.test.ts  # Run single test file
 ```
 
 ## Tech Stack
@@ -51,6 +58,13 @@ Protected routes require authentication. Routes: `/auth` (public), `/` (home), `
 - Environment variables in `.env.local`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 - Supabase migrations in `supabase/migrations/` (run in order: schema first, then seed)
 - PWA caches Supabase API calls with NetworkFirst strategy
+
+## Testing
+
+- Test files use `__tests__` directories adjacent to source (e.g., `src/utils/__tests__/`)
+- Test setup in `src/test/setup.ts` with Supabase mocks in `src/test/mocks/`
+- Test utilities including custom render with providers in `src/test/utils.tsx`
+- Uses jsdom environment with React Testing Library
 
 ## Important Notes
 

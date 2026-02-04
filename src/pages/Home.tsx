@@ -1,16 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Play, TrendingUp, ChevronRight, ChevronDown, Clock, Flame, Trophy, Calendar,
+  Play, TrendingUp, ChevronRight, ChevronDown, Flame, Trophy, Calendar,
   Zap, Dumbbell, Heart, Activity, X
 } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
 import { ScheduleWidget } from '@/components/workout'
+import { OnboardingWizard } from '@/components/onboarding'
 import { useActiveSession, useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
 import { useProfile } from '@/hooks/useProfile'
 import { useWorkoutPlans, useWorkoutDays } from '@/hooks/useWorkoutPlan'
-import { useWorkoutTemplatesByType } from '@/hooks/useSchedule'
+import { useWorkoutTemplatesByType, useUserSchedule } from '@/hooks/useSchedule'
 import { formatRelativeTime } from '@/utils/formatters'
 import {
   getWorkoutDisplayName,
@@ -211,6 +212,23 @@ export function HomePage() {
   const { data: days, isLoading: daysLoading } = useWorkoutDays(plans?.[0]?.id)
   const { data: cardioTemplates, isLoading: cardioLoading } = useWorkoutTemplatesByType('cardio')
   const { data: mobilityTemplates, isLoading: mobilityLoading } = useWorkoutTemplatesByType('mobility')
+  const { data: schedule, isLoading: scheduleLoading } = useUserSchedule()
+
+  // Onboarding wizard state
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const hasAttemptedAutoOpen = useRef(false)
+
+  // Auto-open onboarding when schedule is empty (after initial load)
+  useEffect(() => {
+    if (scheduleLoading || hasAttemptedAutoOpen.current) return
+
+    hasAttemptedAutoOpen.current = true
+    const hasEmptySchedule = !schedule || schedule.length === 0
+    if (hasEmptySchedule) {
+      // Use setTimeout to defer state update and avoid cascading render warning
+      setTimeout(() => setShowOnboarding(true), 0)
+    }
+  }, [schedule, scheduleLoading])
 
   const allSessions = (sessions || []) as SessionWithDay[]
   const recentSessions = allSessions.slice(0, 3)
@@ -242,7 +260,7 @@ export function HomePage() {
   }
 
   return (
-    <AppShell title="Home" showLogout>
+    <AppShell title="Home">
       <div className="p-4 space-y-5 pb-4">
         {/* Greeting */}
         <div>
@@ -287,7 +305,7 @@ export function HomePage() {
         )}
 
         {/* Schedule Widget - Today's Workout + 7-Day Overview */}
-        <ScheduleWidget />
+        <ScheduleWidget onSetupSchedule={() => setShowOnboarding(true)} />
 
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3">
@@ -343,7 +361,11 @@ export function HomePage() {
           </Card>
         </div>
 
-        {/* Workout Categories */}
+        {/* Quick Select Workouts */}
+        <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
+          Quick Select
+        </p>
+
         <CollapsibleSection
           title="Weights"
           icon={Dumbbell}
@@ -475,6 +497,12 @@ export function HomePage() {
           </section>
         )}
       </div>
+
+      {/* Onboarding Wizard */}
+      <OnboardingWizard
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+      />
     </AppShell>
   )
 }

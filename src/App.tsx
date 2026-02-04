@@ -6,6 +6,7 @@ import { useTheme } from '@/hooks/useTheme'
 import { ToastProvider } from '@/components/ui'
 import {
   AuthPage,
+  AuthCallbackPage,
   HomePage,
   WorkoutPage,
   HistoryPage,
@@ -81,6 +82,10 @@ function AppRoutes() {
             <AuthPage />
           </PublicRoute>
         }
+      />
+      <Route
+        path="/auth/callback"
+        element={<AuthCallbackPage />}
       />
       <Route
         path="/"

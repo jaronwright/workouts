@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Moon, Dumbbell, Heart, Activity, ChevronRight, Calendar } from 'lucide-react'
+import { Moon, Dumbbell, ChevronRight, Calendar } from 'lucide-react'
 import { Card, CardContent, Button } from '@/components/ui'
 import { useUserSchedule } from '@/hooks/useSchedule'
 import { useProfile } from '@/hooks/useProfile'
@@ -100,7 +100,11 @@ function getDayInfo(schedule: ScheduleDay | undefined, dayNumber: number): DayIn
   }
 }
 
-export function ScheduleWidget() {
+interface ScheduleWidgetProps {
+  onSetupSchedule?: () => void
+}
+
+export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
   const navigate = useNavigate()
   const { data: schedule, isLoading } = useUserSchedule()
   const { data: profile } = useProfile()
@@ -157,6 +161,14 @@ export function ScheduleWidget() {
   }
 
   if (!hasSchedule) {
+    const handleSetup = () => {
+      if (onSetupSchedule) {
+        onSetupSchedule()
+      } else {
+        navigate('/schedule')
+      }
+    }
+
     return (
       <Card variant="outlined">
         <CardContent className="py-5">
@@ -172,7 +184,7 @@ export function ScheduleWidget() {
                 Create your weekly workout plan
               </p>
             </div>
-            <Button size="sm" variant="primary" onClick={() => navigate('/schedule')}>
+            <Button size="sm" variant="primary" onClick={handleSetup}>
               Set Up
             </Button>
           </div>

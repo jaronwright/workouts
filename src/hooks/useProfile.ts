@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/authStore'
 import {
   getProfile,
-  updateProfile,
   upsertProfile,
   advanceCycleDay,
   type UserProfile,

@@ -8,6 +8,7 @@ export function useAuth() {
   const initialized = useAuthStore((s) => s.initialized)
   const signUp = useAuthStore((s) => s.signUp)
   const signIn = useAuthStore((s) => s.signIn)
+  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle)
   const signOut = useAuthStore((s) => s.signOut)
   const resetPassword = useAuthStore((s) => s.resetPassword)
   const updatePassword = useAuthStore((s) => s.updatePassword)
@@ -24,6 +25,7 @@ export function useAuth() {
     initialized,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
     resetPassword,
     updatePassword,

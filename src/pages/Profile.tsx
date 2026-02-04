@@ -7,7 +7,8 @@ import { useToast } from '@/hooks/useToast'
 import { PasswordStrengthIndicator } from '@/components/auth/PasswordStrengthIndicator'
 import { validatePassword } from '@/utils/validation'
 import { deleteUserAccount } from '@/services/profileService'
-import { User, Calendar, Shield, Mail, AlertTriangle, ChevronDown, ChevronUp, LogOut } from 'lucide-react'
+import { User, Calendar, Shield, Mail, AlertTriangle, ChevronDown, ChevronUp, LogOut, Sun, Moon, Monitor } from 'lucide-react'
+import { useTheme } from '@/hooks/useTheme'
 
 const GENDER_OPTIONS = [
   { value: '', label: 'Select gender' },
@@ -25,6 +26,7 @@ export function ProfilePage() {
   const signOutAllDevices = useAuthStore((s) => s.signOutAllDevices)
   const { data: profile, isLoading } = useProfile()
   const { mutate: updateProfile, isPending: isSaving } = useUpdateProfile()
+  const { theme, setTheme } = useTheme()
   const { success, error: showError } = useToast()
 
   const [displayName, setDisplayName] = useState('')
@@ -233,6 +235,77 @@ export function ProfilePage() {
           </CardContent>
         </Card>
 
+        {/* Appearance Section */}
+        <Card>
+          <CardContent className="py-4 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[var(--color-primary)]/20 rounded-full flex items-center justify-center">
+                {theme === 'light' ? (
+                  <Sun className="w-5 h-5 text-[var(--color-primary)]" />
+                ) : theme === 'dark' ? (
+                  <Moon className="w-5 h-5 text-[var(--color-primary)]" />
+                ) : (
+                  <Monitor className="w-5 h-5 text-[var(--color-primary)]" />
+                )}
+              </div>
+              <div>
+                <h3 className="font-semibold text-[var(--color-text)]">Appearance</h3>
+                <p className="text-sm text-[var(--color-text-muted)]">Choose your theme preference</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => setTheme('light')}
+                className={`
+                  flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
+                  ${theme === 'light'
+                    ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
+                    : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
+                  }
+                `}
+              >
+                <Sun className={`w-6 h-6 ${theme === 'light' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
+                <span className={`text-sm font-medium ${theme === 'light' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
+                  Light
+                </span>
+              </button>
+
+              <button
+                onClick={() => setTheme('dark')}
+                className={`
+                  flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
+                  ${theme === 'dark'
+                    ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
+                    : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
+                  }
+                `}
+              >
+                <Moon className={`w-6 h-6 ${theme === 'dark' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
+                <span className={`text-sm font-medium ${theme === 'dark' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
+                  Dark
+                </span>
+              </button>
+
+              <button
+                onClick={() => setTheme('system')}
+                className={`
+                  flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
+                  ${theme === 'system'
+                    ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
+                    : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
+                  }
+                `}
+              >
+                <Monitor className={`w-6 h-6 ${theme === 'system' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
+                <span className={`text-sm font-medium ${theme === 'system' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
+                  System
+                </span>
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Security Section */}
         <Card>
           <CardContent className="py-4">
@@ -398,6 +471,16 @@ export function ProfilePage() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Log Out */}
+        <Button
+          variant="secondary"
+          onClick={() => signOut()}
+          className="w-full flex items-center justify-center gap-2"
+        >
+          <LogOut className="w-4 h-4" />
+          Log Out
+        </Button>
       </div>
 
       {/* Delete Account Modal */}

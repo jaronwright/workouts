@@ -1,4 +1,5 @@
 export { AuthPage } from './Auth'
+export { AuthCallbackPage } from './AuthCallback'
 export { HomePage } from './Home'
 export { WorkoutPage } from './Workout'
 export { WorkoutSelectPage } from './WorkoutSelect'
