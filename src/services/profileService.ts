@@ -4,6 +4,7 @@ export interface UserProfile {
   id: string
   display_name: string | null
   gender: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say' | null
+  avatar_url: string | null
   current_cycle_day: number
   last_workout_date: string | null
   created_at: string
@@ -13,6 +14,7 @@ export interface UserProfile {
 export interface UpdateProfileData {
   display_name?: string | null
   gender?: UserProfile['gender']
+  avatar_url?: string | null
   current_cycle_day?: number
   last_workout_date?: string | null
 }

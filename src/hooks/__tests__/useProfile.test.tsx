@@ -23,6 +23,7 @@ describe('useProfile hooks', () => {
     id: 'user-123',
     display_name: 'Test User',
     gender: 'male',
+    avatar_url: null,
     current_cycle_day: 1,
     last_workout_date: '2024-01-15',
     created_at: '2024-01-01T00:00:00Z',

@@ -7,7 +7,8 @@ import { useToast } from '@/hooks/useToast'
 import { PasswordStrengthIndicator } from '@/components/auth/PasswordStrengthIndicator'
 import { validatePassword } from '@/utils/validation'
 import { deleteUserAccount } from '@/services/profileService'
-import { User, Calendar, Shield, Mail, AlertTriangle, ChevronDown, ChevronUp, LogOut, Sun, Moon, Monitor } from 'lucide-react'
+import { Calendar, Shield, Mail, ChevronDown, ChevronUp, LogOut, Sun, Moon, Monitor } from 'lucide-react'
+import { AvatarUpload } from '@/components/profile/AvatarUpload'
 import { useTheme } from '@/hooks/useTheme'
 
 const GENDER_OPTIONS = [
@@ -187,9 +188,7 @@ export function ProfilePage() {
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-[var(--color-primary)]/20 rounded-full flex items-center justify-center">
-                <User className="w-8 h-8 text-[var(--color-primary)]" />
-              </div>
+              <AvatarUpload />
               <div>
                 <h2 className="text-lg font-semibold text-[var(--color-text)]">
                   {displayName || 'No name set'}
@@ -371,6 +370,15 @@ export function ProfilePage() {
                     Sign Out All Devices
                   </Button>
                 </div>
+
+                <div className="pt-4 border-t border-[var(--color-border)]">
+                  <button
+                    onClick={() => setShowDeleteModal(true)}
+                    className="text-sm text-[var(--color-danger)] hover:underline"
+                  >
+                    Delete Account
+                  </button>
+                </div>
               </div>
             )}
           </CardContent>
@@ -447,28 +455,6 @@ export function ProfilePage() {
                 Last workout: {new Date(profile.last_workout_date).toLocaleDateString()}
               </p>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Danger Zone */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-[var(--color-danger)]/20 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-[var(--color-danger)]" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-[var(--color-danger)]">Danger Zone</h3>
-                <p className="text-sm text-[var(--color-text-muted)]">Irreversible actions</p>
-              </div>
-            </div>
-            <Button
-              variant="danger"
-              onClick={() => setShowDeleteModal(true)}
-              className="w-full"
-            >
-              Delete Account
-            </Button>
           </CardContent>
         </Card>
 

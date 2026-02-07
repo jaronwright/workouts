@@ -5,11 +5,12 @@ import {
   Zap, Dumbbell, Heart, Activity, X
 } from 'lucide-react'
 import { AppShell } from '@/components/layout'
-import { Button, Card, CardContent } from '@/components/ui'
-import { ScheduleWidget } from '@/components/workout'
+import { Avatar, Button, Card, CardContent } from '@/components/ui'
+import { CardioLogCard, ScheduleWidget } from '@/components/workout'
 import { OnboardingWizard } from '@/components/onboarding'
 import { useActiveSession, useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
 import { useProfile } from '@/hooks/useProfile'
+import { useAvatarUrl } from '@/hooks/useAvatar'
 import { useWorkoutPlans, useWorkoutDays } from '@/hooks/useWorkoutPlan'
 import { useWorkoutTemplatesByType, useUserSchedule } from '@/hooks/useSchedule'
 import { formatRelativeTime } from '@/utils/formatters'
@@ -242,11 +243,11 @@ export function HomePage() {
   // Greeting
   const greeting = getGreeting()
   const displayName = profile?.display_name || 'there'
+  const avatarUrl = useAvatarUrl()
   const motivation = getMotivationalMessage(streak, thisWeek, !!activeSession)
 
   // Handlers
   const handleStartWorkout = (dayId: string) => navigate(`/workout/${dayId}`)
-  const handleStartCardio = (templateId: string) => navigate(`/cardio/${templateId}`)
   const handleStartMobility = (templateId: string) => navigate(`/mobility/${templateId}`)
   const handleContinueWorkout = () => {
     if (activeSession) {
@@ -263,14 +264,17 @@ export function HomePage() {
     <AppShell title="Home">
       <div className="p-4 space-y-5 pb-4">
         {/* Greeting */}
-        <div>
-          <h2 className="text-xl font-bold text-[var(--color-text)]">
-            {greeting}, {displayName}!
-          </h2>
-          <p className="text-sm text-[var(--color-text-muted)] mt-0.5 flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-yellow-500" />
-            {motivation}
-          </p>
+        <div className="flex items-center gap-3">
+          <Avatar src={avatarUrl} size="md" alt="Profile" />
+          <div>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">
+              {greeting}, {displayName}!
+            </h2>
+            <p className="text-sm text-[var(--color-text-muted)] mt-0.5 flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-yellow-500" />
+              {motivation}
+            </p>
+          </div>
         </div>
 
         {/* Active Session Banner */}
@@ -409,10 +413,9 @@ export function HomePage() {
             </div>
           ) : cardioTemplates?.length ? (
             cardioTemplates.map((template) => (
-              <TemplateCard
+              <CardioLogCard
                 key={template.id}
                 template={template}
-                onClick={() => handleStartCardio(template.id)}
               />
             ))
           ) : (
