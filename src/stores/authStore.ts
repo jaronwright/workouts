@@ -222,6 +222,18 @@ export const useAuthStore = create<AuthState>()(
           authSubscription = subscription
 
           const { data: { session } } = await supabase.auth.getSession()
+
+          // Validate the session against the server to detect stale sessions
+          // (e.g. after a supabase db reset where auth.users was wiped)
+          if (session) {
+            const { error: userError } = await supabase.auth.getUser()
+            if (userError) {
+              await supabase.auth.signOut()
+              set({ session: null, user: null, initialized: true })
+              return
+            }
+          }
+
           set({
             session,
             user: session?.user ?? null,
