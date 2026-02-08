@@ -125,26 +125,8 @@ export function WorkoutPage() {
 
   if (!activeSession) {
     return (
-      <AppShell title={getWorkoutDisplayName(workoutDay.name)} showBack>
-        <div className="p-4 space-y-6">
-          <Card>
-            <CardContent className="py-6 text-center">
-              <h2 className="text-xl font-semibold text-[var(--color-text)] mb-2">
-                {getWorkoutDisplayName(workoutDay.name)}
-              </h2>
-              <p className="text-[var(--color-text-muted)] mb-6">
-                {workoutDay.sections.reduce(
-                  (acc, s) => acc + s.exercises.length,
-                  0
-                )}{' '}
-                exercises
-              </p>
-              <Button onClick={handleStart} loading={isStarting} size="lg">
-                Start Workout
-              </Button>
-            </CardContent>
-          </Card>
-
+      <AppShell title={getWorkoutDisplayName(workoutDay.name)} showBack hideNav>
+        <div className="p-4 space-y-4">
           <div className="space-y-4">
             {workoutDay.sections.map((section) => {
               const isWarmup = isWarmupSection(section.name)
@@ -198,6 +180,13 @@ export function WorkoutPage() {
               )
             })}
           </div>
+        </div>
+
+        {/* Floating Start Workout button */}
+        <div className="fixed bottom-0 left-0 right-0 p-4 pb-safe bg-[var(--color-bg)]/95 backdrop-blur-sm border-t border-[var(--color-border)]">
+          <Button onClick={handleStart} loading={isStarting} size="lg" className="w-full">
+            Start Workout
+          </Button>
         </div>
       </AppShell>
     )
