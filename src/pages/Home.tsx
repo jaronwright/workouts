@@ -224,7 +224,7 @@ export function HomePage() {
   const { data: cardioTemplates, isLoading: cardioLoading } = useWorkoutTemplatesByType('cardio')
   const { data: mobilityTemplates, isLoading: mobilityLoading } = useWorkoutTemplatesByType('mobility')
   const { data: schedule, isLoading: scheduleLoading } = useUserSchedule()
-  const { data: templateWorkoutSessions } = useUserTemplateWorkouts()
+  const { data: templateWorkoutSessions, isLoading: templateSessionsLoading } = useUserTemplateWorkouts()
 
   // Onboarding wizard state
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -264,7 +264,7 @@ export function HomePage() {
   const streak = calculateStreak(allCompleted)
   const thisWeek = getWeeklyCount(allCompleted)
   const totalWorkouts = allCompleted.filter(s => s.completed_at).length
-  const statsLoading = sessionsLoading
+  const statsLoading = sessionsLoading || templateSessionsLoading
 
   // Greeting
   const greeting = getGreeting()
@@ -295,7 +295,7 @@ export function HomePage() {
         <div className="flex items-center gap-3">
           <Avatar src={avatarUrl} size="md" alt="Profile" />
           <div>
-            {profileLoading ? (
+            {(profileLoading || !profile) ? (
               <div className="h-7 w-48 rounded bg-[var(--color-surface-hover)] animate-pulse" />
             ) : (
               <h2 className="text-xl font-bold text-[var(--color-text)]">

@@ -44,8 +44,9 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
   const [selections, setSelections] = useState<Record<number, DaySelection>>(INITIAL_SELECTIONS)
   const [cycleStartDate, setCycleStartDate] = useState(() => {
-    const d = new Date()
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    return new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    }).format(new Date())
   })
   const [error, setError] = useState<string | null>(null)
   const [savingDay, setSavingDay] = useState<number | null>(null)
@@ -67,8 +68,9 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
       setStep(initialStep)
       setSelectedPlanId(initialPlanId || profile?.selected_plan_id || PPL_PLAN_ID)
       setSelections(INITIAL_SELECTIONS)
-      const d = new Date()
-      setCycleStartDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)
+      setCycleStartDate(new Intl.DateTimeFormat('en-CA', {
+        year: 'numeric', month: '2-digit', day: '2-digit'
+      }).format(new Date()))
       setError(null)
       setExpandedDay(null)
 

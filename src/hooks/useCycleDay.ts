@@ -7,11 +7,13 @@ export function useCycleDay(): number {
   const { mutate: updateProfile } = useUpdateProfile()
 
   // Auto-detect and save timezone if not set
+  const hasProfile = !!profile
+  const hasTimezone = !!profile?.timezone
   useEffect(() => {
-    if (profile && !profile.timezone) {
+    if (hasProfile && !hasTimezone) {
       updateProfile({ timezone: detectUserTimezone() })
     }
-  }, [profile, updateProfile])
+  }, [hasProfile, hasTimezone, updateProfile])
 
   if (!profile?.cycle_start_date) return 1
   const tz = profile.timezone || detectUserTimezone()
