@@ -44,7 +44,7 @@ npx vitest run src/utils/__tests__/formatters.test.ts  # Run single test file
 ### Key Directories
 - `src/pages/` - Route components (Home, Workout, WorkoutSelect, CardioWorkout, MobilityWorkout, MobilityDurationPicker, History, SessionDetail, CardioSessionDetail, Profile, Schedule, RestDay, Community, Auth, AuthCallback)
 - `src/components/` - UI (`ui/`), layout (`layout/`), workout-specific (`workout/`), onboarding (`onboarding/`), profile (`profile/`), schedule (`schedule/`), calendar (`calendar/`), stats (`stats/`), social (`social/`), weather (`weather/`), auth (`auth/`)
-- `src/hooks/` - React Query hooks wrapping service calls
+- `src/hooks/` - React Query hooks wrapping service calls: `useAuth`, `useAvatar`, `useCalendarData`, `useCycleDay`, `useExerciseGif`, `useFeedback`, `useMobilityTemplates`, `usePR`, `useProfile`, `useProgression`, `useReducedMotion`, `useSchedule`, `useSocial`, `useTemplateWorkout`, `useTheme`, `useToast`, `useWeather`, `useWorkoutPlan`, `useWorkoutSession`
 - `src/services/` - Supabase client and database operations: `workoutService`, `profileService`, `scheduleService`, `templateWorkoutService`, `avatarService`, `progressionService`, `prService`, `socialService`, `exerciseDbService`, `weatherService`, `feedbackService`
 - `src/stores/` - Zustand stores: `authStore`, `workoutStore`, `settingsStore` (weight units), `themeStore` (dark mode), `toastStore`, `weatherStore` (location cache, temp unit)
 - `src/config/` - `workoutConfig.ts` (centralized style/display-name mappings), `planConstants.ts` (plan IDs), `animationConfig.ts` (Framer Motion variants), `defaultAvatars.ts`, `restDayActivities.ts`
@@ -73,16 +73,17 @@ Protected routes require authentication. Full route list:
 
 - Path alias: `@/` maps to `./src/`
 - Environment variables in `.env.local`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-- Supabase migrations in `supabase/migrations/` (run in order: schema first, then seed)
+- Supabase migrations in `supabase/migrations/` (19 migrations, run in order: schema first, then seed)
 - PWA caches Supabase API calls with NetworkFirst strategy
 
 ## Testing
 
+- 1,900+ tests across 98 test files
 - Test files use `__tests__` directories adjacent to source (e.g., `src/utils/__tests__/`)
 - Test setup in `src/test/setup.ts` with Supabase mocks in `src/test/mocks/`
 - Test utilities including custom render with providers in `src/test/utils.tsx`
 - Uses jsdom environment with React Testing Library
-- Comprehensive tests use `.comprehensive.test.ts` suffix; edge case tests use `.edgecases.test.ts`
+- Comprehensive tests use `.comprehensive.test.ts` suffix; edge case tests use `.edgecases.test.ts`; integration tests use `.integration.test.ts`
 
 ## Important Notes
 
@@ -94,3 +95,5 @@ Protected routes require authentication. Full route list:
 - Weather uses geolocation (permission prompt on first visit); data cached in Zustand store
 - Cardio workout page shows last session data instead of static target duration
 - Bottom nav uses Material 3-style animated pill indicator for active state
+- Three workout splits available: PPL, Upper/Lower, and Glute Hypertrophy
+- Deployed to Vercel with SPA rewrites configured in `vercel.json`
