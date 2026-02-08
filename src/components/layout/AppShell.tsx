@@ -21,10 +21,10 @@ export function AppShell({
   headerAction
 }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-[var(--color-background)]">
+    <div className="h-[100dvh] flex flex-col bg-[var(--color-background)]">
       <VerificationBanner />
       <Header title={title} showBack={showBack} showLogout={showLogout} headerAction={headerAction} />
-      <main className={`${hideNav ? 'pb-6' : 'pb-32'}`}>
+      <main className="flex-1 overflow-y-auto overscroll-contain pb-6">
         {children}
       </main>
       {!hideNav && <BottomNav />}

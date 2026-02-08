@@ -20,7 +20,7 @@ export function Header({ title, showBack = false, showLogout = false, headerActi
   }
 
   return (
-    <header className="sticky top-0 z-40 frosted-glass border-b border-[rgba(0,0,0,0.05)] dark:border-[rgba(255,255,255,0.06)]">
+    <header className="flex-shrink-0 z-40 frosted-glass border-b border-[rgba(0,0,0,0.05)] dark:border-[rgba(255,255,255,0.06)]">
       <div className="flex items-center justify-between h-14 px-4">
         <div className="flex items-center gap-2">
           {showBack && (
