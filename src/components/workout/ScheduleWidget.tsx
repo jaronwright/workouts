@@ -1,8 +1,13 @@
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, Calendar } from 'lucide-react'
-import { Card, CardContent, Button } from '@/components/ui'
+import { ChevronRight, Calendar, Check } from 'lucide-react'
+import { motion } from 'motion/react'
+import { Card, CardContent, Button, StreakBar } from '@/components/ui'
 import { useUserSchedule } from '@/hooks/useSchedule'
 import { useCycleDay } from '@/hooks/useCycleDay'
+import { useUserSessions } from '@/hooks/useWorkoutSession'
+import { useUserTemplateWorkouts } from '@/hooks/useTemplateWorkout'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { getDayInfo, type DayInfo } from '@/utils/scheduleUtils'
 import type { ScheduleDay } from '@/services/scheduleService'
 
@@ -14,6 +19,9 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
   const navigate = useNavigate()
   const { data: schedule, isLoading } = useUserSchedule()
   const currentCycleDay = useCycleDay()
+  const { data: weightsSessions } = useUserSessions()
+  const { data: templateSessions } = useUserTemplateWorkouts()
+  const prefersReduced = useReducedMotion()
 
   // Create a map of day_number to schedule for quick lookup
   const scheduleMap = new Map<number, ScheduleDay>()
@@ -34,6 +42,56 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
   // Get today's workout info
   const todayInfo = days[currentCycleDay - 1] || days[0]
   const hasSchedule = schedule && schedule.length > 0
+
+  // Check if today's workout is completed
+  const todayCompleted = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const allSessions = [
+      ...(weightsSessions || []),
+      ...(templateSessions || [])
+    ]
+
+    return allSessions.some(s => {
+      if (!s.completed_at) return false
+      const completedDate = new Date(s.completed_at)
+      completedDate.setHours(0, 0, 0, 0)
+      return completedDate.getTime() === today.getTime()
+    })
+  }, [weightsSessions, templateSessions])
+
+  // Compute weekly completion for StreakBar
+  const streakDays = useMemo(() => {
+    const now = new Date()
+    const startOfWeek = new Date(now)
+    startOfWeek.setDate(now.getDate() - now.getDay())
+    startOfWeek.setHours(0, 0, 0, 0)
+
+    const allSessions = [
+      ...(weightsSessions || []),
+      ...(templateSessions || [])
+    ]
+
+    const completedDayNums = new Set<number>()
+    allSessions.forEach(s => {
+      if (!s.completed_at) return
+      const completedDate = new Date(s.completed_at)
+      if (completedDate >= startOfWeek) {
+        completedDayNums.add(completedDate.getDay())
+      }
+    })
+
+    const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+    const todayDow = now.getDay()
+
+    return dayLabels.map((label, i) => ({
+      label,
+      completed: completedDayNums.has(i),
+      isToday: i === todayDow,
+      color: completedDayNums.has(i) ? 'var(--color-primary)' : undefined,
+    }))
+  }, [weightsSessions, templateSessions])
 
   const handleDayClick = (day: DayInfo) => {
     if (day.isRest) {
@@ -101,82 +159,60 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
   const TodayIcon = todayInfo.icon
 
   return (
-    <Card className="overflow-hidden">
-      {/* Today's Workout - Hero Section */}
-      <div
-        className="p-4 cursor-pointer active:opacity-90 transition-opacity"
-        style={{ backgroundColor: `${todayInfo.color}10` }}
-        onClick={handleTodayClick}
-      >
-        <div className="flex items-center gap-3">
+    <motion.div
+      initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.1 }}
+    >
+      <Card className="overflow-hidden">
+        {/* Today's Workout - Hero Section with color-coded left border */}
+        <div
+          className="p-4 cursor-pointer active:opacity-90 transition-opacity relative"
+          style={{ backgroundColor: `${todayInfo.color}10` }}
+          onClick={handleTodayClick}
+        >
+          {/* Color-coded left border */}
           <div
-            className="w-12 h-12 rounded-[var(--radius-lg)] flex items-center justify-center"
-            style={{ backgroundColor: todayInfo.bgColor }}
-          >
-            <TodayIcon className="w-6 h-6" style={{ color: todayInfo.color }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
-                style={{ backgroundColor: todayInfo.bgColor, color: todayInfo.color }}>
-                Day {currentCycleDay}
-              </span>
-              <span className="text-[10px] text-[var(--color-text-muted)]">Today</span>
-            </div>
-            <h3 className="text-base font-bold text-[var(--color-text)] mt-1 truncate">
-              {todayInfo.name}
-            </h3>
-          </div>
-          <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)]" />
-        </div>
-      </div>
-
-      {/* Cycle Days Overview - Compact Tabs */}
-      <CardContent className="py-3 border-t border-[var(--color-border)]">
-        <div className="flex justify-between gap-1">
-          {days.map((day) => {
-            const isToday = day.dayNumber === currentCycleDay
-            const DayIcon = day.icon
-
-            return (
-              <button
-                key={day.dayNumber}
-                onClick={() => handleDayClick(day)}
-                className={`
-                  flex-1 flex flex-col items-center gap-1.5 py-2 px-1 rounded-lg
-                  transition-all duration-150
-                  ${isToday
-                    ? 'bg-[var(--color-primary)]/10 ring-2 ring-[var(--color-primary)]'
-                    : 'hover:bg-[var(--color-surface-hover)] active:scale-95'
-                  }
-                `}
+            className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[var(--radius-xl)]"
+            style={{ backgroundColor: todayInfo.color }}
+          />
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div
+                className="w-14 h-14 rounded-[var(--radius-lg)] flex items-center justify-center bg-gradient-to-br shadow-sm"
+                style={{
+                  backgroundImage: `linear-gradient(to bottom right, ${todayInfo.color}, ${todayInfo.color}cc)`,
+                }}
               >
-                <span className={`
-                  text-[10px] font-bold
-                  ${isToday ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}
-                `}>
-                  {day.dayNumber}
-                </span>
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150"
-                  style={{
-                    backgroundColor: isToday ? todayInfo.color : day.bgColor,
-                    color: isToday ? 'white' : day.color
-                  }}
-                >
-                  <DayIcon className="w-4 h-4" />
+                <TodayIcon className="w-7 h-7 text-white" />
+              </div>
+              {todayCompleted && (
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[var(--color-success)] border-2 border-[var(--color-surface)] flex items-center justify-center">
+                  <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                 </div>
-                <span className={`
-                  text-[9px] font-medium truncate max-w-full px-0.5
-                  ${isToday ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}
-                `}>
-                  {day.name.length > 6 ? day.name.substring(0, 5) + '…' : day.name}
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                  style={{ backgroundColor: todayInfo.bgColor, color: todayInfo.color }}>
+                  Day {currentCycleDay}
                 </span>
-              </button>
-            )
-          })}
+                <span className="text-[10px] text-[var(--color-text-muted)]">Today</span>
+              </div>
+              <h3 className="text-lg font-bold text-[var(--color-text)] mt-1 truncate">
+                {todayInfo.name}
+              </h3>
+            </div>
+            <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)]" />
+          </div>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Weekly Streak Bar */}
+        <CardContent className="py-3 border-t border-[var(--color-border)]">
+          <StreakBar days={streakDays} />
+        </CardContent>
+      </Card>
+    </motion.div>
   )
 }

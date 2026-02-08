@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, useCallback } from 'react'
-import { Modal, Button } from '@/components/ui'
+import { BottomSheet, Button } from '@/components/ui'
 import { useWorkoutTemplates, useSaveScheduleDayWorkouts } from '@/hooks/useSchedule'
 import { useSelectedPlanDays } from '@/hooks/useWorkoutPlan'
 import { type ScheduleDay, type ScheduleWorkoutItem } from '@/services/scheduleService'
@@ -147,7 +147,7 @@ export function ScheduleDayEditor({
   }
 
   return (
-    <Modal
+    <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
       title={`Day ${dayNumber}`}
@@ -357,6 +357,6 @@ export function ScheduleDayEditor({
           </Button>
         </div>
       </div>
-    </Modal>
+    </BottomSheet>
   )
 }

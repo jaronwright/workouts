@@ -22,52 +22,52 @@ export interface WorkoutStyle {
   icon: LucideIcon
 }
 
-// WEIGHTS - Red/Orange Theme (PPL) + Blue/Purple Theme (Upper/Lower)
+// WEIGHTS - Indigo/Violet/Pink Theme
 export const WEIGHTS_CONFIG: Record<string, WorkoutStyle> = {
   push: {
-    color: '#EF4444',
-    bgColor: 'rgba(239, 68, 68, 0.15)',
-    gradient: 'from-red-500 to-rose-500',
+    color: '#6366F1',
+    bgColor: 'rgba(99, 102, 241, 0.15)',
+    gradient: 'from-indigo-500 to-indigo-400',
     icon: Dumbbell
   },
   pull: {
-    color: '#F97316',
-    bgColor: 'rgba(249, 115, 22, 0.15)',
-    gradient: 'from-orange-500 to-amber-500',
+    color: '#8B5CF6',
+    bgColor: 'rgba(139, 92, 246, 0.15)',
+    gradient: 'from-violet-500 to-violet-400',
     icon: ArrowDown
   },
   legs: {
-    color: '#DC2626',
-    bgColor: 'rgba(220, 38, 38, 0.15)',
-    gradient: 'from-red-600 to-red-500',
+    color: '#EC4899',
+    bgColor: 'rgba(236, 72, 153, 0.15)',
+    gradient: 'from-pink-500 to-pink-400',
     icon: Footprints
   },
   upper: {
-    color: '#3B82F6',
-    bgColor: 'rgba(59, 130, 246, 0.15)',
-    gradient: 'from-blue-500 to-blue-400',
+    color: '#6366F1',
+    bgColor: 'rgba(99, 102, 241, 0.15)',
+    gradient: 'from-indigo-500 to-indigo-400',
     icon: ArrowUp
   },
   lower: {
     color: '#8B5CF6',
     bgColor: 'rgba(139, 92, 246, 0.15)',
-    gradient: 'from-purple-500 to-violet-500',
+    gradient: 'from-violet-500 to-violet-400',
     icon: ArrowDownUp
   }
 }
 
-// CARDIO - Pink/Magenta Theme
+// CARDIO - Teal/Orange/Blue Theme
 export const CARDIO_CONFIG: Record<string, WorkoutStyle> = {
   cycle: {
-    color: '#EC4899',
-    bgColor: 'rgba(236, 72, 153, 0.15)',
-    gradient: 'from-pink-500 to-pink-400',
+    color: '#14B8A6',
+    bgColor: 'rgba(20, 184, 166, 0.15)',
+    gradient: 'from-teal-500 to-teal-400',
     icon: Bike
   },
   run: {
-    color: '#F43F5E',
-    bgColor: 'rgba(244, 63, 94, 0.15)',
-    gradient: 'from-rose-500 to-rose-400',
+    color: '#F97316',
+    bgColor: 'rgba(249, 115, 22, 0.15)',
+    gradient: 'from-orange-500 to-orange-400',
     icon: Zap
   },
   stair_stepper: {
@@ -77,15 +77,15 @@ export const CARDIO_CONFIG: Record<string, WorkoutStyle> = {
     icon: TrendingUp
   },
   swim: {
-    color: '#F472B6',
-    bgColor: 'rgba(244, 114, 182, 0.15)',
-    gradient: 'from-pink-400 to-pink-300',
+    color: '#06B6D4',
+    bgColor: 'rgba(6, 182, 212, 0.15)',
+    gradient: 'from-cyan-500 to-cyan-400',
     icon: Waves
   },
   rower: {
-    color: '#A855F7',
-    bgColor: 'rgba(168, 85, 247, 0.15)',
-    gradient: 'from-purple-500 to-purple-400',
+    color: '#3B82F6',
+    bgColor: 'rgba(59, 130, 246, 0.15)',
+    gradient: 'from-blue-500 to-blue-400',
     icon: Waves
   }
 }
@@ -121,15 +121,15 @@ export const MOBILITY_CONFIG: Record<string, WorkoutStyle> = {
 // Category defaults
 export const CATEGORY_DEFAULTS: Record<string, WorkoutStyle> = {
   weights: {
-    color: '#EF4444',
-    bgColor: 'rgba(239, 68, 68, 0.15)',
-    gradient: 'from-red-500 to-rose-500',
+    color: '#6366F1',
+    bgColor: 'rgba(99, 102, 241, 0.15)',
+    gradient: 'from-indigo-500 to-indigo-400',
     icon: Dumbbell
   },
   cardio: {
-    color: '#EC4899',
-    bgColor: 'rgba(236, 72, 153, 0.15)',
-    gradient: 'from-pink-500 to-rose-500',
+    color: '#14B8A6',
+    bgColor: 'rgba(20, 184, 166, 0.15)',
+    gradient: 'from-teal-500 to-teal-400',
     icon: Zap
   },
   mobility: {

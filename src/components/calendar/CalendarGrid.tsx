@@ -1,7 +1,9 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useState } from 'react'
 import { format, addMonths, subMonths, isSameMonth } from 'date-fns'
+import { motion, AnimatePresence } from 'motion/react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { CalendarDayCell } from './CalendarDayCell'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 import type { CalendarDay } from '@/hooks/useCalendarData'
 
 const DAY_HEADERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
@@ -24,6 +26,8 @@ export function CalendarGrid({
   onMonthChange
 }: CalendarGridProps) {
   const touchStartX = useRef<number | null>(null)
+  const [slideDirection, setSlideDirection] = useState(0) // -1 = left (prev), 1 = right (next)
+  const prefersReduced = useReducedMotion()
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
@@ -34,19 +38,31 @@ export function CalendarGrid({
     const diff = e.changedTouches[0].clientX - touchStartX.current
     if (Math.abs(diff) > 50) {
       if (diff < 0) {
+        setSlideDirection(1)
         onMonthChange(addMonths(currentMonth, 1))
       } else {
+        setSlideDirection(-1)
         onMonthChange(subMonths(currentMonth, 1))
       }
     }
     touchStartX.current = null
   }, [currentMonth, onMonthChange])
 
-  const goToPrevMonth = () => onMonthChange(subMonths(currentMonth, 1))
-  const goToNextMonth = () => onMonthChange(addMonths(currentMonth, 1))
-  const goToToday = () => onMonthChange(today)
+  const goToPrevMonth = () => {
+    setSlideDirection(-1)
+    onMonthChange(subMonths(currentMonth, 1))
+  }
+  const goToNextMonth = () => {
+    setSlideDirection(1)
+    onMonthChange(addMonths(currentMonth, 1))
+  }
+  const goToToday = () => {
+    setSlideDirection(0)
+    onMonthChange(today)
+  }
 
   const isCurrentMonthToday = isSameMonth(currentMonth, today)
+  const monthKey = format(currentMonth, 'yyyy-MM')
 
   return (
     <div
@@ -93,17 +109,26 @@ export function CalendarGrid({
         ))}
       </div>
 
-      {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-px">
-        {calendarDays.map((day) => (
-          <CalendarDayCell
-            key={day.dateKey}
-            day={day}
-            isSelected={day.dateKey === format(selectedDate, 'yyyy-MM-dd')}
-            onSelect={onSelectDate}
-          />
-        ))}
-      </div>
+      {/* Calendar grid with animated month transitions */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={monthKey}
+          className="grid grid-cols-7 gap-px"
+          initial={prefersReduced ? false : { opacity: 0, x: slideDirection * 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: slideDirection * -40 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        >
+          {calendarDays.map((day) => (
+            <CalendarDayCell
+              key={day.dateKey}
+              day={day}
+              isSelected={day.dateKey === format(selectedDate, 'yyyy-MM-dd')}
+              onSelect={onSelectDate}
+            />
+          ))}
+        </motion.div>
+      </AnimatePresence>
     </div>
   )
 }

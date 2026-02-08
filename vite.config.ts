@@ -15,7 +15,7 @@ export default defineConfig({
         name: 'Workout Tracker',
         short_name: 'Workouts',
         description: 'Track your workouts and fitness progress',
-        theme_color: '#3b82f6',
+        theme_color: '#4F46E5',
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',

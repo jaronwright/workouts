@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { format } from 'date-fns'
+import { motion, AnimatePresence } from 'motion/react'
 import {
   Play, TrendingUp, ChevronRight, ChevronDown, Flame, Trophy, Calendar,
   Zap, Dumbbell, Heart, Activity, X
 } from 'lucide-react'
 import { AppShell } from '@/components/layout'
-import { Avatar, Button, Card, CardContent } from '@/components/ui'
+import { Avatar, Button, Card, CardContent, AnimatedCard, AnimatedCounter, Badge } from '@/components/ui'
 import { CardioLogCard, ScheduleWidget } from '@/components/workout'
 import { OnboardingWizard } from '@/components/onboarding'
 import { useActiveSession, useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
@@ -15,7 +17,9 @@ import { useAvatarUrl } from '@/hooks/useAvatar'
 import { useSelectedPlanDays } from '@/hooks/useWorkoutPlan'
 import { useWorkoutTemplatesByType, useUserSchedule } from '@/hooks/useSchedule'
 import { useUserTemplateWorkouts } from '@/hooks/useTemplateWorkout'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { formatRelativeTime } from '@/utils/formatters'
+import { staggerContainer, staggerChild } from '@/config/animationConfig'
 import {
   getWorkoutDisplayName,
   getCardioStyle,
@@ -110,14 +114,15 @@ function getWeeklyCount(sessions: { completed_at: string | null }[]): number {
 interface WorkoutDayCardProps {
   day: { id: string; name: string; day_number: number }
   onClick: () => void
+  delay?: number
 }
 
-function WorkoutDayCard({ day, onClick }: WorkoutDayCardProps) {
+function WorkoutDayCard({ day, onClick, delay = 0 }: WorkoutDayCardProps) {
   const style = getWeightsStyleByName(day.name)
   const Icon = style.icon
 
   return (
-    <Card interactive onClick={onClick}>
+    <AnimatedCard interactive onClick={onClick} animationDelay={delay}>
       <CardContent className="flex items-center gap-4 py-4">
         <div
           className={`w-12 h-12 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center shadow-sm`}
@@ -125,10 +130,7 @@ function WorkoutDayCard({ day, onClick }: WorkoutDayCardProps) {
           <Icon className="w-6 h-6 text-white" strokeWidth={2.5} />
         </div>
         <div className="flex-1 min-w-0">
-          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: style.color }}>
-            {style.label}
-          </span>
-          <h3 className="font-semibold text-[var(--color-text)] text-base leading-tight mt-0.5">
+          <h3 className="font-semibold text-[var(--color-text)] text-base leading-tight">
             {getWorkoutDisplayName(day.name)}
           </h3>
         </div>
@@ -136,7 +138,7 @@ function WorkoutDayCard({ day, onClick }: WorkoutDayCardProps) {
           <ChevronRight className="w-5 h-5" />
         </div>
       </CardContent>
-    </Card>
+    </AnimatedCard>
   )
 }
 
@@ -144,9 +146,10 @@ function WorkoutDayCard({ day, onClick }: WorkoutDayCardProps) {
 interface TemplateCardProps {
   template: WorkoutTemplate
   onClick: () => void
+  delay?: number
 }
 
-function TemplateCard({ template, onClick }: TemplateCardProps) {
+function TemplateCard({ template, onClick, delay = 0 }: TemplateCardProps) {
   const style = template.type === 'cardio'
     ? getCardioStyle(template.category)
     : getMobilityStyle(template.category)
@@ -154,7 +157,7 @@ function TemplateCard({ template, onClick }: TemplateCardProps) {
   const typeLabel = getCategoryLabel(template.type)
 
   return (
-    <Card interactive onClick={onClick}>
+    <AnimatedCard interactive onClick={onClick} animationDelay={delay}>
       <CardContent className="flex items-center gap-4 py-4">
         <div
           className={`w-12 h-12 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center shadow-sm`}
@@ -178,7 +181,7 @@ function TemplateCard({ template, onClick }: TemplateCardProps) {
           <ChevronRight className="w-5 h-5" />
         </div>
       </CardContent>
-    </Card>
+    </AnimatedCard>
   )
 }
 
@@ -193,6 +196,7 @@ interface CollapsibleSectionProps {
 
 function CollapsibleSection({ title, icon: Icon, iconColor, children, defaultOpen = false }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
+  const prefersReduced = useReducedMotion()
 
   return (
     <section>
@@ -208,7 +212,19 @@ function CollapsibleSection({ title, icon: Icon, iconColor, children, defaultOpe
           className={`w-5 h-5 text-[var(--color-text-muted)] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
-      {isOpen && <div className="space-y-3 mt-1">{children}</div>}
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={prefersReduced ? false : { height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div className="space-y-3 mt-1 pb-1">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   )
 }
@@ -225,6 +241,7 @@ export function HomePage() {
   const { data: mobilityTemplates, isLoading: mobilityLoading } = useWorkoutTemplatesByType('mobility')
   const { data: schedule, isLoading: scheduleLoading } = useUserSchedule()
   const { data: templateWorkoutSessions, isLoading: templateSessionsLoading } = useUserTemplateWorkouts()
+  const prefersReduced = useReducedMotion()
 
   // Onboarding wizard state
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -292,22 +309,30 @@ export function HomePage() {
     <AppShell title="Home">
       <div className="p-4 space-y-5 pb-4">
         {/* Greeting */}
-        <div className="flex items-center gap-3">
+        <motion.div
+          className="flex items-center gap-3"
+          initial={prefersReduced ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        >
           <Avatar src={avatarUrl} size="md" alt="Profile" />
           <div>
             {(profileLoading || !profile) ? (
-              <div className="h-7 w-48 rounded bg-[var(--color-surface-hover)] animate-pulse" />
+              <div className="h-8 w-48 rounded bg-[var(--color-surface-hover)] animate-pulse" />
             ) : (
-              <h2 className="text-xl font-bold text-[var(--color-text)]">
+              <h2 className="text-[28px] font-bold text-[var(--color-text)] leading-tight">
                 {greeting}, {displayName}!
               </h2>
             )}
+            <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
+              {format(new Date(), 'EEEE, MMMM d')}
+            </p>
             <p className="text-sm text-[var(--color-text-muted)] mt-0.5 flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5 text-yellow-500" />
               {motivation}
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Active Session Banner */}
         {activeSession && (
@@ -344,58 +369,69 @@ export function HomePage() {
         <ScheduleWidget onSetupSchedule={() => setShowOnboarding(true)} />
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <Card className="overflow-hidden">
-            <CardContent className="py-3 px-2 text-center relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent" />
-              <div className="relative">
-                <Flame className="w-5 h-5 text-orange-500 mx-auto mb-1" />
-                {statsLoading ? (
-                  <div className="h-7 w-8 mx-auto mb-0.5 rounded bg-[var(--color-surface-hover)] animate-pulse" />
-                ) : (
-                  <p className="text-2xl font-bold text-[var(--color-text)]">{streak}</p>
-                )}
-                <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Streak</p>
-              </div>
-            </CardContent>
-          </Card>
+        <motion.div
+          className="grid grid-cols-3 gap-3"
+          variants={staggerContainer}
+          initial={prefersReduced ? false : 'hidden'}
+          animate="visible"
+        >
+          <motion.div variants={staggerChild}>
+            <Card className="overflow-hidden">
+              <CardContent className="py-3 px-2 text-center relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent" />
+                <div className="relative">
+                  <Flame className="w-5 h-5 text-orange-500 mx-auto mb-1" />
+                  {statsLoading ? (
+                    <div className="h-7 w-8 mx-auto mb-0.5 rounded bg-[var(--color-surface-hover)] animate-pulse" />
+                  ) : (
+                    <AnimatedCounter value={streak} className="text-2xl font-bold text-[var(--color-text)] block" />
+                  )}
+                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Streak</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card
-            className="overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
-            onClick={() => navigate('/history')}
-          >
-            <CardContent className="py-3 px-2 text-center relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent" />
-              <div className="relative">
-                <Calendar className="w-5 h-5 text-blue-500 mx-auto mb-1" />
-                {statsLoading ? (
-                  <div className="h-7 w-8 mx-auto mb-0.5 rounded bg-[var(--color-surface-hover)] animate-pulse" />
-                ) : (
-                  <p className="text-2xl font-bold text-[var(--color-text)]">{thisWeek}</p>
-                )}
-                <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">This Week</p>
-              </div>
-            </CardContent>
-          </Card>
+          <motion.div variants={staggerChild}>
+            <Card
+              className="overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
+              onClick={() => navigate('/history')}
+            >
+              <CardContent className="py-3 px-2 text-center relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent" />
+                <div className="relative">
+                  <Calendar className="w-5 h-5 text-indigo-500 mx-auto mb-1" />
+                  {statsLoading ? (
+                    <div className="h-7 w-8 mx-auto mb-0.5 rounded bg-[var(--color-surface-hover)] animate-pulse" />
+                  ) : (
+                    <AnimatedCounter value={thisWeek} className="text-2xl font-bold text-[var(--color-text)] block" />
+                  )}
+                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">This Week</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card
-            className="overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
-            onClick={() => navigate('/history')}
-          >
-            <CardContent className="py-3 px-2 text-center relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent" />
-              <div className="relative">
-                <Trophy className="w-5 h-5 text-purple-500 mx-auto mb-1" />
-                {statsLoading ? (
-                  <div className="h-7 w-8 mx-auto mb-0.5 rounded bg-[var(--color-surface-hover)] animate-pulse" />
-                ) : (
-                  <p className="text-2xl font-bold text-[var(--color-text)]">{totalWorkouts}</p>
-                )}
-                <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Total</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+          <motion.div variants={staggerChild}>
+            <Card
+              className="overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
+              onClick={() => navigate('/history')}
+            >
+              <CardContent className="py-3 px-2 text-center relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent" />
+                <div className="relative">
+                  <Trophy className="w-5 h-5 text-violet-500 mx-auto mb-1" />
+                  {statsLoading ? (
+                    <div className="h-7 w-8 mx-auto mb-0.5 rounded bg-[var(--color-surface-hover)] animate-pulse" />
+                  ) : (
+                    <AnimatedCounter value={totalWorkouts} className="text-2xl font-bold text-[var(--color-text)] block" />
+                  )}
+                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Total</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
 
         {/* Quick Select Workouts */}
         <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
@@ -415,11 +451,12 @@ export function HomePage() {
               ))}
             </div>
           ) : days?.length ? (
-            days.map((day) => (
+            days.map((day, idx) => (
               <WorkoutDayCard
                 key={day.id}
                 day={day}
                 onClick={() => handleStartWorkout(day.id)}
+                delay={idx * 0.06}
               />
             ))
           ) : (
@@ -475,11 +512,12 @@ export function HomePage() {
               ))}
             </div>
           ) : mobilityTemplates?.length ? (
-            mobilityTemplates.map((template) => (
+            mobilityTemplates.map((template, idx) => (
               <TemplateCard
                 key={template.id}
                 template={template}
                 onClick={() => handleStartMobility(template)}
+                delay={idx * 0.06}
               />
             ))
           ) : (
@@ -504,7 +542,12 @@ export function HomePage() {
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
-            <div className="space-y-2">
+            <motion.div
+              className="space-y-2"
+              variants={staggerContainer}
+              initial={prefersReduced ? false : 'hidden'}
+              animate="visible"
+            >
               {recentActivity.map((item) => {
                 const isWeights = item.kind === 'weights'
                 const session = item.session
@@ -517,36 +560,35 @@ export function HomePage() {
                 const IconComp = isWeights ? TrendingUp : Heart
                 const gradient = isWeights
                   ? 'from-emerald-400 to-green-500'
-                  : 'from-rose-400 to-pink-500'
+                  : 'from-teal-400 to-teal-500'
 
                 return (
-                  <Card
-                    key={session.id}
-                    interactive
-                    onClick={() => navigate(historyPath)}
-                  >
-                    <CardContent className="py-3 flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-                        <IconComp className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-[var(--color-text)] text-sm truncate">
-                          {name}
-                        </p>
-                        <p className="text-xs text-[var(--color-text-muted)]">
-                          {formatRelativeTime(session.started_at)}
-                        </p>
-                      </div>
-                      {session.completed_at && (
-                        <span className="text-[10px] font-bold uppercase tracking-wide bg-[var(--color-success)]/15 text-[var(--color-success)] px-2 py-1 rounded-full">
-                          Done
-                        </span>
-                      )}
-                    </CardContent>
-                  </Card>
+                  <motion.div key={session.id} variants={staggerChild}>
+                    <AnimatedCard
+                      interactive
+                      onClick={() => navigate(historyPath)}
+                    >
+                      <CardContent className="py-3 flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+                          <IconComp className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-[var(--color-text)] text-sm truncate">
+                            {name}
+                          </p>
+                          <p className="text-xs text-[var(--color-text-muted)]">
+                            {formatRelativeTime(session.started_at)}
+                          </p>
+                        </div>
+                        {session.completed_at && (
+                          <Badge variant="completed">Done</Badge>
+                        )}
+                      </CardContent>
+                    </AnimatedCard>
+                  </motion.div>
                 )
               })}
-            </div>
+            </motion.div>
           </section>
         )}
       </div>

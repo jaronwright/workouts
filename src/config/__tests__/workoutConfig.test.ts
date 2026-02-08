@@ -41,20 +41,20 @@ describe('workoutConfig', () => {
       })
     })
 
-    it('upper uses blue theme', () => {
-      expect(WEIGHTS_CONFIG.upper.color).toBe('#3B82F6')
-      expect(WEIGHTS_CONFIG.upper.gradient).toContain('blue')
+    it('upper uses indigo theme', () => {
+      expect(WEIGHTS_CONFIG.upper.color).toBe('#6366F1')
+      expect(WEIGHTS_CONFIG.upper.gradient).toContain('indigo')
     })
 
-    it('lower uses purple theme', () => {
+    it('lower uses violet theme', () => {
       expect(WEIGHTS_CONFIG.lower.color).toBe('#8B5CF6')
-      expect(WEIGHTS_CONFIG.lower.gradient).toContain('purple')
+      expect(WEIGHTS_CONFIG.lower.gradient).toContain('violet')
     })
 
-    it('PPL entries use red/orange theme', () => {
-      expect(WEIGHTS_CONFIG.push.color).toBe('#EF4444')
-      expect(WEIGHTS_CONFIG.pull.color).toBe('#F97316')
-      expect(WEIGHTS_CONFIG.legs.color).toBe('#DC2626')
+    it('PPL entries use indigo/violet/pink theme', () => {
+      expect(WEIGHTS_CONFIG.push.color).toBe('#6366F1')
+      expect(WEIGHTS_CONFIG.pull.color).toBe('#8B5CF6')
+      expect(WEIGHTS_CONFIG.legs.color).toBe('#EC4899')
     })
   })
 

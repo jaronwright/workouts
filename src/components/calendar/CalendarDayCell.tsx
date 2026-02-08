@@ -1,3 +1,5 @@
+import { motion } from 'motion/react'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 import type { CalendarDay } from '@/hooks/useCalendarData'
 
 interface CalendarDayCellProps {
@@ -8,11 +10,14 @@ interface CalendarDayCellProps {
 
 export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellProps) {
   const { projected, sessions, hasCompletedSession, isToday, isFuture, isCurrentMonth, dayOfMonth } = day
+  const prefersReduced = useReducedMotion()
 
-  const hasSessions = sessions.length > 0
   const hasProjection = projected && projected.name !== 'Not set'
   const isRest = projected?.isRest
   const showIcon = hasProjection && !isRest
+
+  // Missed workout: past day + scheduled (not rest) + no completed session
+  const isMissed = isCurrentMonth && !isFuture && !isToday && hasProjection && !isRest && !hasCompletedSession
 
   // Determine icon and color
   let iconColor = projected?.color || '#6B7280'
@@ -24,8 +29,8 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
   } else if (isFuture && !isToday) {
     iconOpacity = 0.3
     bgCircleColor = showIcon ? `${projected!.color}10` : 'transparent'
-  } else if (!hasSessions && !isFuture && hasProjection && !isRest) {
-    // Past day, scheduled but skipped
+  } else if (isMissed) {
+    // Past day, scheduled but skipped — muted with red indicator
     iconColor = '#9CA3AF'
     bgCircleColor = 'rgba(156, 163, 175, 0.1)'
     iconOpacity = 0.5
@@ -41,7 +46,7 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
         transition-all duration-150 min-h-[52px]
         ${!isCurrentMonth ? 'opacity-30' : ''}
         ${isSelected ? 'ring-2 ring-[var(--color-primary)] bg-[var(--color-primary)]/5' : ''}
-        ${isToday && !isSelected ? 'ring-2 ring-[var(--color-primary)]/50' : ''}
+        ${isToday && !isSelected ? '' : ''}
         active:scale-95
       `}
     >
@@ -55,17 +60,19 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
 
       {/* Workout icon circle */}
       {showIcon && Icon ? (
-        <div
-          className="w-7 h-7 rounded-full flex items-center justify-center mt-0.5"
-          style={{
-            backgroundColor: bgCircleColor,
-            opacity: iconOpacity
-          }}
-        >
-          <Icon
-            className="w-3.5 h-3.5"
-            style={{ color: iconColor }}
-          />
+        <div className="relative">
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center mt-0.5"
+            style={{
+              backgroundColor: bgCircleColor,
+              opacity: iconOpacity
+            }}
+          >
+            <Icon
+              className="w-3.5 h-3.5"
+              style={{ color: iconColor }}
+            />
+          </div>
         </div>
       ) : isRest && isCurrentMonth ? (
         <div className="w-7 h-7 rounded-full flex items-center justify-center mt-0.5 opacity-40">
@@ -75,9 +82,23 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
         <div className="w-7 h-7 mt-0.5" />
       )}
 
+      {/* Today pulse ring */}
+      {isToday && !hasCompletedSession && isCurrentMonth && !prefersReduced && (
+        <motion.div
+          className="absolute top-[18px] w-8 h-8 rounded-full border-2 border-[var(--color-primary)]"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      )}
+
       {/* Green completion dot */}
       {hasCompletedSession && isCurrentMonth && (
-        <div className="absolute bottom-0.5 w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+        <div className="absolute bottom-0.5 w-1.5 h-1.5 rounded-full bg-[var(--color-success)]" />
+      )}
+
+      {/* Missed workout red dot */}
+      {isMissed && isCurrentMonth && (
+        <div className="absolute bottom-0.5 w-1.5 h-1.5 rounded-full bg-[var(--color-danger)]" />
       )}
 
       {/* Multiple workouts badge */}

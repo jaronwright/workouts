@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { Calendar, Clock, CheckCircle, ChevronRight } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui'
+import { Card, CardContent, Badge } from '@/components/ui'
 import { formatTime } from '@/utils/formatters'
 import type { CalendarDay } from '@/hooks/useCalendarData'
 import type { UnifiedSession } from '@/utils/calendarGrid'
@@ -53,9 +53,7 @@ function SessionCard({ session }: { session: UnifiedSession }) {
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               {session.completed_at && (
-                <span className="text-[10px] bg-[var(--color-success)]/15 text-[var(--color-success)] px-1.5 py-0.5 rounded-full font-medium">
-                  Completed
-                </span>
+                <Badge variant="completed">Completed</Badge>
               )}
               <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)]" />
             </div>
@@ -67,6 +65,7 @@ function SessionCard({ session }: { session: UnifiedSession }) {
 }
 
 export function SelectedDayPanel({ day }: SelectedDayPanelProps) {
+  const navigate = useNavigate()
   const { date, sessions, projected, isToday, isFuture } = day
   const hasSessions = sessions.length > 0
   const hasProjection = projected && projected.name !== 'Not set'
@@ -76,8 +75,8 @@ export function SelectedDayPanel({ day }: SelectedDayPanelProps) {
   const Icon = projected?.icon
 
   return (
-    <div className="mt-4">
-      <h3 className="text-sm font-semibold text-[var(--color-text)] mb-2 px-1">
+    <div>
+      <h3 className="text-sm font-semibold text-[var(--color-text)] mb-3">
         {dateLabel}
       </h3>
 
@@ -87,6 +86,41 @@ export function SelectedDayPanel({ day }: SelectedDayPanelProps) {
             <SessionCard key={`${session.type}-${session.id}`} session={session} />
           ))}
         </div>
+      ) : isToday && hasProjection && !isRest ? (
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center gap-3">
+              {Icon && (
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: projected.bgColor }}
+                >
+                  <Icon className="w-5 h-5" style={{ color: projected.color }} />
+                </div>
+              )}
+              <div className="flex-1">
+                <p className="text-sm font-medium text-[var(--color-text)]">
+                  {projected.name}
+                </p>
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                  Not started yet
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  if (projected.workoutDayId) {
+                    navigate(`/workout/${projected.workoutDayId}`)
+                  } else if (projected.templateId) {
+                    navigate(`/${projected.templateType || 'cardio'}/${projected.templateId}`)
+                  }
+                }}
+                className="px-3 py-1.5 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium active:scale-95 transition-transform"
+              >
+                Start
+              </button>
+            </div>
+          </CardContent>
+        </Card>
       ) : isFuture && hasProjection ? (
         <Card>
           <CardContent className="py-4">
@@ -101,33 +135,10 @@ export function SelectedDayPanel({ day }: SelectedDayPanelProps) {
               )}
               <div>
                 <p className="text-sm font-medium text-[var(--color-text)]">
-                  Scheduled: {projected.name}
+                  {projected.name}
                 </p>
                 <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                   {isRest ? 'Rest day' : 'Upcoming workout'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ) : isToday && hasProjection ? (
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center gap-3">
-              {Icon && (
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: projected.bgColor }}
-                >
-                  <Icon className="w-4 h-4" style={{ color: projected.color }} />
-                </div>
-              )}
-              <div>
-                <p className="text-sm font-medium text-[var(--color-text)]">
-                  Scheduled: {projected.name}
-                </p>
-                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                  {isRest ? 'Rest day' : 'Not started yet'}
                 </p>
               </div>
             </div>
@@ -137,12 +148,15 @@ export function SelectedDayPanel({ day }: SelectedDayPanelProps) {
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-[var(--color-surface-hover)] flex items-center justify-center flex-shrink-0">
-                <Calendar className="w-4 h-4 text-[var(--color-text-muted)]" />
+              <div className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-4 h-4 text-red-400" />
               </div>
-              <p className="text-sm text-[var(--color-text-muted)]">
-                Skipped: {projected.name}
-              </p>
+              <div>
+                <p className="text-sm text-[var(--color-text)]">
+                  {projected.name}
+                </p>
+                <Badge variant="missed" className="mt-1">Missed</Badge>
+              </div>
             </div>
           </CardContent>
         </Card>

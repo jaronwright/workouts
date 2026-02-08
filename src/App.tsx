@@ -1,9 +1,12 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AnimatePresence, motion } from 'motion/react'
 import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/hooks/useTheme'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { ToastProvider } from '@/components/ui'
+import { pageTransition } from '@/config/animationConfig'
 import {
   AuthPage,
   AuthCallbackPage,
@@ -64,6 +67,143 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function PageWrapper({ children }: { children: React.ReactNode }) {
+  const prefersReduced = useReducedMotion()
+
+  if (prefersReduced) {
+    return <>{children}</>
+  }
+
+  return (
+    <motion.div
+      variants={pageTransition}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+function AnimatedRoutes() {
+  const location = useLocation()
+  // Use the first path segment as key to avoid re-animating sub-routes
+  const pageKey = '/' + (location.pathname.split('/')[1] || '')
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={pageKey}>
+        <Route
+          path="/auth"
+          element={
+            <PublicRoute>
+              <PageWrapper><AuthPage /></PageWrapper>
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/auth/callback"
+          element={<AuthCallbackPage />}
+        />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><HomePage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/workout"
+          element={<Navigate to="/" replace />}
+        />
+        <Route
+          path="/workout/:dayId"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><WorkoutPage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/workout/:dayId/active"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><WorkoutPage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cardio/:templateId"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><CardioWorkoutPage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mobility/:templateId"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><MobilityWorkoutPage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><HistoryPage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/history/:sessionId"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><SessionDetailPage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/history/cardio/:sessionId"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><CardioSessionDetailPage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><ProfilePage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/schedule"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><SchedulePage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/rest-day"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><RestDayPage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AnimatePresence>
+  )
+}
+
 function AppRoutes() {
   const { initialize } = useAuth()
   const { initializeTheme } = useTheme()
@@ -73,115 +213,7 @@ function AppRoutes() {
     initializeTheme()
   }, [])
 
-  return (
-    <Routes>
-      <Route
-        path="/auth"
-        element={
-          <PublicRoute>
-            <AuthPage />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/auth/callback"
-        element={<AuthCallbackPage />}
-      />
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <HomePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/workout"
-        element={<Navigate to="/" replace />}
-      />
-      <Route
-        path="/workout/:dayId"
-        element={
-          <ProtectedRoute>
-            <WorkoutPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/workout/:dayId/active"
-        element={
-          <ProtectedRoute>
-            <WorkoutPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/cardio/:templateId"
-        element={
-          <ProtectedRoute>
-            <CardioWorkoutPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/mobility/:templateId"
-        element={
-          <ProtectedRoute>
-            <MobilityWorkoutPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/history"
-        element={
-          <ProtectedRoute>
-            <HistoryPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/history/:sessionId"
-        element={
-          <ProtectedRoute>
-            <SessionDetailPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/history/cardio/:sessionId"
-        element={
-          <ProtectedRoute>
-            <CardioSessionDetailPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/schedule"
-        element={
-          <ProtectedRoute>
-            <SchedulePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/rest-day"
-        element={
-          <ProtectedRoute>
-            <RestDayPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  )
+  return <AnimatedRoutes />
 }
 
 export default function App() {
