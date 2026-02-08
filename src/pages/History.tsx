@@ -1,9 +1,12 @@
 import { useState, useCallback, useMemo } from 'react'
+import { motion } from 'motion/react'
 import { startOfMonth, isSameDay } from 'date-fns'
 import { AppShell } from '@/components/layout'
 import { Card, CardContent, BottomSheet, AnimatedCounter } from '@/components/ui'
 import { CalendarGrid, SelectedDayPanel } from '@/components/calendar'
 import { useCalendarData } from '@/hooks/useCalendarData'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { staggerContainer, staggerChild } from '@/config/animationConfig'
 import { Calendar, Flame, Target, TrendingUp } from 'lucide-react'
 import type { CalendarDay } from '@/hooks/useCalendarData'
 
@@ -12,6 +15,7 @@ export function HistoryPage() {
   const { calendarDays, isLoading, today } = useCalendarData(currentMonth)
   const [selectedDate, setSelectedDate] = useState(() => new Date())
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false)
+  const prefersReduced = useReducedMotion()
 
   const handleSelectDate = useCallback((day: CalendarDay) => {
     setSelectedDate(day.date)
@@ -84,22 +88,29 @@ export function HistoryPage() {
             <div className="h-20 skeleton rounded-lg" />
           </div>
         ) : calendarDays.length > 0 ? (
-          <>
-            <Card>
-              <CardContent className="py-3">
-                <CalendarGrid
-                  calendarDays={calendarDays}
-                  currentMonth={currentMonth}
-                  selectedDate={selectedDate}
-                  today={today}
-                  onSelectDate={handleSelectDate}
-                  onMonthChange={handleMonthChange}
-                />
-              </CardContent>
-            </Card>
+          <motion.div
+            className="space-y-4"
+            variants={staggerContainer}
+            initial={prefersReduced ? false : 'hidden'}
+            animate="visible"
+          >
+            <motion.div variants={staggerChild}>
+              <Card>
+                <CardContent className="py-3">
+                  <CalendarGrid
+                    calendarDays={calendarDays}
+                    currentMonth={currentMonth}
+                    selectedDate={selectedDate}
+                    today={today}
+                    onSelectDate={handleSelectDate}
+                    onMonthChange={handleMonthChange}
+                  />
+                </CardContent>
+              </Card>
+            </motion.div>
 
             {/* Monthly Summary Strip */}
-            <div className="grid grid-cols-4 gap-2">
+            <motion.div variants={staggerChild} className="grid grid-cols-4 gap-2">
               <div className="flex flex-col items-center p-2 rounded-xl bg-[var(--color-surface)]">
                 <Target className="w-4 h-4 text-indigo-500 mb-0.5" />
                 <AnimatedCounter
@@ -125,7 +136,7 @@ export function HistoryPage() {
                 </span>
                 <span className="text-[9px] text-[var(--color-text-muted)] font-medium">Most Trained</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* BottomSheet for selected day detail */}
             <BottomSheet
@@ -136,7 +147,7 @@ export function HistoryPage() {
                 <SelectedDayPanel day={selectedDay} />
               )}
             </BottomSheet>
-          </>
+          </motion.div>
         ) : (
           <Card>
             <CardContent className="py-12 text-center">
