@@ -40,15 +40,15 @@ function makeScheduleDay(overrides: Partial<ScheduleDay> = {}): ScheduleDay {
 }
 
 describe('getDayInfo', () => {
-  it('returns "Not set" with Calendar icon when schedule is undefined', () => {
+  it('returns rest day with Moon icon when schedule is undefined', () => {
     const result = getDayInfo(undefined, 3)
 
     expect(result.dayNumber).toBe(3)
-    expect(result.icon).toBe(Calendar)
-    expect(result.color).toBe('var(--color-text-muted)')
-    expect(result.bgColor).toBe('var(--color-surface-hover)')
-    expect(result.name).toBe('Not set')
-    expect(result.isRest).toBe(false)
+    expect(result.icon).toBe(Moon)
+    expect(result.color).toBe('#6B7280')
+    expect(result.bgColor).toBe('rgba(107, 114, 128, 0.15)')
+    expect(result.name).toBe('Rest')
+    expect(result.isRest).toBe(true)
     expect(result.workoutDayId).toBeUndefined()
     expect(result.templateId).toBeUndefined()
     expect(result.templateType).toBeUndefined()
@@ -189,7 +189,7 @@ describe('getDayInfo', () => {
     expect(result.templateType).toBeUndefined()
   })
 
-  it('returns fallback "Not set" when schedule has no rest, workout_day, or template', () => {
+  it('returns rest day when schedule has no rest, workout_day, or template', () => {
     const schedule = makeScheduleDay({
       is_rest_day: false,
       workout_day: null,
@@ -199,11 +199,11 @@ describe('getDayInfo', () => {
     const result = getDayInfo(schedule, 4)
 
     expect(result.dayNumber).toBe(4)
-    expect(result.icon).toBe(Calendar)
-    expect(result.color).toBe('var(--color-text-muted)')
-    expect(result.bgColor).toBe('var(--color-surface-hover)')
-    expect(result.name).toBe('Not set')
-    expect(result.isRest).toBe(false)
+    expect(result.icon).toBe(Moon)
+    expect(result.color).toBe('#6B7280')
+    expect(result.bgColor).toBe('rgba(107, 114, 128, 0.15)')
+    expect(result.name).toBe('Rest')
+    expect(result.isRest).toBe(true)
   })
 
   it('preserves the provided dayNumber in all return paths', () => {

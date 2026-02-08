@@ -1,4 +1,4 @@
-import { Calendar, Moon, type LucideIcon } from 'lucide-react'
+import { Moon, type LucideIcon } from 'lucide-react'
 import {
   getWeightsStyleByName,
   getCardioStyle,
@@ -23,11 +23,11 @@ export function getDayInfo(schedule: ScheduleDay | undefined, dayNumber: number)
   if (!schedule) {
     return {
       dayNumber,
-      icon: Calendar,
-      color: 'var(--color-text-muted)',
-      bgColor: 'var(--color-surface-hover)',
-      name: 'Not set',
-      isRest: false
+      icon: Moon,
+      color: '#6B7280',
+      bgColor: 'rgba(107, 114, 128, 0.15)',
+      name: 'Rest',
+      isRest: true
     }
   }
 
@@ -90,10 +90,10 @@ export function getDayInfo(schedule: ScheduleDay | undefined, dayNumber: number)
 
   return {
     dayNumber,
-    icon: Calendar,
-    color: 'var(--color-text-muted)',
-    bgColor: 'var(--color-surface-hover)',
-    name: 'Not set',
-    isRest: false
+    icon: Moon,
+    color: '#6B7280',
+    bgColor: 'rgba(107, 114, 128, 0.15)',
+    name: 'Rest',
+    isRest: true
   }
 }

@@ -105,7 +105,7 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
         isToday: dow === todayDow,
         color: completedDayNums.has(dow) ? dayInfo?.color || 'var(--color-primary)' : undefined,
         workoutName: workoutCount > 1 ? 'Multi' : dayInfo?.name ? getWorkoutShortName(dayInfo.name) : undefined,
-        workoutIcon: dayInfo?.isRest ? undefined : dayInfo?.icon,
+        workoutIcon: dayInfo?.icon,
         workoutColor: dayInfo?.color,
         isRest: dayInfo?.isRest,
         workoutCount,

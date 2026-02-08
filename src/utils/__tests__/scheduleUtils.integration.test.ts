@@ -72,16 +72,16 @@ describe('getDayInfo - integration scenarios', () => {
     vi.clearAllMocks()
   })
 
-  it('returns "Not set" state with correct CSS variables when schedule is null', () => {
+  it('returns rest day with Moon icon when schedule is null', () => {
     const result = getDayInfo(undefined, 7)
 
     expect(result).toEqual({
       dayNumber: 7,
-      icon: Calendar,
-      color: 'var(--color-text-muted)',
-      bgColor: 'var(--color-surface-hover)',
-      name: 'Not set',
-      isRest: false,
+      icon: Moon,
+      color: '#6B7280',
+      bgColor: 'rgba(107, 114, 128, 0.15)',
+      name: 'Rest',
+      isRest: true,
     })
     expect(result.workoutDayId).toBeUndefined()
     expect(result.templateId).toBeUndefined()
@@ -196,7 +196,7 @@ describe('getDayInfo - integration scenarios', () => {
     expect(result.name).toBe('My Custom Split')
   })
 
-  it('returns fallback "Not set" when schedule has no rest, workout_day, or template', () => {
+  it('returns rest day when schedule has no rest, workout_day, or template', () => {
     const schedule = makeScheduleDay({
       is_rest_day: false,
       workout_day: null,
@@ -207,10 +207,10 @@ describe('getDayInfo - integration scenarios', () => {
 
     const result = getDayInfo(schedule, 5)
 
-    expect(result.icon).toBe(Calendar)
-    expect(result.name).toBe('Not set')
-    expect(result.isRest).toBe(false)
-    expect(result.color).toBe('var(--color-text-muted)')
+    expect(result.icon).toBe(Moon)
+    expect(result.name).toBe('Rest')
+    expect(result.isRest).toBe(true)
+    expect(result.color).toBe('#6B7280')
   })
 
   it('prioritizes rest day over workout_day data', () => {

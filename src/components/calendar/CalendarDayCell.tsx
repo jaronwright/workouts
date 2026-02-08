@@ -27,7 +27,7 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
 
   const hasProjection = projected && projected.name !== 'Not set'
   const isRest = projected?.isRest
-  const showProjectedIcon = hasProjection && !isRest
+  const showProjectedIcon = hasProjection
 
   // Derive icon from completed session when no projection exists
   const completedSession = hasCompletedSession ? sessions.find(s => s.completed_at) : null
@@ -58,6 +58,8 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
 
   if (!isCurrentMonth) {
     iconOpacity = 0.3
+  } else if (isRest) {
+    iconOpacity = 0.4
   } else if (isFuture && !isToday) {
     iconOpacity = 0.3
     bgCircleColor = hasIcon ? `${iconColor}10` : 'transparent'
@@ -114,17 +116,13 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
             />
           </div>
           {/* Today pulse ring — inside relative container so it aligns with icon */}
-          {isToday && showProjectedIcon && !hasCompletedSession && isCurrentMonth && !prefersReduced && (
+          {isToday && showProjectedIcon && !isRest && !hasCompletedSession && isCurrentMonth && !prefersReduced && (
             <motion.div
               className="absolute inset-0 w-7 h-7 rounded-full border-2 border-[var(--color-primary)]"
               animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             />
           )}
-        </div>
-      ) : isRest && isCurrentMonth ? (
-        <div className="w-7 h-7 rounded-full flex items-center justify-center mt-0.5 opacity-40">
-          <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-text-muted)]" />
         </div>
       ) : (
         <div className="w-7 h-7 mt-0.5" />

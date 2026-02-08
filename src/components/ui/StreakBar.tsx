@@ -1,6 +1,6 @@
 import { motion } from 'motion/react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
-import type { LucideIcon } from 'lucide-react'
+import { Moon, type LucideIcon } from 'lucide-react'
 
 export interface StreakDay {
   label: string
@@ -60,7 +60,7 @@ export function StreakBar({ days, className = '' }: StreakBarProps) {
                 ) : Icon ? (
                   <Icon className="w-3.5 h-3.5" strokeWidth={2.5} />
                 ) : (
-                  <span className="text-[10px] font-semibold">{day.isRest ? 'R' : '—'}</span>
+                  <Moon className="w-3 h-3 text-[var(--color-text-muted)]" strokeWidth={2} />
                 )}
               </div>
               {day.isToday && !day.completed && !prefersReduced && (
