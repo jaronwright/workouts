@@ -60,7 +60,8 @@ export function ExerciseCard({
   // Toggle weight unit for this exercise
   const handleToggleUnit = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    const newUnit = localWeightUnit === 'lbs' ? 'kg' : 'lbs'
+    const oldUnit = localWeightUnit
+    const newUnit = oldUnit === 'lbs' ? 'kg' : 'lbs'
     setLocalWeightUnit(newUnit)
     try {
       const updated = await updateExerciseWeightUnit(exercise.id, newUnit)
@@ -70,8 +71,8 @@ export function ExerciseCard({
       }
       // Otherwise, keep local state change (unit switch works visually)
     } catch (error) {
-      // Revert on error
-      setLocalWeightUnit(localWeightUnit)
+      // Revert on error using saved value, not stale closure
+      setLocalWeightUnit(oldUnit)
       console.error('Failed to update weight unit:', error)
     }
   }

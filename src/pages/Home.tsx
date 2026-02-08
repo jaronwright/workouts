@@ -255,7 +255,8 @@ export function HomePage() {
     const hasEmptySchedule = !schedule || schedule.length === 0
     if (hasEmptySchedule) {
       // Use setTimeout to defer state update and avoid cascading render warning
-      setTimeout(() => setShowOnboarding(true), 0)
+      const timeoutId = setTimeout(() => setShowOnboarding(true), 0)
+      return () => clearTimeout(timeoutId)
     }
   }, [schedule, scheduleLoading])
 
@@ -347,7 +348,7 @@ export function HomePage() {
                     In Progress
                   </p>
                   <p className="text-base font-bold text-[var(--color-text)]">
-                    {getWorkoutDisplayName(activeSession.workout_day?.name)}
+                    {getWorkoutDisplayName(activeSession.workout_day?.name ?? 'Workout')}
                   </p>
                 </div>
                 <Button size="sm" onClick={handleContinueWorkout}>
@@ -552,7 +553,7 @@ export function HomePage() {
                 const isWeights = item.kind === 'weights'
                 const session = item.session
                 const name = isWeights
-                  ? getWorkoutDisplayName((session as SessionWithDay).workout_day?.name)
+                  ? getWorkoutDisplayName((session as SessionWithDay).workout_day?.name ?? 'Workout')
                   : (session as TemplateWorkoutSession).template?.name || 'Workout'
                 const historyPath = isWeights
                   ? `/history/${session.id}`

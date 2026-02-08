@@ -44,16 +44,30 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/(?!auth).*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'supabase-api',
               expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 // 1 hour
               },
               cacheableResponse: {
-                statuses: [0, 200]
+                statuses: [200]
+              }
+            }
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico|woff2|woff|ttf)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'static-assets',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+              },
+              cacheableResponse: {
+                statuses: [200]
               }
             }
           }

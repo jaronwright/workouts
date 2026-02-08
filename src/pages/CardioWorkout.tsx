@@ -40,6 +40,7 @@ export function CardioWorkoutPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const startTimeRef = useRef<number | null>(null)
+  const accumulatedSecondsRef = useRef(0)
 
   // Derived
   const category = template?.category || ''
@@ -77,14 +78,20 @@ export function CardioWorkoutPage() {
         setIsRunning(true)
         startTimeRef.current = Date.now()
         intervalRef.current = setInterval(() => {
-          setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current!) / 1000))
+          if (startTimeRef.current === null) return
+          setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000))
         }, 1000)
+      },
+      onError: () => {
+        setIsRunning(false)
+        toast.error('Failed to start workout. Please try again.')
       }
     })
   }
 
   const handleTimerPause = () => {
     setIsRunning(false)
+    accumulatedSecondsRef.current = elapsedSeconds
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
       intervalRef.current = null
@@ -93,10 +100,14 @@ export function CardioWorkoutPage() {
 
   const handleTimerResume = () => {
     setIsRunning(true)
-    const currentElapsed = elapsedSeconds
-    startTimeRef.current = Date.now() - currentElapsed * 1000
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+    }
+    startTimeRef.current = Date.now()
     intervalRef.current = setInterval(() => {
-      setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current!) / 1000))
+      if (startTimeRef.current === null) return
+      const delta = Math.floor((Date.now() - startTimeRef.current) / 1000)
+      setElapsedSeconds(accumulatedSecondsRef.current + delta)
     }, 1000)
   }
 

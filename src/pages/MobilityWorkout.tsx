@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
 import { useTemplate, useStartTemplateWorkout, useCompleteTemplateWorkout } from '@/hooks/useTemplateWorkout'
+import { useToast } from '@/hooks/useToast'
 import { Play, Pause, Square, Activity, Check } from 'lucide-react'
 
 const DURATION_OPTIONS = [15, 30, 45, 60]
@@ -14,6 +15,7 @@ export function MobilityWorkoutPage() {
   const { data: template, isLoading } = useTemplate(templateId)
   const { mutate: startWorkout, isPending: isStarting } = useStartTemplateWorkout()
   const { mutate: completeWorkout, isPending: isCompleting } = useCompleteTemplateWorkout()
+  const toast = useToast()
 
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [selectedDuration, setSelectedDuration] = useState<number>(15)
@@ -60,6 +62,9 @@ export function MobilityWorkoutPage() {
         intervalRef.current = setInterval(() => {
           setRemainingSeconds((prev) => Math.max(0, prev - 1))
         }, 1000)
+      },
+      onError: () => {
+        toast.error('Failed to start workout. Please try again.')
       }
     })
   }
@@ -94,6 +99,9 @@ export function MobilityWorkoutPage() {
       {
         onSuccess: () => {
           navigate('/history')
+        },
+        onError: () => {
+          toast.error('Failed to complete workout. Please try again.')
         }
       }
     )

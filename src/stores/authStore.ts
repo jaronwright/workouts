@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/services/supabase'
 
+let authSubscription: { unsubscribe: () => void } | null = null
+
 interface AuthState {
   user: User | null
   session: Session | null
@@ -207,18 +209,23 @@ export const useAuthStore = create<AuthState>()(
             sessionStorage.setItem('session-active', 'true')
           }
 
+          // Register auth listener FIRST to avoid missing events during getSession()
+          if (authSubscription) {
+            authSubscription.unsubscribe()
+          }
+          const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            set({
+              session,
+              user: session?.user ?? null
+            })
+          })
+          authSubscription = subscription
+
           const { data: { session } } = await supabase.auth.getSession()
           set({
             session,
             user: session?.user ?? null,
             initialized: true
-          })
-
-          supabase.auth.onAuthStateChange((_event, session) => {
-            set({
-              session,
-              user: session?.user ?? null
-            })
           })
         } catch {
           set({ initialized: true })

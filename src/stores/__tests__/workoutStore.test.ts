@@ -8,7 +8,7 @@ describe('workoutStore', () => {
     useWorkoutStore.setState({
       activeSession: null,
       activeWorkoutDay: null,
-      completedSets: new Map(),
+      completedSets: {},
       restTimerSeconds: 0,
       restTimerInitialSeconds: 0,
       isRestTimerActive: false
@@ -63,7 +63,7 @@ describe('workoutStore', () => {
 
       useWorkoutStore.getState().addCompletedSet('exercise-1', mockSet)
 
-      const sets = useWorkoutStore.getState().completedSets.get('exercise-1')
+      const sets = useWorkoutStore.getState().completedSets['exercise-1']
       expect(sets).toHaveLength(1)
       expect(sets![0]).toEqual(mockSet)
     })
@@ -93,7 +93,7 @@ describe('workoutStore', () => {
       useWorkoutStore.getState().addCompletedSet('exercise-1', mockSet1)
       useWorkoutStore.getState().addCompletedSet('exercise-1', mockSet2)
 
-      const sets = useWorkoutStore.getState().completedSets.get('exercise-1')
+      const sets = useWorkoutStore.getState().completedSets['exercise-1']
       expect(sets).toHaveLength(2)
     })
 
@@ -110,7 +110,7 @@ describe('workoutStore', () => {
       })
       useWorkoutStore.getState().clearCompletedSets()
 
-      expect(useWorkoutStore.getState().completedSets.size).toBe(0)
+      expect(Object.keys(useWorkoutStore.getState().completedSets).length).toBe(0)
     })
   })
 
@@ -201,7 +201,7 @@ describe('workoutStore', () => {
       const state = useWorkoutStore.getState()
       expect(state.activeSession).toBe(null)
       expect(state.activeWorkoutDay).toBe(null)
-      expect(state.completedSets.size).toBe(0)
+      expect(Object.keys(state.completedSets).length).toBe(0)
       expect(state.restTimerSeconds).toBe(0)
       expect(state.restTimerInitialSeconds).toBe(0)
       expect(state.isRestTimerActive).toBe(false)

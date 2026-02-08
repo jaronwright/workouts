@@ -34,8 +34,10 @@ export async function getTemplateById(templateId: string): Promise<WorkoutTempla
     .maybeSingle()
 
   if (error) {
-    console.warn('Error fetching template:', error.message)
-    return null
+    if (error.code === 'PGRST116' || error.code === '42P01' || error.message?.includes('does not exist')) {
+      return null
+    }
+    throw error
   }
   return data as WorkoutTemplate | null
 }
@@ -65,21 +67,7 @@ export async function startTemplateWorkout(
     .single()
 
   if (error) {
-    // Table might not exist yet, create inline session tracking
-    // Store in localStorage as fallback
-    const session: TemplateWorkoutSession = {
-      id: crypto.randomUUID(),
-      user_id: userId,
-      template_id: templateId,
-      started_at: new Date().toISOString(),
-      completed_at: null,
-      duration_minutes: null,
-      distance_value: null,
-      distance_unit: null,
-      notes: null,
-      template
-    }
-    return session
+    throw error
   }
 
   return data as TemplateWorkoutSession
@@ -120,9 +108,11 @@ export async function getUserTemplateWorkouts(userId: string): Promise<TemplateW
     .order('started_at', { ascending: false })
 
   if (error) {
-    // Table might not exist, return empty
-    console.warn('template_workout_sessions table may not exist:', error.message)
-    return []
+    if (error.code === '42P01' || error.message?.includes('does not exist')) {
+      console.warn('template_workout_sessions table may not exist:', error.message)
+      return []
+    }
+    throw error
   }
   return data as TemplateWorkoutSession[]
 }
@@ -155,8 +145,11 @@ export async function getActiveTemplateWorkout(userId: string): Promise<Template
     .maybeSingle()
 
   if (error) {
-    console.warn('template_workout_sessions table may not exist:', error.message)
-    return null
+    if (error.code === '42P01' || error.message?.includes('does not exist')) {
+      console.warn('template_workout_sessions table may not exist:', error.message)
+      return null
+    }
+    throw error
   }
   return data as TemplateWorkoutSession | null
 }

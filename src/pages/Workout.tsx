@@ -7,6 +7,7 @@ import { useWorkoutDay } from '@/hooks/useWorkoutPlan'
 import { useStartWorkout, useCompleteWorkout, useLogSet, useDeleteSet, useSessionSets } from '@/hooks/useWorkoutSession'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { useAuthStore } from '@/stores/authStore'
+import { useToast } from '@/hooks/useToast'
 import { getWorkoutDisplayName } from '@/config/workoutConfig'
 
 // Check if a section is a warm-up section (should be collapsible, default closed)
@@ -20,6 +21,7 @@ export function WorkoutPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
 
+  const toast = useToast()
   const { data: workoutDay, isLoading } = useWorkoutDay(dayId)
   const { mutate: startWorkout, isPending: isStarting } = useStartWorkout()
   const { mutate: completeWorkout, isPending: isCompleting } = useCompleteWorkout()
@@ -44,7 +46,7 @@ export function WorkoutPage() {
   useEffect(() => {
     if (sessionSets) {
       sessionSets.forEach((set) => {
-        const current = completedSets.get(set.plan_exercise_id) || []
+        const current = useWorkoutStore.getState().completedSets[set.plan_exercise_id] || []
         if (!current.find((s) => s.id === set.id)) {
           useWorkoutStore.getState().addCompletedSet(set.plan_exercise_id, set)
         }
@@ -57,6 +59,9 @@ export function WorkoutPage() {
     startWorkout(dayId, {
       onSuccess: (session) => {
         setActiveSession(session)
+      },
+      onError: () => {
+        toast.error('Failed to start workout. Please try again.')
       }
     })
   }
@@ -68,6 +73,9 @@ export function WorkoutPage() {
       {
         onSuccess: () => {
           navigate('/')
+        },
+        onError: () => {
+          toast.error('Failed to complete workout. Please try again.')
         }
       }
     )
@@ -86,7 +94,7 @@ export function WorkoutPage() {
   }
 
   const handleExerciseUncomplete = (exerciseId: string) => {
-    const sets = completedSets.get(exerciseId) || []
+    const sets = completedSets[exerciseId] || []
     // Delete all sets for this exercise from the database
     sets.forEach((s) => deleteSet(s.id))
     // Remove from local store immediately for responsive UI
@@ -218,7 +226,7 @@ export function WorkoutPage() {
                   <ExerciseCard
                     key={exercise.id}
                     exercise={exercise}
-                    completedSets={completedSets.get(exercise.id) || []}
+                    completedSets={completedSets[exercise.id] || []}
                     onExerciseComplete={(reps, weight) =>
                       handleExerciseComplete(exercise.id, reps, weight)
                     }
@@ -239,7 +247,7 @@ export function WorkoutPage() {
                   <ExerciseCard
                     key={exercise.id}
                     exercise={exercise}
-                    completedSets={completedSets.get(exercise.id) || []}
+                    completedSets={completedSets[exercise.id] || []}
                     onExerciseComplete={(reps, weight) =>
                       handleExerciseComplete(exercise.id, reps, weight)
                     }

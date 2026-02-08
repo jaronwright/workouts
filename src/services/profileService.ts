@@ -33,8 +33,11 @@ export async function getProfile(userId: string): Promise<UserProfile | null> {
     .maybeSingle()
 
   if (error) {
-    console.warn('Error fetching profile:', error.message)
-    return null
+    if (error.code === 'PGRST116') {
+      // "not found" — user has no profile yet
+      return null
+    }
+    throw error
   }
   return data as UserProfile | null
 }

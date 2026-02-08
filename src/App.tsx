@@ -205,13 +205,12 @@ function AnimatedRoutes() {
 }
 
 function AppRoutes() {
-  const { initialize } = useAuth()
+  useAuth() // Auth initialization happens inside useAuth's useEffect
   const { initializeTheme } = useTheme()
 
   useEffect(() => {
-    initialize()
     initializeTheme()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return <AnimatedRoutes />
 }

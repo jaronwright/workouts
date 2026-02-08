@@ -4,7 +4,7 @@ import type { WorkoutDayWithSections, WorkoutSession, ExerciseSet } from '@/type
 interface WorkoutState {
   activeSession: WorkoutSession | null
   activeWorkoutDay: WorkoutDayWithSections | null
-  completedSets: Map<string, ExerciseSet[]>
+  completedSets: Record<string, ExerciseSet[]>
   restTimerSeconds: number
   restTimerInitialSeconds: number
   isRestTimerActive: boolean
@@ -25,7 +25,7 @@ interface WorkoutState {
 export const useWorkoutStore = create<WorkoutState>((set, get) => ({
   activeSession: null,
   activeWorkoutDay: null,
-  completedSets: new Map(),
+  completedSets: {},
   restTimerSeconds: 0,
   restTimerInitialSeconds: 0,
   isRestTimerActive: false,
@@ -36,20 +36,17 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
 
   addCompletedSet: (exerciseId, exerciseSet) => {
     const current = get().completedSets
-    const updated = new Map(current)
-    const existing = updated.get(exerciseId) || []
-    updated.set(exerciseId, [...existing, exerciseSet])
-    set({ completedSets: updated })
+    const existing = current[exerciseId] || []
+    set({ completedSets: { ...current, [exerciseId]: [...existing, exerciseSet] } })
   },
 
   removeCompletedSets: (exerciseId) => {
-    const current = get().completedSets
-    const updated = new Map(current)
-    updated.delete(exerciseId)
-    set({ completedSets: updated })
+    const current = { ...get().completedSets }
+    delete current[exerciseId]
+    set({ completedSets: current })
   },
 
-  clearCompletedSets: () => set({ completedSets: new Map() }),
+  clearCompletedSets: () => set({ completedSets: {} }),
 
   startRestTimer: (seconds) => set({
     restTimerSeconds: seconds,
@@ -87,7 +84,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
   clearWorkout: () => set({
     activeSession: null,
     activeWorkoutDay: null,
-    completedSets: new Map(),
+    completedSets: {},
     restTimerSeconds: 0,
     restTimerInitialSeconds: 0,
     isRestTimerActive: false
