@@ -24,14 +24,14 @@ interface OnboardingWizardProps {
   initialPlanId?: string
 }
 
-const INITIAL_SELECTIONS: Record<number, DaySelection> = {
-  1: { type: 'empty' },
-  2: { type: 'empty' },
-  3: { type: 'empty' },
-  4: { type: 'empty' },
-  5: { type: 'empty' },
-  6: { type: 'empty' },
-  7: { type: 'empty' }
+const INITIAL_SELECTIONS: Record<number, DaySelection[]> = {
+  1: [],
+  2: [],
+  3: [],
+  4: [],
+  5: [],
+  6: [],
+  7: []
 }
 
 export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlanId }: OnboardingWizardProps) {
@@ -48,7 +48,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   const [selectedPlanId, setSelectedPlanId] = useState<string>(initialPlanId || profile?.selected_plan_id || PPL_PLAN_ID)
   const { data: workoutDays } = useWorkoutDays(selectedPlanId)
 
-  const [selections, setSelections] = useState<Record<number, DaySelection>>(INITIAL_SELECTIONS)
+  const [selections, setSelections] = useState<Record<number, DaySelection[]>>(INITIAL_SELECTIONS)
   const [cycleStartDate, setCycleStartDate] = useState(() => {
     return new Intl.DateTimeFormat('en-CA', {
       year: 'numeric', month: '2-digit', day: '2-digit'
@@ -159,8 +159,8 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
     }
   }, [selectedPlanId, updateProfile])
 
-  const handleSelect = useCallback((dayNumber: number, selection: DaySelection) => {
-    setSelections(prev => ({ ...prev, [dayNumber]: selection }))
+  const handleSelect = useCallback((dayNumber: number, newSelections: DaySelection[]) => {
+    setSelections(prev => ({ ...prev, [dayNumber]: newSelections }))
     setError(null)
   }, [])
 
@@ -172,7 +172,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
     setError(null)
 
     // Check if at least one day is configured
-    const configuredDays = Object.values(selections).filter(s => s.type !== 'empty')
+    const configuredDays = Object.values(selections).filter(arr => arr.length > 0)
     if (configuredDays.length === 0) {
       setError('Please configure at least one day before saving.')
       return
@@ -184,14 +184,18 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
       // Save each day sequentially
       for (let day = 1; day <= 7; day++) {
-        const sel = selections[day]
-        if (sel.type === 'empty') continue
+        const daySelections = selections[day]
+        if (daySelections.length === 0) continue
 
         setSavingDay(day)
 
-        const workouts: ScheduleWorkoutItem[] = sel.type === 'rest'
-          ? [{ type: 'rest' }]
-          : [{ type: sel.type, id: sel.id }]
+        const workouts: ScheduleWorkoutItem[] = daySelections
+          .filter(sel => sel.type !== 'empty')
+          .map(sel =>
+            sel.type === 'rest'
+              ? { type: 'rest' as const }
+              : { type: sel.type as 'weights' | 'cardio' | 'mobility', id: sel.id }
+          )
 
         await saveWorkouts({ dayNumber: day, workouts })
       }
@@ -226,7 +230,9 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   }, [avatarPreview])
 
   const generateSchedule = useCallback(() => {
-    const newSelections: Record<number, DaySelection> = { ...INITIAL_SELECTIONS }
+    const newSelections: Record<number, DaySelection[]> = {
+      1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: []
+    }
     const trainingDays = 7 - restDays
     const days = workoutDays || []
     const cardio = cardioTemplates
@@ -244,7 +250,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
     // Mark rest days
     for (const pos of restPositions) {
-      newSelections[pos] = { type: 'rest' }
+      newSelections[pos] = [{ type: 'rest' }]
     }
 
     // Get training day positions (non-rest)
@@ -256,24 +262,13 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
       for (const pos of trainingPositions) {
         if (days.length > 0) {
           const day = days[weightIdx % days.length]
-          newSelections[pos] = {
+          newSelections[pos] = [{
             type: 'weights',
             id: day.id,
             label: day.name,
             dayNumber: day.day_number
-          }
+          }]
           weightIdx++
-        }
-      }
-      // If mobility is important, swap last training day to mobility
-      if (mobilityImportant && mobility.length > 0 && trainingPositions.length > 1) {
-        const lastTraining = trainingPositions[trainingPositions.length - 1]
-        const mob = mobility[0]
-        newSelections[lastTraining] = {
-          type: 'mobility',
-          id: mob.id,
-          label: mob.name,
-          category: mob.category
         }
       }
     } else if (autoFocus === 'all-cardio') {
@@ -282,24 +277,13 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
       for (const pos of trainingPositions) {
         if (cardio.length > 0) {
           const c = cardio[cardioIdx % cardio.length]
-          newSelections[pos] = {
+          newSelections[pos] = [{
             type: 'cardio',
             id: c.id,
             label: c.name,
             category: c.category
-          }
+          }]
           cardioIdx++
-        }
-      }
-      // If mobility is important, swap last training day to mobility
-      if (mobilityImportant && mobility.length > 0 && trainingPositions.length > 1) {
-        const lastTraining = trainingPositions[trainingPositions.length - 1]
-        const mob = mobility[0]
-        newSelections[lastTraining] = {
-          type: 'mobility',
-          id: mob.id,
-          label: mob.name,
-          category: mob.category
         }
       }
     } else {
@@ -322,12 +306,12 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
       for (const pos of weightSlots) {
         if (days.length > 0) {
           const day = days[weightIdx % days.length]
-          newSelections[pos] = {
+          newSelections[pos] = [{
             type: 'weights',
             id: day.id,
             label: day.name,
             dayNumber: day.day_number
-          }
+          }]
           weightIdx++
         }
       }
@@ -337,37 +321,31 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
       for (const pos of cardioSlots) {
         if (cardio.length > 0) {
           const c = cardio[cardioIdx % cardio.length]
-          newSelections[pos] = {
+          newSelections[pos] = [{
             type: 'cardio',
             id: c.id,
             label: c.name,
             category: c.category
-          }
+          }]
           cardioIdx++
         }
       }
+    }
 
-      // If mobility is important, replace last cardio slot with mobility
-      if (mobilityImportant && mobility.length > 0 && cardioSlots.length > 0) {
-        const lastCardio = cardioSlots[cardioSlots.length - 1]
-        const mob = mobility[0]
-        newSelections[lastCardio] = {
+    // Add mobility as a secondary workout on first 2 training days
+    if (mobilityImportant && mobility.length > 0) {
+      const mobilityTargets = trainingPositions
+        .filter(pos => newSelections[pos].length > 0 && newSelections[pos][0].type !== 'rest')
+        .slice(0, 2)
+      mobilityTargets.forEach((pos, idx) => {
+        const mob = mobility[idx % mobility.length]
+        newSelections[pos] = [...newSelections[pos], {
           type: 'mobility',
           id: mob.id,
           label: mob.name,
           category: mob.category
-        }
-      } else if (mobilityImportant && mobility.length > 0 && weightSlots.length > 1) {
-        // No cardio slots to swap — replace last weight slot
-        const lastWeight = weightSlots[weightSlots.length - 1]
-        const mob = mobility[0]
-        newSelections[lastWeight] = {
-          type: 'mobility',
-          id: mob.id,
-          label: mob.name,
-          category: mob.category
-        }
-      }
+        }]
+      })
     }
 
     setSelections(newSelections)
@@ -375,7 +353,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   }, [autoFocus, restDays, mobilityImportant, workoutDays, cardioTemplates, mobilityTemplates])
 
   // Count configured days
-  const configuredCount = Object.values(selections).filter(s => s.type !== 'empty').length
+  const configuredCount = Object.values(selections).filter(arr => arr.length > 0).length
 
   if (!isOpen) return null
 
@@ -1074,8 +1052,8 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                 <OnboardingDayRow
                   key={dayNumber}
                   dayNumber={dayNumber}
-                  selection={selections[dayNumber]}
-                  onSelect={(sel) => handleSelect(dayNumber, sel)}
+                  selections={selections[dayNumber]}
+                  onSelect={(sels) => handleSelect(dayNumber, sels)}
                   workoutDays={workoutDays || []}
                   cardioTemplates={cardioTemplates}
                   mobilityTemplates={mobilityTemplates}
