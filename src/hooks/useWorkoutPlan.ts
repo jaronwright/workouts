@@ -30,8 +30,8 @@ export function useSelectedPlanDays() {
   const planId = profile?.selected_plan_id || undefined
 
   return useQuery({
-    queryKey: ['workout-days', planId || 'all'],
-    queryFn: () => planId ? getWorkoutDays(planId) : getAllWorkoutDays(),
-    enabled: !profileLoading
+    queryKey: ['workout-days', planId || 'none'],
+    queryFn: () => getWorkoutDays(planId!),
+    enabled: !profileLoading && !!planId
   })
 }

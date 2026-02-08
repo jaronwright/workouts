@@ -23,24 +23,24 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
   const { data: templateSessions } = useUserTemplateWorkouts()
   const prefersReduced = useReducedMotion()
 
-  // Create a map of day_number to schedule for quick lookup
-  const scheduleMap = new Map<number, ScheduleDay>()
+  // Create a map of day_number to ALL schedules for quick lookup
+  const scheduleMap = new Map<number, ScheduleDay[]>()
   schedule?.forEach(s => {
-    // Get existing or add new
-    if (!scheduleMap.has(s.day_number)) {
-      scheduleMap.set(s.day_number, s)
-    }
+    const existing = scheduleMap.get(s.day_number) || []
+    existing.push(s)
+    scheduleMap.set(s.day_number, existing)
   })
 
-  // Get info for all 7 days
+  // Get info for all 7 days (use first schedule for icon/name/color)
   const days = Array.from({ length: 7 }, (_, i) => {
     const dayNumber = i + 1
-    const daySchedule = scheduleMap.get(dayNumber)
-    return getDayInfo(daySchedule, dayNumber)
+    const daySchedules = scheduleMap.get(dayNumber) || []
+    return getDayInfo(daySchedules[0], dayNumber)
   })
 
   // Get today's workout info
   const todayInfo = days[currentCycleDay - 1] || days[0]
+  const todayWorkoutCount = (scheduleMap.get(currentCycleDay) || []).length
   const hasSchedule = schedule && schedule.length > 0
 
   // Check if today's workout is completed
@@ -203,6 +203,11 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
               <h3 className="text-lg font-bold text-[var(--color-text)] mt-1 truncate">
                 {todayInfo.name}
               </h3>
+              {todayWorkoutCount > 1 && (
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                  + {todayWorkoutCount - 1} more workout{todayWorkoutCount > 2 ? 's' : ''}
+                </p>
+              )}
             </div>
             <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)]" />
           </div>

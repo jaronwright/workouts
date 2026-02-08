@@ -20,7 +20,8 @@ import {
   CardioWorkoutPage,
   MobilityWorkoutPage,
   MobilityDurationPickerPage,
-  RestDayPage
+  RestDayPage,
+  CommunityPage
 } from '@/pages'
 
 const queryClient = new QueryClient({
@@ -112,6 +113,14 @@ function AnimatedRoutes() {
           element={
             <ProtectedRoute>
               <PageWrapper><HomePage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><CommunityPage /></PageWrapper>
             </ProtectedRoute>
           }
         />

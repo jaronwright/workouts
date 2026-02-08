@@ -1,9 +1,10 @@
 import { NavLink } from 'react-router-dom'
-import { Home, History, User, Calendar } from 'lucide-react'
+import { Home, History, User, Calendar, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
+  { to: '/community', icon: Users, label: 'Community' },
   { to: '/schedule', icon: Calendar, label: 'Schedule' },
   { to: '/history', icon: History, label: 'History' },
   { to: '/profile', icon: User, label: 'Profile' }

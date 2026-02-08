@@ -25,6 +25,7 @@ export interface CalendarDay {
   isFuture: boolean
   cycleDay: number | null
   projected: DayInfo | null
+  projectedCount: number
   sessions: UnifiedSession[]
   hasCompletedSession: boolean
 }
@@ -48,13 +49,13 @@ export function useCalendarData(currentMonth: Date): UseCalendarDataResult {
     const today = getTodayInTimezone(timezone)
     const cycleStartDate = profile?.cycle_start_date
 
-    // Build schedule map (day_number → first ScheduleDay)
-    const scheduleMap = new Map<number, ScheduleDay>()
+    // Build schedule map (day_number → all ScheduleDays)
+    const scheduleMap = new Map<number, ScheduleDay[]>()
     if (schedule) {
       for (const s of schedule) {
-        if (!scheduleMap.has(s.day_number)) {
-          scheduleMap.set(s.day_number, s)
-        }
+        const existing = scheduleMap.get(s.day_number) || []
+        existing.push(s)
+        scheduleMap.set(s.day_number, existing)
       }
     }
 
@@ -109,11 +110,13 @@ export function useCalendarData(currentMonth: Date): UseCalendarDataResult {
       // Get cycle day for projection
       let cycleDay: number | null = null
       let projected: DayInfo | null = null
+      let projectedCount = 0
       if (cycleStartDate && schedule && schedule.length > 0) {
         cycleDay = getCycleDayForDate(date, cycleStartDate)
         if (cycleDay !== null) {
-          const daySchedule = scheduleMap.get(cycleDay)
-          projected = getDayInfo(daySchedule, cycleDay)
+          const daySchedules = scheduleMap.get(cycleDay) || []
+          projectedCount = daySchedules.length
+          projected = daySchedules.length > 0 ? getDayInfo(daySchedules[0], cycleDay) : null
         }
       }
 
@@ -129,6 +132,7 @@ export function useCalendarData(currentMonth: Date): UseCalendarDataResult {
         isFuture,
         cycleDay,
         projected,
+        projectedCount,
         sessions,
         hasCompletedSession
       }
