@@ -26,6 +26,9 @@ export function useUpdateProfile() {
     mutationFn: (data: UpdateProfileData) => upsertProfile(user!.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] })
+    },
+    onError: (error) => {
+      console.error('Failed to update profile:', error)
     }
   })
 }

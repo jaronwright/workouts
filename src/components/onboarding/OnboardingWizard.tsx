@@ -125,14 +125,20 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   }, [displayName, avatarFile, updateProfile, uploadAvatar])
 
   // Step 2 → Step 3: save selected plan
+  const [isSplitSaving, setIsSplitSaving] = useState(false)
+
   const handleSplitNext = useCallback(async () => {
+    setIsSplitSaving(true)
+    setError(null)
     try {
       await updateProfile({ selected_plan_id: selectedPlanId })
-    } catch {
+      setStep(3)
+    } catch (err) {
+      console.error('Failed to save split selection:', err)
       setError('Failed to save selection. Please try again.')
-      return
+    } finally {
+      setIsSplitSaving(false)
     }
-    setStep(3)
   }, [selectedPlanId, updateProfile])
 
   const handleSelect = useCallback((dayNumber: number, selection: DaySelection) => {
@@ -414,6 +420,13 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                 </div>
               </button>
             </div>
+
+            {/* Error Display */}
+            {error && (
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
+                {error}
+              </div>
+            )}
           </div>
         ) : (
           /* Step 3: Schedule Setup */
@@ -544,7 +557,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
               Continue
             </Button>
           ) : step === 2 ? (
-            <Button size="lg" onClick={handleSplitNext} className="w-full">
+            <Button size="lg" onClick={handleSplitNext} loading={isSplitSaving} disabled={isSplitSaving} className="w-full">
               Continue
             </Button>
           ) : (

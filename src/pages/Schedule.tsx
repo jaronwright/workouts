@@ -9,6 +9,7 @@ import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { formatCycleStartDate } from '@/utils/cycleDay'
 import { type ScheduleDay } from '@/services/scheduleService'
 import { staggerContainer, staggerChild } from '@/config/animationConfig'
+import { useToast } from '@/hooks/useToast'
 import { Moon, Plus, ChevronRight } from 'lucide-react'
 import {
   getWeightsStyleByName,
@@ -65,6 +66,7 @@ export function SchedulePage() {
   const { mutate: updateProfile } = useUpdateProfile()
   const currentCycleDay = useCycleDay()
   const prefersReduced = useReducedMotion()
+  const { error: showError } = useToast()
 
   const [editingDay, setEditingDay] = useState<number | null>(null)
 
@@ -117,7 +119,10 @@ export function SchedulePage() {
                     const y = startDate.getFullYear()
                     const m = String(startDate.getMonth() + 1).padStart(2, '0')
                     const d = String(startDate.getDate()).padStart(2, '0')
-                    updateProfile({ cycle_start_date: `${y}-${m}-${d}` })
+                    updateProfile(
+                      { cycle_start_date: `${y}-${m}-${d}` },
+                      { onError: () => showError('Failed to update cycle day') }
+                    )
                   }}
                   className="relative flex flex-col items-center gap-0.5"
                 >

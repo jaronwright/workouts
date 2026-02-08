@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { User } from 'lucide-react'
 import { isDefaultAvatar, getDefaultAvatarKey, getDefaultAvatarByKey } from '@/config/defaultAvatars'
 
@@ -16,8 +17,9 @@ interface AvatarProps {
 
 export function Avatar({ src, alt = 'Avatar', size = 'md', className = '' }: AvatarProps) {
   const { container, icon } = SIZES[size]
+  const [imgError, setImgError] = useState(false)
 
-  if (src && isDefaultAvatar(src)) {
+  if (src && !imgError && isDefaultAvatar(src)) {
     const avatar = getDefaultAvatarByKey(getDefaultAvatarKey(src))
     if (avatar) {
       return (
@@ -40,12 +42,13 @@ export function Avatar({ src, alt = 'Avatar', size = 'md', className = '' }: Ava
     }
   }
 
-  if (src) {
+  if (src && !imgError) {
     return (
       <img
         src={src}
         alt={alt}
         className={`${container} rounded-full object-cover ${className}`}
+        onError={() => setImgError(true)}
       />
     )
   }

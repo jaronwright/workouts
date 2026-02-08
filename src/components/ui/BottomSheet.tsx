@@ -82,7 +82,7 @@ export function BottomSheet({ isOpen, onClose, title, children }: BottomSheetPro
             )}
 
             {/* Content */}
-            <div className="overflow-y-auto px-5 pb-8 max-h-[calc(85vh-60px)]">
+            <div className="overflow-y-auto px-5 pb-24 max-h-[calc(85vh-60px)]">
               {children}
             </div>
           </motion.div>

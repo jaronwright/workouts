@@ -266,15 +266,22 @@ export function ProfilePage() {
     if (!pendingSplitId) return
     try {
       await updateProfileAsync({ selected_plan_id: pendingSplitId })
-      await clearSchedule()
+    } catch (err) {
+      console.error('Failed to update workout split:', err)
+      showError('Failed to change workout split. Please try again.')
       setShowSplitConfirm(false)
       setPendingSplitId(null)
-      setShowOnboarding(true)
-    } catch {
-      showError('Failed to change workout split')
-      setShowSplitConfirm(false)
-      setPendingSplitId(null)
+      return
     }
+    try {
+      await clearSchedule()
+    } catch (err) {
+      console.error('Failed to clear schedule after split change:', err)
+      // Split was saved successfully, proceed to onboarding anyway
+    }
+    setShowSplitConfirm(false)
+    setPendingSplitId(null)
+    setShowOnboarding(true)
   }
 
   if (isLoading) {
@@ -701,7 +708,13 @@ export function ProfilePage() {
                   value={profile?.cycle_start_date || ''}
                   onChange={(e) => {
                     if (e.target.value) {
-                      updateProfile({ cycle_start_date: e.target.value })
+                      updateProfile(
+                        { cycle_start_date: e.target.value },
+                        {
+                          onSuccess: () => success('Cycle start date updated'),
+                          onError: () => showError('Failed to update cycle start date')
+                        }
+                      )
                     }
                   }}
                 />
