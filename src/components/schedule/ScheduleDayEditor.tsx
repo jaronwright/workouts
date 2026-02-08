@@ -90,7 +90,19 @@ export function ScheduleDayEditor({
   }, [isOpen, currentSchedules])
 
   const cardioTemplates = templates?.filter(t => t.type === 'cardio') || []
-  const mobilityTemplates = templates?.filter(t => t.type === 'mobility') || []
+  // Group mobility templates by category, show only the shortest (15-min) variant
+  const mobilityTemplates = (() => {
+    const all = templates?.filter(t => t.type === 'mobility') || []
+    const byCategory = new Map<string, typeof all[0]>()
+    for (const t of all) {
+      if (!t.category) continue
+      const existing = byCategory.get(t.category)
+      if (!existing || (t.duration_minutes ?? 0) < (existing.duration_minutes ?? 0)) {
+        byCategory.set(t.category, t)
+      }
+    }
+    return Array.from(byCategory.values())
+  })()
 
   const addWorkout = (workout: SelectedWorkout) => {
     if (workout.type === 'rest') {

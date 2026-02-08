@@ -77,6 +77,41 @@ export async function getWorkoutTemplatesByType(type: 'weights' | 'cardio' | 'mo
   return data as WorkoutTemplate[]
 }
 
+export async function getMobilityTemplatesByCategory(category: string): Promise<WorkoutTemplate[]> {
+  const { data, error } = await supabase
+    .from('workout_templates')
+    .select('*')
+    .eq('type', 'mobility')
+    .eq('category', category)
+    .order('duration_minutes', { ascending: true })
+
+  if (error) throw error
+  return data as WorkoutTemplate[]
+}
+
+export async function getMobilityCategories(): Promise<{ category: string; template: WorkoutTemplate }[]> {
+  const { data, error } = await supabase
+    .from('workout_templates')
+    .select('*')
+    .eq('type', 'mobility')
+    .order('name', { ascending: true })
+
+  if (error) throw error
+
+  const templates = data as WorkoutTemplate[]
+  const seen = new Set<string>()
+  const categories: { category: string; template: WorkoutTemplate }[] = []
+
+  for (const t of templates) {
+    if (t.category && !seen.has(t.category)) {
+      seen.add(t.category)
+      categories.push({ category: t.category, template: t })
+    }
+  }
+
+  return categories
+}
+
 export async function getUserSchedule(userId: string): Promise<ScheduleDay[]> {
   const { data, error } = await supabase
     .from('user_schedules')

@@ -19,6 +19,7 @@ import {
   SchedulePage,
   CardioWorkoutPage,
   MobilityWorkoutPage,
+  MobilityDurationPickerPage,
   RestDayPage
 } from '@/pages'
 
@@ -139,6 +140,14 @@ function AnimatedRoutes() {
           element={
             <ProtectedRoute>
               <PageWrapper><CardioWorkoutPage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mobility/:category/select"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><MobilityDurationPickerPage /></PageWrapper>
             </ProtectedRoute>
           }
         />

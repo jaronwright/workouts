@@ -13,20 +13,33 @@ vi.mock('react-router-dom', async () => {
 })
 
 let mockTemplate: Record<string, unknown> | null = null
-let mockIsLoading = false
+let mockTemplateLoading = false
+let mockWorkoutDay: Record<string, unknown> | null = null
+let mockDayLoading = false
+let mockQuickLog = vi.fn()
 
 vi.mock('@/hooks/useTemplateWorkout', () => ({
   useTemplate: () => ({
     data: mockTemplate,
-    isLoading: mockIsLoading,
+    isLoading: mockTemplateLoading,
   }),
-  useStartTemplateWorkout: () => ({
-    mutate: vi.fn(),
+  useQuickLogTemplateWorkout: () => ({
+    mutate: mockQuickLog,
     isPending: false,
   }),
-  useCompleteTemplateWorkout: () => ({
-    mutate: vi.fn(),
-    isPending: false,
+}))
+
+vi.mock('@/hooks/useWorkoutPlan', () => ({
+  useWorkoutDay: () => ({
+    data: mockWorkoutDay,
+    isLoading: mockDayLoading,
+  }),
+}))
+
+vi.mock('@/hooks/useToast', () => ({
+  useToast: () => ({
+    success: vi.fn(),
+    error: vi.fn(),
   }),
 }))
 
@@ -43,11 +56,14 @@ describe('MobilityWorkoutPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockTemplate = null
-    mockIsLoading = false
+    mockTemplateLoading = false
+    mockWorkoutDay = null
+    mockDayLoading = false
+    mockQuickLog = vi.fn()
   })
 
   it('shows loading state', () => {
-    mockIsLoading = true
+    mockTemplateLoading = true
     const { container } = render(<MobilityWorkoutPage />)
 
     expect(screen.getByText('Loading...')).toBeInTheDocument()
@@ -56,67 +72,100 @@ describe('MobilityWorkoutPage', () => {
 
   it('shows not found when template is null', () => {
     mockTemplate = null
-    mockIsLoading = false
+    mockTemplateLoading = false
     render(<MobilityWorkoutPage />)
 
     expect(screen.getByText('Not Found')).toBeInTheDocument()
     expect(screen.getByText('Workout not found')).toBeInTheDocument()
   })
 
-  it('shows template name and duration selection (15m, 30m, 45m, 60m) when loaded', () => {
+  it('shows template name and exercise count when loaded', () => {
     mockTemplate = {
       id: 'template-mob-1',
-      name: 'Full Body Stretch',
+      name: 'Core Stability',
       type: 'mobility',
-      category: 'full_body',
+      category: 'core',
       duration_minutes: 30,
-      description: 'A comprehensive mobility routine',
+      description: 'Core activation and stability exercises',
+      workout_day_id: 'day-1',
     }
-    mockIsLoading = false
+    mockWorkoutDay = {
+      id: 'day-1',
+      name: 'Core Stability — 30 min',
+      sections: [
+        {
+          id: 'sec-1',
+          exercises: [
+            { id: 'ex-1', name: 'Dead Bug', sets: 3, reps_min: 10, reps_max: null, reps_unit: 'reps', is_per_side: true, notes: 'test' },
+            { id: 'ex-2', name: 'Pallof Press Hold', sets: 3, reps_min: 20, reps_max: null, reps_unit: 'seconds', is_per_side: true, notes: 'test' },
+          ],
+        },
+      ],
+    }
 
     render(<MobilityWorkoutPage />)
 
-    // "Full Body Stretch" appears in both AppShell title and card heading
-    const nameElements = screen.getAllByText('Full Body Stretch')
+    const nameElements = screen.getAllByText('Core Stability')
     expect(nameElements.length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('Select Duration')).toBeInTheDocument()
-
-    // Duration options
-    expect(screen.getByText('15m')).toBeInTheDocument()
-    expect(screen.getByText('30m')).toBeInTheDocument()
-    expect(screen.getByText('45m')).toBeInTheDocument()
-    expect(screen.getByText('60m')).toBeInTheDocument()
-  })
-
-  it('shows Start button with selected duration', () => {
-    mockTemplate = {
-      id: 'template-mob-1',
-      name: 'Hip Flow',
-      type: 'mobility',
-      category: 'hip_knee_ankle',
-      duration_minutes: 15,
-    }
-    mockIsLoading = false
-
-    render(<MobilityWorkoutPage />)
-
-    // Default duration is from template (15 min) or DURATION_OPTIONS[0]
-    expect(screen.getByRole('button', { name: /Start 15 Minute Session/i })).toBeInTheDocument()
+    expect(screen.getByText(/~30 min/)).toBeInTheDocument()
+    expect(screen.getByText(/2 exercises/)).toBeInTheDocument()
   })
 
   it('shows description when template has one', () => {
     mockTemplate = {
       id: 'template-mob-1',
-      name: 'Morning Mobility',
+      name: 'Core Stability',
       type: 'mobility',
-      category: 'full_body',
-      duration_minutes: 30,
-      description: 'Wake up your joints and muscles',
+      category: 'core',
+      duration_minutes: 15,
+      description: 'Core activation and stability exercises',
+      workout_day_id: 'day-1',
     }
-    mockIsLoading = false
+    mockWorkoutDay = {
+      id: 'day-1',
+      name: 'Core Stability — 15 min',
+      sections: [],
+    }
 
     render(<MobilityWorkoutPage />)
 
-    expect(screen.getByText('Wake up your joints and muscles')).toBeInTheDocument()
+    expect(screen.getByText('Core activation and stability exercises')).toBeInTheDocument()
+  })
+
+  it('uses template duration_minutes for quickLog instead of hardcoded 15', async () => {
+    const userEvent = (await import('@testing-library/user-event')).default
+    mockTemplate = {
+      id: 'template-mob-1',
+      name: 'Core Stability',
+      type: 'mobility',
+      category: 'core',
+      duration_minutes: 45,
+      workout_day_id: 'day-1',
+    }
+    mockWorkoutDay = {
+      id: 'day-1',
+      name: 'Core Stability — 45 min',
+      sections: [
+        {
+          id: 'sec-1',
+          exercises: [
+            { id: 'ex-1', name: 'Dead Bug', sets: 3, reps_min: 10, reps_max: null, reps_unit: 'reps', is_per_side: true, notes: 'test' },
+          ],
+        },
+      ],
+    }
+
+    render(<MobilityWorkoutPage />)
+
+    // Check an exercise to enable the Complete button
+    await userEvent.click(screen.getByText('Dead Bug'))
+
+    // Click Complete
+    await userEvent.click(screen.getByText(/Complete Workout/))
+
+    expect(mockQuickLog).toHaveBeenCalledWith(
+      { templateId: 'template-mob-1', durationMinutes: 45 },
+      expect.any(Object)
+    )
   })
 })

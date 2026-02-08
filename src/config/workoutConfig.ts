@@ -13,6 +13,8 @@ import {
   ArrowUp,
   ArrowDownUp,
   Swords,
+  Heart,
+  Shield,
   type LucideIcon
 } from 'lucide-react'
 
@@ -136,6 +138,18 @@ export const MOBILITY_CONFIG: Record<string, WorkoutStyle> = {
     bgColor: 'rgba(132, 204, 22, 0.15)',
     gradient: 'from-lime-500 to-lime-400',
     icon: Wind
+  },
+  recovery: {
+    color: '#F472B6',
+    bgColor: 'rgba(244, 114, 182, 0.15)',
+    gradient: 'from-pink-400 to-pink-300',
+    icon: Heart
+  },
+  shoulder_prehab: {
+    color: '#60A5FA',
+    bgColor: 'rgba(96, 165, 250, 0.15)',
+    gradient: 'from-blue-400 to-blue-300',
+    icon: Shield
   }
 }
 
@@ -204,7 +218,9 @@ export const WORKOUT_DISPLAY_NAMES: Record<string, string> = {
   'core stability': 'Core Stability',
   'hip, knee & ankle flow': 'Hip, Knee & Ankle Flow',
   'spine mobility': 'Spine Mobility',
-  'upper body flow': 'Upper Body Flow'
+  'upper body flow': 'Upper Body Flow',
+  'full body recovery': 'Full Body Recovery',
+  'shoulder prehab': 'Shoulder Prehab'
 }
 
 /**

@@ -16,6 +16,7 @@ import { useCycleDay } from '@/hooks/useCycleDay'
 import { useAvatarUrl } from '@/hooks/useAvatar'
 import { useSelectedPlanDays } from '@/hooks/useWorkoutPlan'
 import { useWorkoutTemplatesByType, useUserSchedule } from '@/hooks/useSchedule'
+import { useMobilityCategories } from '@/hooks/useMobilityTemplates'
 import { useUserTemplateWorkouts } from '@/hooks/useTemplateWorkout'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { formatRelativeTime } from '@/utils/formatters'
@@ -238,7 +239,7 @@ export function HomePage() {
   const currentCycleDay = useCycleDay()
   const { data: days, isLoading: daysLoading } = useSelectedPlanDays()
   const { data: cardioTemplates, isLoading: cardioLoading } = useWorkoutTemplatesByType('cardio')
-  const { data: mobilityTemplates, isLoading: mobilityLoading } = useWorkoutTemplatesByType('mobility')
+  const { data: mobilityCategories, isLoading: mobilityLoading } = useMobilityCategories()
   const { data: schedule, isLoading: scheduleLoading } = useUserSchedule()
   const { data: templateWorkoutSessions, isLoading: templateSessionsLoading } = useUserTemplateWorkouts()
   const prefersReduced = useReducedMotion()
@@ -292,8 +293,8 @@ export function HomePage() {
 
   // Handlers
   const handleStartWorkout = (dayId: string) => navigate(`/workout/${dayId}`)
-  const handleStartMobility = (template: WorkoutTemplate) => {
-    navigate(`/mobility/${template.id}`)
+  const handleStartMobility = (category: string) => {
+    navigate(`/mobility/${category}/select`)
   }
   const handleContinueWorkout = () => {
     if (activeSession) {
@@ -512,12 +513,12 @@ export function HomePage() {
                 <div key={i} className="h-20 rounded-[var(--radius-xl)] skeleton" />
               ))}
             </div>
-          ) : mobilityTemplates?.length ? (
-            mobilityTemplates.map((template, idx) => (
+          ) : mobilityCategories?.length ? (
+            mobilityCategories.map(({ category, template }, idx) => (
               <TemplateCard
-                key={template.id}
+                key={category}
                 template={template}
-                onClick={() => handleStartMobility(template)}
+                onClick={() => handleStartMobility(category)}
                 delay={idx * 0.06}
               />
             ))

@@ -17,7 +17,7 @@ let mockProfileLoading = false
 let mockSchedule: Record<string, unknown>[] = []
 let mockDays: Record<string, unknown>[] = []
 let mockCardioTemplates: Record<string, unknown>[] = []
-let mockMobilityTemplates: Record<string, unknown>[] = []
+let mockMobilityCategories: { category: string; template: Record<string, unknown> }[] = []
 let mockActiveSession: Record<string, unknown> | null = null
 
 vi.mock('@/hooks/useWorkoutSession', () => ({
@@ -46,9 +46,13 @@ vi.mock('@/hooks/useWorkoutPlan', () => ({
 vi.mock('@/hooks/useSchedule', () => ({
   useWorkoutTemplatesByType: (type: string) => {
     if (type === 'cardio') return { data: mockCardioTemplates, isLoading: false }
-    return { data: mockMobilityTemplates, isLoading: false }
+    return { data: [], isLoading: false }
   },
   useUserSchedule: () => ({ data: mockSchedule, isLoading: false }),
+}))
+
+vi.mock('@/hooks/useMobilityTemplates', () => ({
+  useMobilityCategories: () => ({ data: mockMobilityCategories, isLoading: false }),
 }))
 
 vi.mock('@/hooks/useTemplateWorkout', () => ({
@@ -84,7 +88,7 @@ describe('HomePage', () => {
     mockSchedule = [{ id: 's1', day_number: 1 }]
     mockDays = []
     mockCardioTemplates = []
-    mockMobilityTemplates = []
+    mockMobilityCategories = []
     mockActiveSession = null
   })
 
@@ -216,17 +220,19 @@ describe('HomePage', () => {
   })
 
   describe('Mobility routing', () => {
-    it('renders mobility templates with correct click handler', async () => {
+    it('renders mobility category cards and navigates to duration picker', async () => {
       const userEvent = (await import('@testing-library/user-event')).default
-      mockMobilityTemplates = [
+      mockMobilityCategories = [
         {
-          id: 'mob-1',
-          name: 'Hip Flow',
-          type: 'mobility',
           category: 'hip_knee_ankle',
-          workout_day_id: 'day-1', // Should be IGNORED for mobility
-          duration_minutes: 15,
-          created_at: '2024-01-01',
+          template: {
+            id: 'mob-1',
+            name: 'Hip, Knee & Ankle Flow',
+            type: 'mobility',
+            category: 'hip_knee_ankle',
+            duration_minutes: 15,
+            created_at: '2024-01-01',
+          },
         },
       ]
       render(<HomePage />)
@@ -235,12 +241,12 @@ describe('HomePage', () => {
       const mobilityButton = screen.getByText('Mobility')
       await userEvent.click(mobilityButton)
 
-      // Click the Hip Flow template
-      const template = screen.getByText('Hip Flow')
+      // Click the Hip Flow category card
+      const template = screen.getByText('Hip, Knee & Ankle Flow')
       await userEvent.click(template)
 
-      // Should navigate to /mobility/mob-1, NOT /workout/day-1
-      expect(mockNavigate).toHaveBeenCalledWith('/mobility/mob-1')
+      // Should navigate to /mobility/hip_knee_ankle/select (duration picker)
+      expect(mockNavigate).toHaveBeenCalledWith('/mobility/hip_knee_ankle/select')
     })
   })
 

@@ -65,7 +65,7 @@ export function MobilityWorkoutPage() {
     if (!templateId) return
 
     quickLog(
-      { templateId, durationMinutes: 15 },
+      { templateId, durationMinutes: template?.duration_minutes ?? 15 },
       {
         onSuccess: () => {
           toast.success('Mobility workout complete!')
@@ -124,7 +124,7 @@ export function MobilityWorkoutPage() {
               </p>
             )}
             <p className="text-xs text-[var(--color-text-muted)] mt-2">
-              ~15 min &middot; {totalCount} exercises
+              ~{template.duration_minutes ?? 15} min &middot; {totalCount} exercises
             </p>
           </CardContent>
         </Card>

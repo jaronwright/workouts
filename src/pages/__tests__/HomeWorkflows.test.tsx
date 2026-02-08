@@ -20,7 +20,7 @@ let mockScheduleLoading = false
 let mockDays: Record<string, unknown>[] = []
 let mockDaysLoading = false
 let mockCardioTemplates: Record<string, unknown>[] = []
-let mockMobilityTemplates: Record<string, unknown>[] = []
+let mockMobilityCategories: { category: string; template: Record<string, unknown> }[] = []
 let mockActiveSession: Record<string, unknown> | null = null
 let mockSessionsLoading = false
 let mockTemplateSessionsLoading = false
@@ -51,9 +51,13 @@ vi.mock('@/hooks/useWorkoutPlan', () => ({
 vi.mock('@/hooks/useSchedule', () => ({
   useWorkoutTemplatesByType: (type: string) => {
     if (type === 'cardio') return { data: mockCardioTemplates, isLoading: false }
-    return { data: mockMobilityTemplates, isLoading: false }
+    return { data: [], isLoading: false }
   },
   useUserSchedule: () => ({ data: mockSchedule, isLoading: mockScheduleLoading }),
+}))
+
+vi.mock('@/hooks/useMobilityTemplates', () => ({
+  useMobilityCategories: () => ({ data: mockMobilityCategories, isLoading: false }),
 }))
 
 vi.mock('@/hooks/useTemplateWorkout', () => ({
@@ -95,7 +99,7 @@ describe('HomePage Workflows', () => {
     mockDays = []
     mockDaysLoading = false
     mockCardioTemplates = []
-    mockMobilityTemplates = []
+    mockMobilityCategories = []
     mockActiveSession = null
     mockSessionsLoading = false
     mockTemplateSessionsLoading = false
@@ -491,7 +495,7 @@ describe('HomePage Workflows', () => {
 
     it('shows "No mobility workouts available." when no mobility templates exist and section is opened', async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-      mockMobilityTemplates = []
+      mockMobilityCategories = []
 
       render(<HomePage />)
 
@@ -687,16 +691,19 @@ describe('HomePage Workflows', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/workout/day-push')
     })
 
-    it('navigates to mobility template page when a mobility card is clicked', async () => {
+    it('navigates to mobility duration picker when a mobility category card is clicked', async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-      mockMobilityTemplates = [
+      mockMobilityCategories = [
         {
-          id: 'mob-template-1',
-          name: 'Hip Flow',
-          type: 'mobility',
           category: 'hip_knee_ankle',
-          duration_minutes: 15,
-          created_at: '2024-01-01',
+          template: {
+            id: 'mob-template-1',
+            name: 'Hip, Knee & Ankle Flow',
+            type: 'mobility',
+            category: 'hip_knee_ankle',
+            duration_minutes: 15,
+            created_at: '2024-01-01',
+          },
         },
       ]
 
@@ -704,10 +711,10 @@ describe('HomePage Workflows', () => {
 
       // Open Mobility section
       await user.click(screen.getByText('Mobility'))
-      // Click the Hip Flow template
-      await user.click(screen.getByText('Hip Flow'))
+      // Click the Hip, Knee & Ankle Flow category card
+      await user.click(screen.getByText('Hip, Knee & Ankle Flow'))
 
-      expect(mockNavigate).toHaveBeenCalledWith('/mobility/mob-template-1')
+      expect(mockNavigate).toHaveBeenCalledWith('/mobility/hip_knee_ankle/select')
     })
   })
 })
