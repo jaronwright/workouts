@@ -3,7 +3,7 @@ import { Button } from '@/components/ui'
 import { useWorkoutTemplates, useSaveScheduleDayWorkouts, useClearSchedule } from '@/hooks/useSchedule'
 import { useWorkoutDays, useWorkoutPlans } from '@/hooks/useWorkoutPlan'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
-import { useUploadAvatar } from '@/hooks/useAvatar'
+import { useUploadAvatar, useAvatarUrl } from '@/hooks/useAvatar'
 import { OnboardingDayRow, type DaySelection } from './OnboardingDayRow'
 import { ChevronDown, ChevronLeft, ChevronRight, HelpCircle, RefreshCw, Calendar, Dumbbell, ArrowUp, User, Camera, Sparkles, Sun, Moon, Monitor } from 'lucide-react'
 import { WEIGHTS_CONFIG } from '@/config/workoutConfig'
@@ -43,6 +43,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   const { mutateAsync: saveWorkouts, isPending } = useSaveScheduleDayWorkouts()
   const { mutateAsync: clearSchedule } = useClearSchedule()
   const { mutateAsync: uploadAvatar } = useUploadAvatar()
+  const currentAvatarUrl = useAvatarUrl()
   const { theme, setTheme } = useTheme()
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(initialStep)
@@ -97,7 +98,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
       setDisplayName(profile?.display_name || '')
       setNameError(null)
       setAvatarFile(null)
-      setAvatarPreview(null)
+      setAvatarPreview(currentAvatarUrl)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialStep, initialPlanId])
@@ -426,12 +427,16 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
       {/* Navigation Row */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-2">
-        <button
-          onClick={handleBack}
-          className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] transition-colors"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
+        {step > 1 ? (
+          <button
+            onClick={handleBack}
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        ) : (
+          <div className="w-10 h-10" />
+        )}
         {step < 4 && (
           <button
             onClick={handleForward}

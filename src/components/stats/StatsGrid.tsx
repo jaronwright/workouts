@@ -19,9 +19,11 @@ import {
   Info,
 } from 'lucide-react'
 import type { CalendarDay } from '@/hooks/useCalendarData'
+import type { UnifiedSession } from '@/utils/calendarGrid'
 
 interface StatsGridProps {
   calendarDays: CalendarDay[]
+  allSessions: UnifiedSession[]
 }
 
 function computeSessionDuration(session: { started_at: string; completed_at: string | null; duration_minutes?: number | null }): number {
@@ -62,7 +64,7 @@ function StatWidget({ info, className, children }: { info: string; className?: s
   )
 }
 
-export function StatsGrid({ calendarDays }: StatsGridProps) {
+export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
   const prefersReduced = useReducedMotion()
 
   const stats = useMemo(() => {
@@ -116,12 +118,23 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
       }
     }
 
-    // Weekly frequency (sessions per day-of-week, 0=Sun..6=Sat)
+    // Weekly frequency from ALL historical sessions (not just current month)
     const dayOfWeekCounts = [0, 0, 0, 0, 0, 0, 0]
-    completedDays.forEach(d => {
-      dayOfWeekCounts[getDay(d.date)]++
+    const completedAll = allSessions.filter(s => s.completed_at)
+    completedAll.forEach(s => {
+      dayOfWeekCounts[parseISO(s.started_at).getDay()]++
     })
-    const maxDayCount = Math.max(...dayOfWeekCounts, 1)
+    // Compute how many weeks of data we have
+    let weeksOfData = 1
+    if (completedAll.length > 0) {
+      const dates = completedAll.map(s => parseISO(s.started_at).getTime())
+      const earliest = Math.min(...dates)
+      const latest = Math.max(...dates)
+      weeksOfData = Math.max(1, Math.round((latest - earliest) / (7 * 24 * 60 * 60 * 1000)))
+    }
+    // Average sessions per day-of-week per week
+    const dayOfWeekAvg = dayOfWeekCounts.map(c => c / weeksOfData)
+    const maxDayAvg = Math.max(...dayOfWeekAvg, 0.01)
 
     // Total time this month
     let totalMinutes = 0
@@ -173,8 +186,8 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
       currentStreak,
       bestStreak,
       isAtBest: currentStreak >= bestStreak && currentStreak > 0,
-      dayOfWeekCounts,
-      maxDayCount,
+      dayOfWeekAvg,
+      maxDayAvg,
       totalHours,
       remainingMinutes,
       mixPcts,

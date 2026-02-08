@@ -32,6 +32,7 @@ export interface CalendarDay {
 
 interface UseCalendarDataResult {
   calendarDays: CalendarDay[]
+  allSessions: UnifiedSession[]
   isLoading: boolean
   today: Date
 }
@@ -44,22 +45,7 @@ export function useCalendarData(currentMonth: Date): UseCalendarDataResult {
 
   const isLoading = isLoadingWeights || isLoadingTemplates || isLoadingSchedule || isLoadingProfile
 
-  const calendarDays = useMemo(() => {
-    const timezone = profile?.timezone || detectUserTimezone()
-    const today = getTodayInTimezone(timezone)
-    const cycleStartDate = profile?.cycle_start_date
-
-    // Build schedule map (day_number → all ScheduleDays)
-    const scheduleMap = new Map<number, ScheduleDay[]>()
-    if (schedule) {
-      for (const s of schedule) {
-        const existing = scheduleMap.get(s.day_number) || []
-        existing.push(s)
-        scheduleMap.set(s.day_number, existing)
-      }
-    }
-
-    // Build unified sessions
+  const allSessions = useMemo(() => {
     const unified: UnifiedSession[] = []
     if (weightsSessions) {
       for (const session of weightsSessions) {
@@ -94,9 +80,26 @@ export function useCalendarData(currentMonth: Date): UseCalendarDataResult {
         })
       }
     }
+    return unified
+  }, [weightsSessions, templateSessions])
+
+  const calendarDays = useMemo(() => {
+    const timezone = profile?.timezone || detectUserTimezone()
+    const today = getTodayInTimezone(timezone)
+    const cycleStartDate = profile?.cycle_start_date
+
+    // Build schedule map (day_number → all ScheduleDays)
+    const scheduleMap = new Map<number, ScheduleDay[]>()
+    if (schedule) {
+      for (const s of schedule) {
+        const existing = scheduleMap.get(s.day_number) || []
+        existing.push(s)
+        scheduleMap.set(s.day_number, existing)
+      }
+    }
 
     // Group sessions by local date
-    const sessionsByDate = groupSessionsByDate(unified, timezone)
+    const sessionsByDate = groupSessionsByDate(allSessions, timezone)
 
     // Get grid dates for the month
     const gridDates = getMonthGridDates(currentMonth)
@@ -137,10 +140,10 @@ export function useCalendarData(currentMonth: Date): UseCalendarDataResult {
         hasCompletedSession
       }
     })
-  }, [currentMonth, weightsSessions, templateSessions, schedule, profile])
+  }, [currentMonth, allSessions, schedule, profile])
 
   const timezone = profile?.timezone || detectUserTimezone()
   const today = getTodayInTimezone(timezone)
 
-  return { calendarDays, isLoading, today }
+  return { calendarDays, allSessions, isLoading, today }
 }

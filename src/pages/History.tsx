@@ -13,7 +13,7 @@ import type { CalendarDay } from '@/hooks/useCalendarData'
 
 export function HistoryPage() {
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()))
-  const { calendarDays, isLoading, today } = useCalendarData(currentMonth)
+  const { calendarDays, allSessions, isLoading, today } = useCalendarData(currentMonth)
   const [selectedDate, setSelectedDate] = useState(() => new Date())
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false)
   const prefersReduced = useReducedMotion()
@@ -65,7 +65,7 @@ export function HistoryPage() {
 
             {/* Stats Dashboard */}
             <motion.div variants={staggerChild}>
-              <StatsGrid calendarDays={calendarDays} />
+              <StatsGrid calendarDays={calendarDays} allSessions={allSessions} />
             </motion.div>
 
             {/* BottomSheet for selected day detail */}
