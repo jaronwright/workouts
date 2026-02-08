@@ -9,6 +9,7 @@ import {
 import { AppShell } from '@/components/layout'
 import { Avatar, Button, Card, CardContent, AnimatedCard, AnimatedCounter, Badge } from '@/components/ui'
 import { CardioLogCard, ScheduleWidget } from '@/components/workout'
+import { WeatherCard } from '@/components/weather'
 import { OnboardingWizard } from '@/components/onboarding'
 import { useActiveSession, useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
 import { useProfile } from '@/hooks/useProfile'
@@ -387,6 +388,9 @@ export function HomePage() {
 
         {/* Schedule Widget - Today's Workout + 7-Day Overview */}
         <ScheduleWidget onSetupSchedule={() => setShowOnboarding(true)} />
+
+        {/* Weather */}
+        <WeatherCard />
 
         {/* Quick Stats */}
         <motion.div
