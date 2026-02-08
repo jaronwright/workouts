@@ -13,6 +13,7 @@ import {
   FULL_BODY_PLAN_ID,
   BRO_SPLIT_PLAN_ID,
   ARNOLD_SPLIT_PLAN_ID,
+  GLUTE_HYPERTROPHY_PLAN_ID,
 } from '@/config/planConstants'
 import { useTheme } from '@/hooks/useTheme'
 import type { ScheduleWorkoutItem } from '@/services/scheduleService'
@@ -382,6 +383,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   const fbPlan = plans?.find(p => p.id === FULL_BODY_PLAN_ID)
   const broPlan = plans?.find(p => p.id === BRO_SPLIT_PLAN_ID)
   const arnoldPlan = plans?.find(p => p.id === ARNOLD_SPLIT_PLAN_ID)
+  const glutePlan = plans?.find(p => p.id === GLUTE_HYPERTROPHY_PLAN_ID)
 
   // Back button logic — always navigate through all steps
   const handleBack = () => {
@@ -843,6 +845,62 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                     </div>
                   </div>
                   {selectedPlanId === ARNOLD_SPLIT_PLAN_ID && (
+                    <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </button>
+
+              {/* Glute Hypertrophy Card */}
+              <button
+                type="button"
+                onClick={() => handleSelectPlan(GLUTE_HYPERTROPHY_PLAN_ID)}
+                className={`
+                  w-full rounded-2xl p-5 text-left transition-all duration-200
+                  border-2 bg-[var(--color-surface)]
+                  ${selectedPlanId === GLUTE_HYPERTROPHY_PLAN_ID
+                    ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/30'
+                    : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]'
+                  }
+                `}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center flex-shrink-0">
+                    <Dumbbell className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-[var(--color-text)]">
+                      {glutePlan?.name || 'Glute Hypertrophy'}
+                    </h3>
+                    <p className="text-sm text-[var(--color-text-muted)] mt-1">
+                      3 Lower / 2 Upper · 5 days — lower body focused with glute emphasis.{' '}
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); setExpandedSplit(expandedSplit === 'glute' ? null : 'glute') }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setExpandedSplit(expandedSplit === 'glute' ? null : 'glute') } }}
+                        className="text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
+                      >
+                        {expandedSplit === 'glute' ? 'Less' : 'See more'}
+                      </span>
+                    </p>
+                    {expandedSplit === 'glute' && (
+                      <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mt-1">
+                        Based on the Strong Curves approach. Three dedicated lower-body days target glutes from every angle — posterior chain, quads, and isolation pump work — while two upper-body days maintain balanced strength and posture.
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {(['lower a', 'upper a', 'lower b', 'upper b', 'lower c'] as const).map(key => (
+                        <span key={key} className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG[key].bgColor, color: WEIGHTS_CONFIG[key].color }}>
+                          {key.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  {selectedPlanId === GLUTE_HYPERTROPHY_PLAN_ID && (
                     <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
                       <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />

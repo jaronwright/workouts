@@ -4,6 +4,7 @@ export const MOBILITY_PLAN_ID = '00000000-0000-0000-0000-000000000003'
 export const FULL_BODY_PLAN_ID = '00000000-0000-0000-0000-000000000004'
 export const BRO_SPLIT_PLAN_ID = '00000000-0000-0000-0000-000000000005'
 export const ARNOLD_SPLIT_PLAN_ID = '00000000-0000-0000-0000-000000000006'
+export const GLUTE_HYPERTROPHY_PLAN_ID = '00000000-0000-0000-0000-000000000007'
 
 export const SPLIT_NAMES: Record<string, string> = {
   [PPL_PLAN_ID]: 'Push / Pull / Legs',
@@ -11,4 +12,5 @@ export const SPLIT_NAMES: Record<string, string> = {
   [FULL_BODY_PLAN_ID]: 'Full Body',
   [BRO_SPLIT_PLAN_ID]: 'Bro Split',
   [ARNOLD_SPLIT_PLAN_ID]: 'Arnold Split',
+  [GLUTE_HYPERTROPHY_PLAN_ID]: 'Glute Hypertrophy',
 }

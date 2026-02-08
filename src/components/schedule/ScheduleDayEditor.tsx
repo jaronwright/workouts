@@ -35,6 +35,12 @@ function getWeightsKey(name: string): keyof typeof WEIGHTS_CONFIG {
   if (lower.includes('push')) return 'push'
   if (lower.includes('pull')) return 'pull'
   if (lower.includes('leg')) return 'legs'
+  // Glute Hypertrophy specific matches (before generic upper/lower)
+  if (/\blower a\b/.test(lower)) return 'lower a'
+  if (/\blower b\b/.test(lower)) return 'lower b'
+  if (/\blower c\b/.test(lower)) return 'lower c'
+  if (/\bupper a\b/.test(lower)) return 'upper a'
+  if (/\bupper b\b/.test(lower)) return 'upper b'
   if (lower.includes('upper')) return 'upper'
   if (lower.includes('lower')) return 'lower'
   return 'push' // default

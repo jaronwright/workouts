@@ -15,7 +15,7 @@ import { PasswordStrengthIndicator } from '@/components/auth/PasswordStrengthInd
 import { validatePassword } from '@/utils/validation'
 import { deleteUserAccount } from '@/services/profileService'
 import { staggerContainer, staggerChild } from '@/config/animationConfig'
-import { Calendar, Shield, Mail, ChevronDown, ChevronUp, LogOut, Sun, Moon as MoonIcon, Monitor, Dumbbell, Trophy, Flame, Star, ArrowLeftRight, ArrowUpDown } from 'lucide-react'
+import { Calendar, Shield, Mail, ChevronDown, ChevronUp, LogOut, Sun, Moon as MoonIcon, Monitor, Dumbbell, Trophy, Flame, Star, ArrowLeftRight, ArrowUpDown, Heart } from 'lucide-react'
 import { AvatarUpload } from '@/components/profile/AvatarUpload'
 import { OnboardingWizard } from '@/components/onboarding'
 import { useTheme } from '@/hooks/useTheme'
@@ -27,6 +27,7 @@ import {
   FULL_BODY_PLAN_ID,
   BRO_SPLIT_PLAN_ID,
   ARNOLD_SPLIT_PLAN_ID,
+  GLUTE_HYPERTROPHY_PLAN_ID,
   SPLIT_NAMES,
 } from '@/config/planConstants'
 
@@ -274,7 +275,6 @@ export function ProfilePage() {
       // Split was saved successfully, proceed to onboarding anyway
     }
     setShowSplitConfirm(false)
-    setPendingSplitId(null)
     setShowOnboarding(true)
   }
 
@@ -394,6 +394,7 @@ export function ProfilePage() {
                   [FULL_BODY_PLAN_ID, 'Full Body', Dumbbell],
                   [BRO_SPLIT_PLAN_ID, 'Bro Split', Flame],
                   [ARNOLD_SPLIT_PLAN_ID, 'Arnold Split', Trophy],
+                  [GLUTE_HYPERTROPHY_PLAN_ID, 'Glute Hypertrophy', Heart],
                 ] as const).map(([planId, label, Icon]) => (
                   <button
                     key={planId}
@@ -743,7 +744,7 @@ export function ProfilePage() {
       {/* Onboarding Wizard for schedule setup after split change */}
       <OnboardingWizard
         isOpen={showOnboarding}
-        onClose={() => setShowOnboarding(false)}
+        onClose={() => { setShowOnboarding(false); setPendingSplitId(null) }}
         initialStep={3}
         initialPlanId={pendingSplitId || currentSplitId}
       />

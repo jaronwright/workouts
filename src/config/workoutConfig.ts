@@ -70,7 +70,13 @@ export const WEIGHTS_CONFIG: Record<string, WorkoutStyle> = {
   'arms': { color: '#A855F7', bgColor: '#A855F720', gradient: 'from-purple-500 to-purple-400', icon: Dumbbell },
   // Arnold Split days
   'chest & back': { color: '#F43F5E', bgColor: '#F43F5E20', gradient: 'from-rose-500 to-rose-400', icon: Dumbbell },
-  'shoulders & arms': { color: '#D946EF', bgColor: '#D946EF20', gradient: 'from-fuchsia-500 to-fuchsia-400', icon: ArrowUp }
+  'shoulders & arms': { color: '#D946EF', bgColor: '#D946EF20', gradient: 'from-fuchsia-500 to-fuchsia-400', icon: ArrowUp },
+  // Glute Hypertrophy days
+  'lower a': { color: '#F43F5E', bgColor: '#F43F5E20', gradient: 'from-rose-500 to-rose-400', icon: Footprints },
+  'upper a': { color: '#FB923C', bgColor: '#FB923C20', gradient: 'from-orange-400 to-orange-300', icon: ArrowUp },
+  'lower b': { color: '#EC4899', bgColor: '#EC489920', gradient: 'from-pink-500 to-pink-400', icon: Footprints },
+  'upper b': { color: '#F59E0B', bgColor: '#F59E0B20', gradient: 'from-amber-500 to-amber-400', icon: ArrowUp },
+  'lower c': { color: '#E879F9', bgColor: '#E879F920', gradient: 'from-fuchsia-400 to-fuchsia-300', icon: Footprints }
 }
 
 // CARDIO - Teal/Orange/Blue Theme
@@ -205,6 +211,11 @@ export const WORKOUT_DISPLAY_NAMES: Record<string, string> = {
   'arms': 'Arms',
   'chest & back': 'Chest & Back',
   'shoulders & arms': 'Shoulders & Arms',
+  'lower a': 'Lower A',
+  'upper a': 'Upper A',
+  'lower b': 'Lower B',
+  'upper b': 'Upper B',
+  'lower c': 'Lower C',
 
   // Cardio workouts
   'cycling': 'Cycling',
@@ -242,6 +253,12 @@ export function getWorkoutDisplayName(dbName: string | null | undefined): string
     return WORKOUT_DISPLAY_NAMES[lowerName]
   }
 
+  // Extract text before parenthesis for names like "Lower A (Glutes & Hamstrings)"
+  const beforeParen = lowerName.split('(')[0].trim()
+  if (beforeParen !== lowerName && WORKOUT_DISPLAY_NAMES[beforeParen]) {
+    return WORKOUT_DISPLAY_NAMES[beforeParen]
+  }
+
   // Extract the first word before any parenthesis or description
   const firstWord = dbName.split(/[\s(]/)[0].toLowerCase()
 
@@ -269,6 +286,11 @@ const WORKOUT_SHORT_NAMES: Record<string, string> = {
   'Upper Body Flow': 'UB Flow',
   'Shoulder Prehab': 'Sh Prehab',
   'Stair Stepper': 'Stairs',
+  'Lower A': 'Low A',
+  'Upper A': 'Up A',
+  'Lower B': 'Low B',
+  'Upper B': 'Up B',
+  'Lower C': 'Low C',
 }
 
 /** Short label for compact UI (e.g., streak bar). Falls back to display name. */
@@ -286,6 +308,9 @@ export function getWeightsStyleByName(dayName: string): WorkoutStyle {
   const lower = dayName.toLowerCase().trim()
   // Direct lookup first (handles "Full Body A", "Chest & Back", etc.)
   if (WEIGHTS_CONFIG[lower]) return WEIGHTS_CONFIG[lower]
+  // Extract text before parenthesis for names like "Lower A (Glutes & Hamstrings)"
+  const beforeParen = lower.split('(')[0].trim()
+  if (beforeParen !== lower && WEIGHTS_CONFIG[beforeParen]) return WEIGHTS_CONFIG[beforeParen]
   // Keyword-based fallback for DB names like "PUSH (Chest, Shoulders, Triceps)"
   if (lower.includes('push')) return WEIGHTS_CONFIG.push
   if (lower.includes('pull')) return WEIGHTS_CONFIG.pull

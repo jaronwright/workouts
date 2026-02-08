@@ -3,6 +3,7 @@ import {
   FULL_BODY_PLAN_ID,
   BRO_SPLIT_PLAN_ID,
   ARNOLD_SPLIT_PLAN_ID,
+  GLUTE_HYPERTROPHY_PLAN_ID,
 } from '@/config/planConstants'
 
 // These tests verify the expected schedule patterns for each new split.
@@ -112,12 +113,52 @@ describe('New Splits - Schedule Patterns', () => {
     })
   })
 
+  describe('Glute Hypertrophy schedule pattern', () => {
+    const workoutDays = [
+      { id: 'lower-a-id', day_number: 1 },
+      { id: 'upper-a-id', day_number: 2 },
+      { id: 'lower-b-id', day_number: 3 },
+      { id: 'upper-b-id', day_number: 4 },
+      { id: 'lower-c-id', day_number: 5 },
+    ]
+
+    it('Glute Hypertrophy has 5 workout days', () => {
+      expect(workoutDays).toHaveLength(5)
+    })
+
+    it('Glute Hypertrophy default schedule: Lower A, Upper A, Rest, Lower B, Upper B, Lower C, Rest', () => {
+      const expected = [
+        { day_number: 1, workout_day_id: workoutDays[0].id, is_rest_day: false },
+        { day_number: 2, workout_day_id: workoutDays[1].id, is_rest_day: false },
+        { day_number: 3, workout_day_id: null, is_rest_day: true },
+        { day_number: 4, workout_day_id: workoutDays[2].id, is_rest_day: false },
+        { day_number: 5, workout_day_id: workoutDays[3].id, is_rest_day: false },
+        { day_number: 6, workout_day_id: workoutDays[4].id, is_rest_day: false },
+        { day_number: 7, workout_day_id: null, is_rest_day: true },
+      ]
+
+      expect(expected).toHaveLength(7)
+      expect(expected.filter(d => d.is_rest_day)).toHaveLength(2)
+      expect(expected.filter(d => !d.is_rest_day)).toHaveLength(5)
+      // Days 3 and 7 are rest
+      expect(expected[2].is_rest_day).toBe(true)
+      expect(expected[6].is_rest_day).toBe(true)
+      // All 5 workout days are unique
+      expect(expected[0].workout_day_id).toBe('lower-a-id')
+      expect(expected[1].workout_day_id).toBe('upper-a-id')
+      expect(expected[3].workout_day_id).toBe('lower-b-id')
+      expect(expected[4].workout_day_id).toBe('upper-b-id')
+      expect(expected[5].workout_day_id).toBe('lower-c-id')
+    })
+  })
+
   describe('Plan ID constants', () => {
     it('new plan IDs follow UUID naming convention', () => {
       const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
       expect(FULL_BODY_PLAN_ID).toMatch(uuidPattern)
       expect(BRO_SPLIT_PLAN_ID).toMatch(uuidPattern)
       expect(ARNOLD_SPLIT_PLAN_ID).toMatch(uuidPattern)
+      expect(GLUTE_HYPERTROPHY_PLAN_ID).toMatch(uuidPattern)
     })
 
     it('new plan IDs are sequential after existing ones', () => {
@@ -125,6 +166,7 @@ describe('New Splits - Schedule Patterns', () => {
       expect(lastDigit(FULL_BODY_PLAN_ID)).toBe(4)
       expect(lastDigit(BRO_SPLIT_PLAN_ID)).toBe(5)
       expect(lastDigit(ARNOLD_SPLIT_PLAN_ID)).toBe(6)
+      expect(lastDigit(GLUTE_HYPERTROPHY_PLAN_ID)).toBe(7)
     })
   })
 })

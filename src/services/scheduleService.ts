@@ -3,6 +3,7 @@ import {
   FULL_BODY_PLAN_ID,
   BRO_SPLIT_PLAN_ID,
   ARNOLD_SPLIT_PLAN_ID,
+  GLUTE_HYPERTROPHY_PLAN_ID,
 } from '@/config/planConstants'
 
 export interface WorkoutTemplate {
@@ -371,6 +372,17 @@ export async function initializeDefaultSchedule(userId: string, planId?: string)
       { day_number: 4, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
       { day_number: 5, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
       { day_number: 6, workout_day_id: workoutDays?.[2]?.id || null, is_rest_day: false },
+      { day_number: 7, is_rest_day: true, workout_day_id: null }
+    ]
+  } else if (planId === GLUTE_HYPERTROPHY_PLAN_ID) {
+    // Glute Hypertrophy: Lower A, Upper A, Rest, Lower B, Upper B, Lower C, Rest
+    defaultSchedule = [
+      { day_number: 1, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
+      { day_number: 2, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
+      { day_number: 3, is_rest_day: true, workout_day_id: null },
+      { day_number: 4, workout_day_id: workoutDays?.[2]?.id || null, is_rest_day: false },
+      { day_number: 5, workout_day_id: workoutDays?.[3]?.id || null, is_rest_day: false },
+      { day_number: 6, workout_day_id: workoutDays?.[4]?.id || null, is_rest_day: false },
       { day_number: 7, is_rest_day: true, workout_day_id: null }
     ]
   } else if (workoutDays && workoutDays.length === 2) {

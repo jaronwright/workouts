@@ -51,6 +51,24 @@ describe('workoutConfig', () => {
       expect(WEIGHTS_CONFIG.lower.gradient).toContain('violet')
     })
 
+    it('has Glute Hypertrophy day entries', () => {
+      const gluteKeys = ['lower a', 'upper a', 'lower b', 'upper b', 'lower c']
+      gluteKeys.forEach(key => {
+        const style = WEIGHTS_CONFIG[key]
+        expect(style).toBeDefined()
+        expect(style.color).toBeDefined()
+        expect(style.bgColor).toBeDefined()
+        expect(style.gradient).toBeDefined()
+        expect(style.icon).toBeDefined()
+      })
+    })
+
+    it('Glute Hypertrophy lower days use warm pink/rose tones', () => {
+      expect(WEIGHTS_CONFIG['lower a'].gradient).toContain('rose')
+      expect(WEIGHTS_CONFIG['lower b'].gradient).toContain('pink')
+      expect(WEIGHTS_CONFIG['lower c'].gradient).toContain('fuchsia')
+    })
+
     it('PPL entries use indigo/violet/pink theme', () => {
       expect(WEIGHTS_CONFIG.push.color).toBe('#6366F1')
       expect(WEIGHTS_CONFIG.pull.color).toBe('#8B5CF6')
@@ -78,6 +96,14 @@ describe('workoutConfig', () => {
     it('has mobility display names', () => {
       expect(WORKOUT_DISPLAY_NAMES['core stability']).toBe('Core Stability')
       expect(WORKOUT_DISPLAY_NAMES['spine mobility']).toBe('Spine Mobility')
+    })
+
+    it('has Glute Hypertrophy display names', () => {
+      expect(WORKOUT_DISPLAY_NAMES['lower a']).toBe('Lower A')
+      expect(WORKOUT_DISPLAY_NAMES['upper a']).toBe('Upper A')
+      expect(WORKOUT_DISPLAY_NAMES['lower b']).toBe('Lower B')
+      expect(WORKOUT_DISPLAY_NAMES['upper b']).toBe('Upper B')
+      expect(WORKOUT_DISPLAY_NAMES['lower c']).toBe('Lower C')
     })
   })
 
@@ -125,6 +151,36 @@ describe('workoutConfig', () => {
       const result = getWeightsStyleByName('push-pull hybrid')
       expect(result).toBe(WEIGHTS_CONFIG.push)
     })
+
+    it('returns lower a style for Glute Hypertrophy day names', () => {
+      expect(getWeightsStyleByName('Lower A (Glutes & Hamstrings)')).toBe(WEIGHTS_CONFIG['lower a'])
+    })
+
+    it('returns upper a style for Glute Hypertrophy upper day names', () => {
+      expect(getWeightsStyleByName('Upper A (Push & Pull)')).toBe(WEIGHTS_CONFIG['upper a'])
+    })
+
+    it('returns lower b style and not generic lower', () => {
+      expect(getWeightsStyleByName('Lower B (Quads & Glutes)')).toBe(WEIGHTS_CONFIG['lower b'])
+    })
+
+    it('returns upper b style and not generic upper', () => {
+      expect(getWeightsStyleByName('Upper B (Shoulders & Back)')).toBe(WEIGHTS_CONFIG['upper b'])
+    })
+
+    it('returns lower c style for Glute Hypertrophy isolation day', () => {
+      expect(getWeightsStyleByName('Lower C (Glute Isolation)')).toBe(WEIGHTS_CONFIG['lower c'])
+    })
+
+    it('still returns generic upper for non-Glute Hypertrophy upper names', () => {
+      expect(getWeightsStyleByName('UPPER BODY')).toBe(WEIGHTS_CONFIG.upper)
+      expect(getWeightsStyleByName('Upper (Chest, Back, Shoulders, Arms)')).toBe(WEIGHTS_CONFIG.upper)
+    })
+
+    it('still returns generic lower for non-Glute Hypertrophy lower names', () => {
+      expect(getWeightsStyleByName('lower body')).toBe(WEIGHTS_CONFIG.lower)
+      expect(getWeightsStyleByName('Lower (Quads, Glutes, Hamstrings, Calves)')).toBe(WEIGHTS_CONFIG.lower)
+    })
   })
 
   describe('getWorkoutDisplayName', () => {
@@ -160,6 +216,14 @@ describe('workoutConfig', () => {
 
     it('falls back to title-cased first word for unknown names', () => {
       expect(getWorkoutDisplayName('Something Unknown')).toBe('Something')
+    })
+
+    it('returns correct display names for Glute Hypertrophy days', () => {
+      expect(getWorkoutDisplayName('Lower A (Glutes & Hamstrings)')).toBe('Lower A')
+      expect(getWorkoutDisplayName('Upper A (Push & Pull)')).toBe('Upper A')
+      expect(getWorkoutDisplayName('Lower B (Quads & Glutes)')).toBe('Lower B')
+      expect(getWorkoutDisplayName('Upper B (Shoulders & Back)')).toBe('Upper B')
+      expect(getWorkoutDisplayName('Lower C (Glute Isolation)')).toBe('Lower C')
     })
   })
 
