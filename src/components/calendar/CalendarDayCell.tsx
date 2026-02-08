@@ -1,11 +1,24 @@
 import { motion } from 'motion/react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import {
+  getWeightsStyleByName,
+  getCardioStyle,
+  getMobilityStyle,
+  type WorkoutStyle
+} from '@/config/workoutConfig'
 import type { CalendarDay } from '@/hooks/useCalendarData'
+import type { UnifiedSession } from '@/utils/calendarGrid'
 
 interface CalendarDayCellProps {
   day: CalendarDay
   isSelected: boolean
   onSelect: (day: CalendarDay) => void
+}
+
+function getSessionStyle(session: UnifiedSession): WorkoutStyle {
+  if (session.type === 'weights') return getWeightsStyleByName(session.name)
+  if (session.type === 'mobility') return getMobilityStyle(session.category)
+  return getCardioStyle(session.category)
 }
 
 export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellProps) {
@@ -14,29 +27,41 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
 
   const hasProjection = projected && projected.name !== 'Not set'
   const isRest = projected?.isRest
-  const showIcon = hasProjection && !isRest
+  const showProjectedIcon = hasProjection && !isRest
+
+  // Derive icon from completed session when no projection exists
+  const completedSession = hasCompletedSession ? sessions.find(s => s.completed_at) : null
+  const sessionStyle = completedSession ? getSessionStyle(completedSession) : null
+
+  // Show an icon if we have a projected workout OR a completed session
+  const hasIcon = showProjectedIcon || (hasCompletedSession && sessionStyle)
 
   // Missed workout: past day + scheduled (not rest) + no completed session
   const isMissed = isCurrentMonth && !isFuture && !isToday && hasProjection && !isRest && !hasCompletedSession
 
-  // Determine icon and color
-  let iconColor = projected?.color || '#6B7280'
-  let bgCircleColor = projected?.bgColor || 'transparent'
+  // Determine icon and color — prefer completed session style, fall back to projected
+  let Icon = showProjectedIcon ? projected!.icon : sessionStyle?.icon || null
+  let iconColor = showProjectedIcon ? (projected!.color || '#6B7280') : (sessionStyle?.color || '#6B7280')
+  let bgCircleColor = showProjectedIcon ? (projected!.bgColor || 'transparent') : (sessionStyle?.bgColor || 'transparent')
   let iconOpacity = 1
+
+  // Override for completed sessions — always show the actual workout icon
+  if (hasCompletedSession && sessionStyle) {
+    Icon = sessionStyle.icon
+    iconColor = sessionStyle.color
+    bgCircleColor = sessionStyle.bgColor
+  }
 
   if (!isCurrentMonth) {
     iconOpacity = 0.3
   } else if (isFuture && !isToday) {
     iconOpacity = 0.3
-    bgCircleColor = showIcon ? `${projected!.color}10` : 'transparent'
+    bgCircleColor = hasIcon ? `${iconColor}10` : 'transparent'
   } else if (isMissed) {
-    // Past day, scheduled but skipped — muted with red indicator
     iconColor = '#9CA3AF'
     bgCircleColor = 'rgba(156, 163, 175, 0.1)'
     iconOpacity = 0.5
   }
-
-  const Icon = projected?.icon
 
   return (
     <button
@@ -46,7 +71,6 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
         transition-all duration-150 min-h-[52px]
         ${!isCurrentMonth ? 'opacity-30' : ''}
         ${isSelected ? 'ring-2 ring-[var(--color-primary)] bg-[var(--color-primary)]/5' : ''}
-        ${isToday && !isSelected ? '' : ''}
         active:scale-95
       `}
     >
@@ -59,7 +83,7 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
       </span>
 
       {/* Workout icon circle */}
-      {showIcon && Icon ? (
+      {hasIcon && Icon ? (
         <div className="relative">
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center mt-0.5"
@@ -82,11 +106,11 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
         <div className="w-7 h-7 mt-0.5" />
       )}
 
-      {/* Today pulse ring */}
-      {isToday && !hasCompletedSession && isCurrentMonth && !prefersReduced && (
+      {/* Today pulse ring — only when there's a scheduled workout not yet done */}
+      {isToday && showProjectedIcon && !hasCompletedSession && isCurrentMonth && !prefersReduced && (
         <motion.div
-          className="absolute top-[18px] w-8 h-8 rounded-full border-2 border-[var(--color-primary)]"
-          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
+          className="absolute top-[14px] w-7 h-7 rounded-full border-2 border-[var(--color-primary)]"
+          animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         />
       )}

@@ -1,8 +1,13 @@
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
-import { Calendar, Clock, CheckCircle, ChevronRight } from 'lucide-react'
+import { Calendar, Clock, ChevronRight } from 'lucide-react'
 import { Card, CardContent, Badge } from '@/components/ui'
 import { formatTime } from '@/utils/formatters'
+import {
+  getWeightsStyleByName,
+  getCardioStyle,
+  getMobilityStyle
+} from '@/config/workoutConfig'
 import type { CalendarDay } from '@/hooks/useCalendarData'
 import type { UnifiedSession } from '@/utils/calendarGrid'
 
@@ -10,8 +15,16 @@ interface SelectedDayPanelProps {
   day: CalendarDay
 }
 
+function getSessionStyle(session: UnifiedSession) {
+  if (session.type === 'weights') return getWeightsStyleByName(session.name)
+  if (session.type === 'mobility') return getMobilityStyle(session.category)
+  return getCardioStyle(session.category)
+}
+
 function SessionCard({ session }: { session: UnifiedSession }) {
   const navigate = useNavigate()
+  const style = getSessionStyle(session)
+  const Icon = style.icon
 
   const handleClick = () => {
     if (session.type === 'weights') {
@@ -29,8 +42,11 @@ function SessionCard({ session }: { session: UnifiedSession }) {
       <Card className="hover:shadow-md transition-shadow">
         <CardContent className="py-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[var(--color-success)]/15 flex items-center justify-center flex-shrink-0">
-              <CheckCircle className="w-4.5 h-4.5 text-[var(--color-success)]" />
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: style.bgColor }}
+            >
+              <Icon className="w-4.5 h-4.5" style={{ color: style.color }} />
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="text-sm font-semibold text-[var(--color-text)] truncate">

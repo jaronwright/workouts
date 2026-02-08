@@ -14,7 +14,8 @@ import type { TemplateWorkoutSession } from '@/services/templateWorkoutService'
 // Unified session type shared with History page
 export interface UnifiedSession {
   id: string
-  type: 'weights' | 'cardio'
+  type: 'weights' | 'cardio' | 'mobility'
+  category: string
   name: string
   started_at: string
   completed_at: string | null
@@ -26,7 +27,7 @@ export interface UnifiedSession {
 }
 
 /**
- * Returns 42 dates (6 weeks, Sunday-start) covering the given month.
+ * Returns dates (Sunday-start weeks) covering the given month, using only as many rows as needed.
  */
 export function getMonthGridDates(monthDate: Date): Date[] {
   const monthStart = startOfMonth(monthDate)
@@ -34,19 +35,7 @@ export function getMonthGridDates(monthDate: Date): Date[] {
   const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 })
   const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 0 })
 
-  const days = eachDayOfInterval({ start: gridStart, end: gridEnd })
-
-  // Ensure exactly 42 days (6 rows). If we already have 42, great.
-  // If we have 35 (5 weeks), add the next week.
-  if (days.length < 42) {
-    const nextDay = new Date(gridEnd)
-    while (days.length < 42) {
-      nextDay.setDate(nextDay.getDate() + 1)
-      days.push(new Date(nextDay))
-    }
-  }
-
-  return days.slice(0, 42)
+  return eachDayOfInterval({ start: gridStart, end: gridEnd })
 }
 
 /**

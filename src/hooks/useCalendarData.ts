@@ -62,10 +62,12 @@ export function useCalendarData(currentMonth: Date): UseCalendarDataResult {
     const unified: UnifiedSession[] = []
     if (weightsSessions) {
       for (const session of weightsSessions) {
+        const displayName = getWorkoutDisplayName(session.workout_day?.name)
         unified.push({
           id: session.id,
           type: 'weights',
-          name: getWorkoutDisplayName(session.workout_day?.name),
+          category: displayName.toLowerCase(),
+          name: displayName,
           started_at: session.started_at,
           completed_at: session.completed_at,
           notes: session.notes,
@@ -75,9 +77,11 @@ export function useCalendarData(currentMonth: Date): UseCalendarDataResult {
     }
     if (templateSessions) {
       for (const session of templateSessions) {
+        const templateType = session.template?.type || 'cardio'
         unified.push({
           id: session.id,
-          type: 'cardio',
+          type: templateType === 'mobility' ? 'mobility' : 'cardio',
+          category: session.template?.category || '',
           name: session.template?.name || 'Workout',
           started_at: session.started_at,
           completed_at: session.completed_at,
