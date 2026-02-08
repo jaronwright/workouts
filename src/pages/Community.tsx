@@ -30,7 +30,7 @@ export function CommunityPage() {
           </p>
 
           <p>
-            If you spot any bugs, just text me. Everyone on the app right now is a close friend of mine, so don't be shy.
+            If you spot any bugs, just text me. Everyone on the app right now is a friend of mine, so don't be shy.
           </p>
 
           {/* What's Coming */}
