@@ -136,7 +136,7 @@ describe('ProfilePage - Split Change', () => {
     await user.click(screen.getByRole('button', { name: /change split/i }))
 
     await waitFor(() => {
-      expect(mockShowError).toHaveBeenCalledWith('Failed to change workout split')
+      expect(mockShowError).toHaveBeenCalledWith('Failed to change workout split. Please try again.')
     })
 
     // clearSchedule should NOT have been called since updateProfile failed
