@@ -1,4 +1,14 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
+// Mock zustand persist middleware as a passthrough to avoid localStorage issues in tests
+vi.mock('zustand/middleware', async () => {
+  const actual = await vi.importActual<typeof import('zustand/middleware')>('zustand/middleware')
+  return {
+    ...actual,
+    persist: (fn: unknown) => fn,
+  }
+})
+
 import { useSettingsStore, convertWeight, formatWeightWithUnit } from '../settingsStore'
 
 describe('useSettingsStore', () => {

@@ -43,7 +43,8 @@ describe('StreakBar', () => {
   it('applies completed styles with background color', () => {
     render(<StreakBar days={sampleDays} />)
     const mondayLabel = screen.getByText('M')
-    const mondayCircle = mondayLabel.closest('.w-8') as HTMLElement
+    const mondayWrapper = mondayLabel.parentElement as HTMLElement
+    const mondayCircle = mondayWrapper.querySelector('.w-8') as HTMLElement
     expect(mondayCircle).toBeTruthy()
     expect(mondayCircle!.className).toContain('text-white')
     expect(mondayCircle!.className).toContain('shadow-sm')
@@ -53,7 +54,8 @@ describe('StreakBar', () => {
   it('applies today styles for non-completed today', () => {
     render(<StreakBar days={sampleDays} />)
     const wednesdayLabel = screen.getByText('W')
-    const wednesdayCircle = wednesdayLabel.closest('.w-8') as HTMLElement
+    const wednesdayWrapper = wednesdayLabel.parentElement as HTMLElement
+    const wednesdayCircle = wednesdayWrapper.querySelector('.w-8') as HTMLElement
     expect(wednesdayCircle).toBeTruthy()
     expect(wednesdayCircle!.className).toContain('border-2')
     expect(wednesdayCircle!.className).toContain('border-[var(--color-primary)]')
@@ -62,7 +64,8 @@ describe('StreakBar', () => {
   it('applies default styles for non-completed non-today days', () => {
     render(<StreakBar days={sampleDays} />)
     const fridayLabel = screen.getByText('F')
-    const fridayCircle = fridayLabel.closest('.w-8') as HTMLElement
+    const fridayWrapper = fridayLabel.parentElement as HTMLElement
+    const fridayCircle = fridayWrapper.querySelector('.w-8') as HTMLElement
     expect(fridayCircle).toBeTruthy()
     expect(fridayCircle!.className).toContain('border-dashed')
     expect(fridayCircle!.className).toContain('text-[var(--color-text-muted)]')
@@ -86,7 +89,8 @@ describe('StreakBar', () => {
     ]
     render(<StreakBar days={daysWithoutColor} />)
     const label = screen.getByText('M')
-    const circle = label.closest('.w-8') as HTMLElement
+    const wrapper = label.parentElement as HTMLElement
+    const circle = wrapper.querySelector('.w-8') as HTMLElement
     expect(circle!.style.backgroundColor).toBe('var(--color-primary)')
   })
 

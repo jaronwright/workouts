@@ -128,15 +128,15 @@ describe('getCardioTemplateStats', () => {
     expect(stats.weeklyCount).toBe(0)
   })
 
-  it('returns duration-based summary when session has duration', () => {
+  it('returns session count summary when session has duration', () => {
     const session = makeSession({ duration_minutes: 32 })
     const stats = getCardioTemplateStats('template-run', [session], [], 1)
 
     expect(stats.lastSession).toBe(session)
-    expect(stats.lastSessionSummary).toContain('32 min')
+    expect(stats.lastSessionSummary).toBe('1 session completed')
   })
 
-  it('returns distance-based summary when session has distance', () => {
+  it('returns session count summary when session has distance', () => {
     const session = makeSession({
       duration_minutes: null,
       distance_value: 3.1,
@@ -144,10 +144,10 @@ describe('getCardioTemplateStats', () => {
     })
     const stats = getCardioTemplateStats('template-run', [session], [], 1)
 
-    expect(stats.lastSessionSummary).toContain('3.1 miles')
+    expect(stats.lastSessionSummary).toBe('1 session completed')
   })
 
-  it('prefers distance over duration in summary when both exist', () => {
+  it('returns session count summary when both duration and distance exist', () => {
     const session = makeSession({
       duration_minutes: 25,
       distance_value: 3.1,
@@ -155,9 +155,7 @@ describe('getCardioTemplateStats', () => {
     })
     const stats = getCardioTemplateStats('template-run', [session], [], 1)
 
-    // Distance takes precedence
-    expect(stats.lastSessionSummary).toContain('3.1 miles')
-    expect(stats.lastSessionSummary).not.toContain('25 min')
+    expect(stats.lastSessionSummary).toBe('1 session completed')
   })
 
   it('returns most recent session as lastSession', () => {
@@ -172,7 +170,7 @@ describe('getCardioTemplateStats', () => {
     const stats = getCardioTemplateStats('template-run', [older, newer], [], 1)
 
     expect(stats.lastSession).toBe(newer)
-    expect(stats.lastSessionSummary).toContain('35 min')
+    expect(stats.lastSessionSummary).toBe('2 sessions completed')
   })
 
   it('counts weekly sessions correctly', () => {
@@ -241,12 +239,36 @@ describe('getCardioTemplateStats', () => {
 // ─── localStorage preference helpers ────────────────────────────────────────
 
 describe('cardio preference helpers', () => {
+  let store: Record<string, string>
+  let mockLocalStorage: Storage
+  let originalLocalStorage: Storage
+
   beforeEach(() => {
-    localStorage.clear()
+    store = {}
+    originalLocalStorage = globalThis.localStorage
+
+    mockLocalStorage = {
+      getItem: vi.fn((key: string) => store[key] ?? null),
+      setItem: vi.fn((key: string, value: string) => { store[key] = value }),
+      removeItem: vi.fn((key: string) => { delete store[key] }),
+      clear: vi.fn(() => { store = {} }),
+      get length() { return Object.keys(store).length },
+      key: vi.fn((index: number) => Object.keys(store)[index] ?? null)
+    }
+
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: mockLocalStorage,
+      writable: true,
+      configurable: true
+    })
   })
 
   afterEach(() => {
-    localStorage.clear()
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: originalLocalStorage,
+      writable: true,
+      configurable: true
+    })
   })
 
   it('returns null when no preference is stored', () => {
@@ -287,21 +309,15 @@ describe('cardio preference helpers', () => {
   })
 
   it('handles localStorage.setItem throwing (private browsing)', () => {
-    const originalSetItem = Storage.prototype.setItem
-    Storage.prototype.setItem = () => { throw new Error('QuotaExceededError') }
+    mockLocalStorage.setItem = () => { throw new Error('QuotaExceededError') }
 
     // Should not throw
     expect(() => setCardioPreference('run', { mode: 'time', unit: 'min' })).not.toThrow()
-
-    Storage.prototype.setItem = originalSetItem
   })
 
   it('handles localStorage.getItem throwing', () => {
-    const originalGetItem = Storage.prototype.getItem
-    Storage.prototype.getItem = () => { throw new Error('SecurityError') }
+    mockLocalStorage.getItem = () => { throw new Error('SecurityError') }
 
     expect(getCardioPreference('run')).toBeNull()
-
-    Storage.prototype.getItem = originalGetItem
   })
 })

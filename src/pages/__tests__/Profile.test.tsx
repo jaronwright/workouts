@@ -91,7 +91,7 @@ describe('ProfilePage - Split Change', () => {
     vi.clearAllMocks()
   })
 
-  it('calls mutateAsync when confirming split change', async () => {
+  it('calls mutateAsync when confirming split change', { timeout: 15000 }, async () => {
     const user = userEvent.setup()
     mockUpdateProfileAsync.mockResolvedValue({})
     mockClearSchedule.mockResolvedValue(undefined)

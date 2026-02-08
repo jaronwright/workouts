@@ -2,7 +2,7 @@
  * Tests for bug fixes — each test validates a specific bug fix
  * to prevent regression.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 // Bug 4: ExerciseCard stale closure test
 describe('Bug 4 — Stale closure in handleToggleUnit', () => {

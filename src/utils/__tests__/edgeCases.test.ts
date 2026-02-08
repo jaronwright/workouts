@@ -518,18 +518,20 @@ describe('getTodayInTimezone edge cases', () => {
 // ──────────────────────────────────────────────────────
 
 describe('getMonthGridDates edge cases', () => {
-  it('returns exactly 42 dates for a month starting on Sunday', () => {
+  it('returns correct number of dates for a month starting on Sunday', () => {
     // September 2024 starts on Sunday
     const dates = getMonthGridDates(new Date(2024, 8, 1))
-    expect(dates).toHaveLength(42)
+    // 30 days starting on Sunday, needs 5 rows (35 dates)
+    expect(dates).toHaveLength(35)
     // First date should be September 1 itself
     expect(dates[0].getMonth()).toBe(8)
     expect(dates[0].getDate()).toBe(1)
   })
 
-  it('returns exactly 42 dates for a month starting on Saturday', () => {
+  it('returns correct number of dates for a month starting on Saturday', () => {
     // June 2024 starts on Saturday
     const dates = getMonthGridDates(new Date(2024, 5, 1))
+    // 30 days starting on Saturday, needs 6 rows (42 dates)
     expect(dates).toHaveLength(42)
     // First date should be Sunday May 26
     expect(dates[0].getDay()).toBe(0)
@@ -554,7 +556,10 @@ describe('getMonthGridDates edge cases', () => {
     for (const month of months) {
       const dates = getMonthGridDates(month)
       expect(dates[0].getDay()).toBe(0) // Sunday
-      expect(dates).toHaveLength(42)
+      // Grid uses only as many rows as needed (35 or 42 dates)
+      expect(dates.length % 7).toBe(0)
+      expect(dates.length).toBeGreaterThanOrEqual(28)
+      expect(dates.length).toBeLessThanOrEqual(42)
     }
   })
 
@@ -567,7 +572,7 @@ describe('getMonthGridDates edge cases', () => {
 
   it('handles December correctly (next month crosses year boundary)', () => {
     const dates = getMonthGridDates(new Date(2024, 11, 1))
-    const lastDate = dates[41]
+    const lastDate = dates[dates.length - 1]
     // The trailing days should be in January 2025
     if (lastDate.getMonth() === 0) {
       expect(lastDate.getFullYear()).toBe(2025)

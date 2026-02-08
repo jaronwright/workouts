@@ -19,6 +19,7 @@ import { useWorkoutTemplatesByType, useUserSchedule } from '@/hooks/useSchedule'
 import { useMobilityCategories } from '@/hooks/useMobilityTemplates'
 import { useUserTemplateWorkouts } from '@/hooks/useTemplateWorkout'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { useToast } from '@/hooks/useToast'
 import { formatRelativeTime } from '@/utils/formatters'
 import { staggerContainer, staggerChild } from '@/config/animationConfig'
 import {
@@ -255,6 +256,7 @@ export function HomePage() {
   const { data: schedule, isLoading: scheduleLoading } = useUserSchedule()
   const { data: templateWorkoutSessions, isLoading: templateSessionsLoading } = useUserTemplateWorkouts()
   const prefersReduced = useReducedMotion()
+  const toast = useToast()
 
   // Onboarding wizard state
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -315,7 +317,11 @@ export function HomePage() {
   }
   const handleDismissSession = () => {
     if (activeSession) {
-      deleteSession.mutate(activeSession.id)
+      deleteSession.mutate(activeSession.id, {
+        onError: () => {
+          toast.error('Failed to dismiss session. Please try again.')
+        }
+      })
     }
   }
 

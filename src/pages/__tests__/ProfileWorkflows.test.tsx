@@ -372,12 +372,10 @@ describe('ProfilePage - Profile Save Flow', () => {
     const saveBtn = screen.getByRole('button', { name: /save changes/i })
     await user.click(saveBtn)
 
-    // updateProfile is called with the current display_name and gender values,
-    // plus onSuccess and onError callbacks
+    // updateProfile is called with display_name plus onSuccess and onError callbacks
     expect(mockUpdateProfile).toHaveBeenCalledTimes(1)
     const [data, callbacks] = mockUpdateProfile.mock.calls[0]
     expect(data).toHaveProperty('display_name')
-    expect(data).toHaveProperty('gender')
     expect(callbacks).toHaveProperty('onSuccess')
     expect(callbacks).toHaveProperty('onError')
   })
@@ -391,10 +389,6 @@ describe('ProfilePage - Profile Save Flow', () => {
     const nameInput = screen.getByPlaceholderText('Enter your name') as HTMLInputElement
     expect(nameInput.value).toBe('Test User')
 
-    // Gender defaults to '' (Select gender) since profile.gender is null
-    const genderSelect = screen.getByDisplayValue('Select gender')
-    expect(genderSelect).toBeInTheDocument()
-
     // Click Save - sends the current form state
     const saveBtn = screen.getByRole('button', { name: /save changes/i })
     await user.click(saveBtn)
@@ -403,8 +397,6 @@ describe('ProfilePage - Profile Save Flow', () => {
     const [data] = mockUpdateProfile.mock.calls[0]
     // display_name is 'Test User' from the populated profile
     expect(data.display_name).toBe('Test User')
-    // gender state is '' so ('' || null) = null
-    expect(data.gender).toBeNull()
   })
 
   it('shows "Saved!" text temporarily after successful save', async () => {

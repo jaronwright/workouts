@@ -81,8 +81,8 @@ export async function completeTemplateWorkout(
     .from('template_workout_sessions')
     .update({
       completed_at: new Date().toISOString(),
-      duration_minutes: data.durationMinutes || null,
-      distance_value: data.distanceValue || null,
+      duration_minutes: data.durationMinutes ?? null,
+      distance_value: data.distanceValue ?? null,
       distance_unit: data.distanceUnit || null,
       notes: data.notes || null
     })
@@ -109,7 +109,6 @@ export async function getUserTemplateWorkouts(userId: string): Promise<TemplateW
 
   if (error) {
     if (error.code === '42P01' || error.message?.includes('does not exist')) {
-      console.warn('template_workout_sessions table may not exist:', error.message)
       return []
     }
     throw error
@@ -146,7 +145,6 @@ export async function getActiveTemplateWorkout(userId: string): Promise<Template
 
   if (error) {
     if (error.code === '42P01' || error.message?.includes('does not exist')) {
-      console.warn('template_workout_sessions table may not exist:', error.message)
       return null
     }
     throw error

@@ -5,7 +5,9 @@ import {
   formatDateTime,
   formatDuration,
   formatWeight,
-  formatReps
+  formatReps,
+  normalizeWorkoutName,
+  formatRelativeTime
 } from '../formatters'
 
 describe('formatDate', () => {
@@ -79,6 +81,14 @@ describe('formatWeight', () => {
   it('formats zero weight', () => {
     expect(formatWeight(0)).toBe('0 lbs')
   })
+
+  it('formats weight with kg suffix', () => {
+    expect(formatWeight(60, 'kg')).toBe('60 kg')
+  })
+
+  it('formats zero weight with kg', () => {
+    expect(formatWeight(0, 'kg')).toBe('0 kg')
+  })
 })
 
 describe('formatReps', () => {
@@ -92,5 +102,46 @@ describe('formatReps', () => {
 
   it('formats zero reps', () => {
     expect(formatReps(0)).toBe('0')
+  })
+})
+
+describe('normalizeWorkoutName', () => {
+  it('converts "PUSH (Chest, Shoulders, Triceps)" to title case first word', () => {
+    expect(normalizeWorkoutName('PUSH (Chest, Shoulders, Triceps)')).toBe('Push (Chest, Shoulders, Triceps)')
+  })
+
+  it('converts "PULL (Back, Biceps, Rear Delts)" to title case', () => {
+    expect(normalizeWorkoutName('PULL (Back, Biceps, Rear Delts)')).toBe('Pull (Back, Biceps, Rear Delts)')
+  })
+
+  it('converts "LEGS (Quads, Hamstrings, Calves)" to title case', () => {
+    expect(normalizeWorkoutName('LEGS (Quads, Hamstrings, Calves)')).toBe('Legs (Quads, Hamstrings, Calves)')
+  })
+
+  it('returns unchanged for already title-case names', () => {
+    expect(normalizeWorkoutName('Push Day')).toBe('Push Day')
+  })
+
+  it('returns unchanged for lowercase names without parens', () => {
+    expect(normalizeWorkoutName('push')).toBe('push')
+  })
+
+  it('handles empty string', () => {
+    expect(normalizeWorkoutName('')).toBe('')
+  })
+})
+
+describe('formatRelativeTime', () => {
+  it('formats recent dates as relative time', () => {
+    const now = new Date()
+    const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000)
+    const result = formatRelativeTime(fiveMinAgo)
+    expect(result).toContain('minutes ago')
+  })
+
+  it('formats date string', () => {
+    const recent = new Date(Date.now() - 3600 * 1000).toISOString()
+    const result = formatRelativeTime(recent)
+    expect(result).toContain('ago')
   })
 })

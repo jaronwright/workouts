@@ -1,5 +1,15 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
+
+// Mock zustand persist middleware as a passthrough to avoid localStorage issues in tests
+vi.mock('zustand/middleware', async () => {
+  const actual = await vi.importActual<typeof import('zustand/middleware')>('zustand/middleware')
+  return {
+    ...actual,
+    persist: (fn: unknown) => fn,
+  }
+})
+
 import { useTheme } from '../useTheme'
 import { useThemeStore } from '@/stores/themeStore'
 

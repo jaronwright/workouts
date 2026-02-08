@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
   FULL_BODY_PLAN_ID,
   BRO_SPLIT_PLAN_ID,

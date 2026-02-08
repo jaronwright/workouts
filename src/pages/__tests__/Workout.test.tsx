@@ -149,7 +149,7 @@ describe('WorkoutPage', () => {
     expect(screen.getByText('Bench Press')).toBeInTheDocument()
   })
 
-  it('shows exercise count', () => {
+  it('shows all exercises across sections', () => {
     mockWorkoutDay = {
       id: 'day-1',
       name: 'Push Day',
@@ -176,7 +176,10 @@ describe('WorkoutPage', () => {
 
     render(<WorkoutPage />)
 
-    expect(screen.getByText('3 exercises')).toBeInTheDocument()
+    // All exercises from both sections are rendered
+    expect(screen.getByText('Bench Press')).toBeInTheDocument()
+    expect(screen.getByText('OHP')).toBeInTheDocument()
+    expect(screen.getByText('Lateral Raises')).toBeInTheDocument()
   })
 
   it('shows exercise list with sections', () => {

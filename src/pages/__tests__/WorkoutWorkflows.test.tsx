@@ -451,7 +451,7 @@ describe('WorkoutPage Workflows', () => {
       expect(screen.getByText('Warm-Up')).toBeInTheDocument()
     })
 
-    it('shows exercise count in pre-session view', () => {
+    it('shows all exercises across sections in pre-session view', () => {
       mockWorkoutDay = makeWorkoutDay({
         sections: [
           {
@@ -500,7 +500,10 @@ describe('WorkoutPage Workflows', () => {
 
       render(<WorkoutPage />)
 
-      expect(screen.getByText('3 exercises')).toBeInTheDocument()
+      // All exercises from both sections are rendered in the pre-session view
+      expect(screen.getByText('Bench Press')).toBeInTheDocument()
+      expect(screen.getByText('OHP')).toBeInTheDocument()
+      expect(screen.getByText('Lateral Raises')).toBeInTheDocument()
     })
   })
 

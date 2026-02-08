@@ -87,7 +87,7 @@ describe('useSelectedPlanDays', () => {
     expect(result.current.data).toEqual(mockDays)
   })
 
-  it('fetches all workout days when profile has no selected_plan_id', async () => {
+  it('disables query when profile has no selected_plan_id', async () => {
     const mockProfile: profileService.UserProfile = {
       id: 'user-123',
       display_name: 'Test',
@@ -102,25 +102,19 @@ describe('useSelectedPlanDays', () => {
       updated_at: '',
     }
 
-    const mockAllDays = [
-      { id: 'day-1', name: 'Push', day_number: 1 },
-      { id: 'day-2', name: 'Pull', day_number: 2 },
-      { id: 'day-3', name: 'Legs', day_number: 3 },
-      { id: 'day-4', name: 'Upper', day_number: 1 },
-      { id: 'day-5', name: 'Lower', day_number: 2 },
-    ]
-
     vi.mocked(profileService.getProfile).mockResolvedValue(mockProfile)
-    vi.mocked(workoutService.getAllWorkoutDays).mockResolvedValue(mockAllDays as never)
 
     const { result } = renderHook(() => useSelectedPlanDays(), { wrapper })
 
+    // Wait for profile to load
     await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
+      expect(profileService.getProfile).toHaveBeenCalled()
     })
 
-    expect(workoutService.getAllWorkoutDays).toHaveBeenCalled()
+    // Query should remain disabled since there's no selected_plan_id
+    expect(result.current.data).toBeUndefined()
     expect(workoutService.getWorkoutDays).not.toHaveBeenCalled()
+    expect(workoutService.getAllWorkoutDays).not.toHaveBeenCalled()
   })
 
   it('is disabled when profile is still loading', () => {
@@ -132,23 +126,20 @@ describe('useSelectedPlanDays', () => {
     expect(result.current.data).toBeUndefined()
   })
 
-  it('fires query with fallback when profile is null (user has no profile row)', async () => {
-    const mockAllDays = [
-      { id: 'day-1', name: 'Push', day_number: 1 },
-      { id: 'day-2', name: 'Pull', day_number: 2 },
-    ]
-
+  it('disables query when profile is null (user has no profile row)', async () => {
     vi.mocked(profileService.getProfile).mockResolvedValue(null)
-    vi.mocked(workoutService.getAllWorkoutDays).mockResolvedValue(mockAllDays as never)
 
     const { result } = renderHook(() => useSelectedPlanDays(), { wrapper })
 
+    // Wait for profile to load
     await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
+      expect(profileService.getProfile).toHaveBeenCalled()
     })
 
-    expect(workoutService.getAllWorkoutDays).toHaveBeenCalled()
-    expect(result.current.data).toEqual(mockAllDays)
+    // Query should remain disabled since profile is null (no selected_plan_id)
+    expect(result.current.data).toBeUndefined()
+    expect(workoutService.getWorkoutDays).not.toHaveBeenCalled()
+    expect(workoutService.getAllWorkoutDays).not.toHaveBeenCalled()
   })
 
   it('uses correct query key based on plan id', async () => {

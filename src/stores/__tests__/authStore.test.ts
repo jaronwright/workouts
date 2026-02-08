@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { User, Session } from '@supabase/supabase-js'
 
+// Mock zustand persist middleware as a passthrough to avoid localStorage issues in tests
+vi.mock('zustand/middleware', async () => {
+  const actual = await vi.importActual<typeof import('zustand/middleware')>('zustand/middleware')
+  return {
+    ...actual,
+    persist: (fn: unknown) => fn,
+  }
+})
+
 // Mock Supabase auth before importing the store
 vi.mock('@/services/supabase', () => ({
   supabase: {
@@ -16,6 +25,8 @@ vi.mock('@/services/supabase', () => ({
       onAuthStateChange: vi.fn().mockReturnValue({
         data: { subscription: { unsubscribe: vi.fn() } },
       }),
+      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      resend: vi.fn().mockResolvedValue({ error: null }),
     },
   },
 }))

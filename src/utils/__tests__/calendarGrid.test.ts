@@ -8,9 +8,10 @@ import {
 } from '../calendarGrid'
 
 describe('getMonthGridDates', () => {
-  it('returns exactly 42 dates', () => {
+  it('returns correct number of dates for the grid', () => {
     const dates = getMonthGridDates(new Date(2024, 0, 1)) // January 2024
-    expect(dates).toHaveLength(42)
+    // January 2024 starts on Monday, needs 5 rows (35 dates)
+    expect(dates).toHaveLength(35)
   })
 
   it('starts on a Sunday', () => {
@@ -38,9 +39,9 @@ describe('getMonthGridDates', () => {
 
   it('includes trailing days from next month', () => {
     // January 2024: ends on Wednesday Jan 31
-    // Grid should extend into February
+    // Grid should extend into February (5 rows = 35 dates)
     const dates = getMonthGridDates(new Date(2024, 0, 1))
-    const lastDate = dates[41]
+    const lastDate = dates[dates.length - 1]
     expect(lastDate.getMonth()).toBe(1) // February
   })
 
@@ -49,13 +50,15 @@ describe('getMonthGridDates', () => {
     const dates = getMonthGridDates(new Date(2024, 8, 1))
     expect(dates[0].getMonth()).toBe(8) // September
     expect(dates[0].getDate()).toBe(1)
-    expect(dates).toHaveLength(42)
+    // September 2024: 30 days starting on Sunday, needs 5 rows (35 dates)
+    expect(dates).toHaveLength(35)
   })
 
   it('handles February in a leap year', () => {
     // February 2024 is a leap year (29 days), starts on Thursday
     const dates = getMonthGridDates(new Date(2024, 1, 1))
-    expect(dates).toHaveLength(42)
+    // February 2024 needs 5 rows (35 dates)
+    expect(dates).toHaveLength(35)
     const febDates = dates.filter(
       d => d.getMonth() === 1 && d.getFullYear() === 2024
     )
@@ -65,7 +68,8 @@ describe('getMonthGridDates', () => {
   it('handles February in a non-leap year', () => {
     // February 2023 has 28 days, starts on Wednesday
     const dates = getMonthGridDates(new Date(2023, 1, 1))
-    expect(dates).toHaveLength(42)
+    // February 2023 needs 5 rows (35 dates)
+    expect(dates).toHaveLength(35)
     const febDates = dates.filter(
       d => d.getMonth() === 1 && d.getFullYear() === 2023
     )

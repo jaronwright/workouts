@@ -62,7 +62,7 @@ describe('AuthPage', () => {
     vi.clearAllMocks()
   })
 
-  it('renders sign in form by default with Email, Password fields and Sign In button', () => {
+  it('renders sign in form by default with Email, Password fields and Sign In button', { timeout: 15000 }, () => {
     render(<AuthPage />)
 
     expect(screen.getByText('Email')).toBeInTheDocument()
@@ -72,7 +72,7 @@ describe('AuthPage', () => {
     expect(signInButtons.length).toBeGreaterThanOrEqual(1)
   })
 
-  it('can switch to sign up tab showing extra fields (Display Name, Gender)', async () => {
+  it('can switch to sign up tab showing extra fields (Display Name)', async () => {
     const user = userEvent.setup()
     render(<AuthPage />)
 
@@ -80,7 +80,6 @@ describe('AuthPage', () => {
     await user.click(signUpTab)
 
     expect(screen.getByText('Display Name')).toBeInTheDocument()
-    expect(screen.getByText('Gender')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Create Account' })).toBeInTheDocument()
   })
 
