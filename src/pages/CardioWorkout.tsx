@@ -211,7 +211,7 @@ export function CardioWorkoutPage() {
   // ─── Main UI ──────────────────────────────────────────────────────────
 
   return (
-    <AppShell title={template.name} showBack>
+    <AppShell title={template.name} showBack hideNav>
       <div className="p-4 space-y-5">
         {/* Template info card */}
         <Card>

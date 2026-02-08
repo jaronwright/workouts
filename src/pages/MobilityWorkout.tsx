@@ -104,8 +104,8 @@ export function MobilityWorkoutPage() {
   }
 
   return (
-    <AppShell title={template.name} showBack>
-      <div className="p-4 space-y-4 pb-28">
+    <AppShell title={template.name} showBack hideNav>
+      <div className="p-4 space-y-4">
         {/* Header */}
         <Card>
           <CardContent className="py-6 text-center">
@@ -188,19 +188,18 @@ export function MobilityWorkoutPage() {
             </CardContent>
           </Card>
         )}
-      </div>
 
-      {/* Fixed footer */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--color-bg)]/95 backdrop-blur-sm border-t border-[var(--color-border)]">
-        <Button
-          onClick={handleComplete}
-          loading={isPending}
-          disabled={checkedCount === 0}
-          size="lg"
-          className="w-full"
-        >
-          Complete Workout ({checkedCount}/{totalCount})
-        </Button>
+        <div className="pt-4 pb-8">
+          <Button
+            onClick={handleComplete}
+            loading={isPending}
+            disabled={checkedCount === 0}
+            size="lg"
+            className="w-full"
+          >
+            Complete Workout ({checkedCount}/{totalCount})
+          </Button>
+        </div>
       </div>
     </AppShell>
   )
