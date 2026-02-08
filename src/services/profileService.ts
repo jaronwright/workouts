@@ -10,6 +10,7 @@ export interface UserProfile {
   last_workout_date: string | null
   cycle_start_date: string | null
   timezone: string | null
+  theme: string | null
   created_at: string
   updated_at: string
 }
@@ -22,6 +23,7 @@ export interface UpdateProfileData {
   last_workout_date?: string | null
   cycle_start_date?: string | null
   timezone?: string | null
+  theme?: string | null
 }
 
 export async function getProfile(userId: string): Promise<UserProfile | null> {

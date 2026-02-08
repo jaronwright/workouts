@@ -1,17 +1,17 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 
-type Theme = 'light' | 'dark' | 'system'
+export type Theme = 'light' | 'dark' | 'system'
 
 interface ThemeState {
   theme: Theme
   resolvedTheme: 'light' | 'dark'
   setTheme: (theme: Theme) => void
+  setThemeFromProfile: (theme: string | null) => void
   initializeTheme: () => void
 }
 
 function getSystemTheme(): 'light' | 'dark' {
-  if (typeof window === 'undefined') return 'light'
+  if (typeof window === 'undefined') return 'dark'
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
@@ -25,42 +25,47 @@ function applyTheme(theme: 'light' | 'dark') {
   }
 }
 
+function isValidTheme(value: string | null): value is Theme {
+  return value === 'light' || value === 'dark' || value === 'system'
+}
+
 export const useThemeStore = create<ThemeState>()(
-  persist(
-    (set, get) => ({
-      theme: 'system',
-      resolvedTheme: 'light',
+  (set, get) => ({
+    theme: 'dark',
+    resolvedTheme: 'dark',
 
-      setTheme: (theme) => {
-        const resolvedTheme = theme === 'system' ? getSystemTheme() : theme
-        applyTheme(resolvedTheme)
-        set({ theme, resolvedTheme })
-      },
+    setTheme: (theme) => {
+      const resolvedTheme = theme === 'system' ? getSystemTheme() : theme
+      applyTheme(resolvedTheme)
+      set({ theme, resolvedTheme })
+    },
 
-      initializeTheme: () => {
-        const { theme } = get()
-        const resolvedTheme = theme === 'system' ? getSystemTheme() : theme
-        applyTheme(resolvedTheme)
-        set({ resolvedTheme })
+    setThemeFromProfile: (profileTheme) => {
+      const theme: Theme = isValidTheme(profileTheme) ? profileTheme : 'dark'
+      const resolvedTheme = theme === 'system' ? getSystemTheme() : theme
+      applyTheme(resolvedTheme)
+      set({ theme, resolvedTheme })
+    },
 
-        // Listen for system theme changes
-        if (typeof window !== 'undefined') {
-          const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-          const handleChange = () => {
-            const currentTheme = get().theme
-            if (currentTheme === 'system') {
-              const newResolvedTheme = getSystemTheme()
-              applyTheme(newResolvedTheme)
-              set({ resolvedTheme: newResolvedTheme })
-            }
+    initializeTheme: () => {
+      const { theme } = get()
+      const resolvedTheme = theme === 'system' ? getSystemTheme() : theme
+      applyTheme(resolvedTheme)
+      set({ resolvedTheme })
+
+      // Listen for system theme changes
+      if (typeof window !== 'undefined') {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+        const handleChange = () => {
+          const currentTheme = get().theme
+          if (currentTheme === 'system') {
+            const newResolvedTheme = getSystemTheme()
+            applyTheme(newResolvedTheme)
+            set({ resolvedTheme: newResolvedTheme })
           }
-          mediaQuery.addEventListener('change', handleChange)
         }
+        mediaQuery.addEventListener('change', handleChange)
       }
-    }),
-    {
-      name: 'theme-storage',
-      partialize: (state) => ({ theme: state.theme })
     }
-  )
+  })
 )
