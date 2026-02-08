@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { motion } from 'motion/react'
 import { startOfWeek, endOfWeek, isWithinInterval, getDay, differenceInMinutes, parseISO } from 'date-fns'
 import { AnimatedCounter } from '@/components/ui'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
@@ -40,33 +40,16 @@ function StatWidget({ info, className, children }: { info: string; className?: s
       className={`relative overflow-hidden rounded-xl bg-[var(--color-surface)] p-3 ${className ?? ''}`}
       onClick={() => flipped && setFlipped(false)}
     >
-      <AnimatePresence mode="wait" initial={false}>
-        {flipped ? (
-          <motion.div
-            key="info"
-            className="absolute inset-0 z-10 flex flex-col items-center justify-center p-4 cursor-pointer bg-[var(--color-surface)]"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-          >
-            <Info className="w-4 h-4 text-[var(--color-text-muted)] mb-2 shrink-0" />
-            <p className="text-xs text-[var(--color-text-muted)] text-center leading-relaxed">{info}</p>
-            <span className="text-[9px] text-[var(--color-text-muted)] opacity-50 mt-2">tap to dismiss</span>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="content"
-            className="contents"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-          >
-            {children}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Always rendered so widget keeps its natural height */}
+      <div className={flipped ? 'invisible' : undefined}>
+        {children}
+      </div>
+      {/* Info overlay sits on top without affecting layout */}
+      {flipped && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-3 cursor-pointer bg-[var(--color-surface)]">
+          <p className="text-[11px] text-[var(--color-text-muted)] text-center leading-snug">{info}</p>
+        </div>
+      )}
       {!flipped && (
         <button
           onClick={(e) => { e.stopPropagation(); setFlipped(true) }}
@@ -214,7 +197,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
       animate="visible"
     >
       {/* Row 1: Completion Rate | Weekly Target | Best Streak */}
-      <StatWidget info="Percentage of scheduled workouts completed this month" className="flex flex-col items-center justify-center">
+      <StatWidget info="% of scheduled workouts done this month" className="flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent" />
         <div className="relative">
           {/* Conic gradient progress ring */}
@@ -236,7 +219,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
         </div>
       </StatWidget>
 
-      <StatWidget info="Workouts completed vs scheduled this week" className="flex flex-col items-center justify-center">
+      <StatWidget info="Done vs planned this week" className="flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent" />
         <div className="relative flex flex-col items-center">
           <Target className="w-4 h-4 text-indigo-500 mb-1" />
@@ -257,7 +240,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
         </div>
       </StatWidget>
 
-      <StatWidget info="Consecutive workout days (current / best this month)" className="flex flex-col items-center justify-center">
+      <StatWidget info="Current and best streak this month" className="flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent" />
         <div className="relative flex flex-col items-center">
           {stats.isAtBest ? (
@@ -276,7 +259,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
       </StatWidget>
 
       {/* Row 2: Weekly Frequency (2×1) | Total Time (1×1) */}
-      <StatWidget info="How often you train each day of the week" className="col-span-2">
+      <StatWidget info="Sessions per day of the week" className="col-span-2">
         <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent" />
         <div className="relative">
           <div className="flex items-center gap-1.5 mb-2">
@@ -306,7 +289,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
         </div>
       </StatWidget>
 
-      <StatWidget info="Total training time this month" className="flex flex-col items-center justify-center">
+      <StatWidget info="Total time trained this month" className="flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-sky-500/10 to-transparent" />
         <div className="relative flex flex-col items-center">
           <Clock className="w-4 h-4 text-sky-500 mb-1" />
@@ -327,7 +310,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
       </StatWidget>
 
       {/* Row 3: Workout Mix (2×1) | Sessions (1×1) */}
-      <StatWidget info="Balance of weights, cardio, and mobility sessions" className="col-span-2">
+      <StatWidget info="Weights / cardio / mobility split" className="col-span-2">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent" />
         <div className="relative">
           <div className="flex items-center gap-1.5 mb-2">
@@ -380,7 +363,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
         </div>
       </StatWidget>
 
-      <StatWidget info="Total completed sessions this month" className="flex flex-col items-center justify-center">
+      <StatWidget info="Completed sessions this month" className="flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent" />
         <div className="relative flex flex-col items-center">
           <Hash className="w-4 h-4 text-amber-500 mb-1" />
@@ -393,7 +376,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
       </StatWidget>
 
       {/* Row 4: Active Days | Per Week | Longest */}
-      <StatWidget info="Days with at least one completed workout" className="flex flex-col items-center justify-center">
+      <StatWidget info="Days with at least one workout" className="flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent" />
         <div className="relative flex flex-col items-center">
           <CalendarDays className="w-4 h-4 text-blue-500 mb-1" />
@@ -405,7 +388,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
         </div>
       </StatWidget>
 
-      <StatWidget info="Average sessions per week this month" className="flex flex-col items-center justify-center">
+      <StatWidget info="Avg sessions per week" className="flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent" />
         <div className="relative flex flex-col items-center">
           <BarChart3 className="w-4 h-4 text-emerald-500 mb-1" />
@@ -414,7 +397,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
         </div>
       </StatWidget>
 
-      <StatWidget info="Your longest single session this month" className="flex flex-col items-center justify-center">
+      <StatWidget info="Longest session this month" className="flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-rose-500/10 to-transparent" />
         <div className="relative flex flex-col items-center">
           <Timer className="w-4 h-4 text-rose-500 mb-1" />
