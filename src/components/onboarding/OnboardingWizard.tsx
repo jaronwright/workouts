@@ -332,13 +332,33 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
       }
     }
 
-    // Add mobility as a secondary workout on first 2 training days
+    // Add mobility as a secondary workout on 2 training days
+    // Filter out core — prefer hip/spine/upper body/shoulder prehab
     if (mobilityImportant && mobility.length > 0) {
-      const mobilityTargets = trainingPositions
-        .filter(pos => newSelections[pos].length > 0 && newSelections[pos][0].type !== 'rest')
-        .slice(0, 2)
+      const nonCore = mobility.filter(m => m.category !== 'core')
+      const mobilityPool = nonCore.length > 0 ? nonCore : mobility
+
+      // Prefer cardio days, then fall back to weights days, spread apart
+      const cardioDayPositions = trainingPositions.filter(
+        pos => newSelections[pos].length > 0 && newSelections[pos][0].type === 'cardio'
+      )
+      const weightsDayPositions = trainingPositions.filter(
+        pos => newSelections[pos].length > 0 && newSelections[pos][0].type === 'weights'
+      )
+      const candidatePositions = [...cardioDayPositions, ...weightsDayPositions]
+
+      // Pick 2 positions spread apart: first and last candidate when possible
+      const mobilityTargets: number[] = []
+      if (candidatePositions.length >= 2) {
+        mobilityTargets.push(candidatePositions[0])
+        mobilityTargets.push(candidatePositions[candidatePositions.length - 1])
+      } else if (candidatePositions.length === 1) {
+        mobilityTargets.push(candidatePositions[0])
+      }
+
+      // Rotate through different mobility templates so each day gets a unique one
       mobilityTargets.forEach((pos, idx) => {
-        const mob = mobility[idx % mobility.length]
+        const mob = mobilityPool[idx % mobilityPool.length]
         newSelections[pos] = [...newSelections[pos], {
           type: 'mobility',
           id: mob.id,
