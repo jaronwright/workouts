@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { motion } from 'motion/react'
 import { startOfWeek, endOfWeek, isWithinInterval, getDay, differenceInMinutes, parseISO } from 'date-fns'
 import { AnimatedCounter } from '@/components/ui'
@@ -16,6 +16,7 @@ import {
   Hash,
   Timer,
   Crown,
+  Info,
 } from 'lucide-react'
 import type { CalendarDay } from '@/hooks/useCalendarData'
 
@@ -29,6 +30,28 @@ function computeSessionDuration(session: { started_at: string; completed_at: str
     return Math.max(0, differenceInMinutes(parseISO(session.completed_at), parseISO(session.started_at)))
   }
   return 0
+}
+
+function InfoTooltip({ text }: { text: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="absolute top-2 right-2 z-10">
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen(!open) }}
+        className="p-0.5 rounded-full text-[var(--color-text-muted)] opacity-40 hover:opacity-70 transition-opacity"
+      >
+        <Info className="w-3 h-3" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-5 z-20 w-40 p-2 rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)] shadow-lg">
+            <p className="text-[10px] text-[var(--color-text-muted)] leading-relaxed">{text}</p>
+          </div>
+        </>
+      )}
+    </div>
+  )
 }
 
 export function StatsGrid({ calendarDays }: StatsGridProps) {
@@ -168,6 +191,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
       {/* Row 1: Completion Rate | Weekly Target | Best Streak */}
       <motion.div variants={staggerChild} className="relative overflow-hidden rounded-xl bg-[var(--color-surface)] p-3 flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent" />
+        <InfoTooltip text="Percentage of scheduled workouts completed this month" />
         <div className="relative">
           {/* Conic gradient progress ring */}
           <div
@@ -190,6 +214,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
 
       <motion.div variants={staggerChild} className="relative overflow-hidden rounded-xl bg-[var(--color-surface)] p-3 flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent" />
+        <InfoTooltip text="Workouts completed vs scheduled this week" />
         <div className="relative flex flex-col items-center">
           <Target className="w-4 h-4 text-indigo-500 mb-1" />
           <div className="flex gap-1 mb-1.5">
@@ -211,6 +236,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
 
       <motion.div variants={staggerChild} className="relative overflow-hidden rounded-xl bg-[var(--color-surface)] p-3 flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent" />
+        <InfoTooltip text="Consecutive workout days (current / best this month)" />
         <div className="relative flex flex-col items-center">
           {stats.isAtBest ? (
             <Crown className="w-4 h-4 text-orange-500 mb-1" />
@@ -230,23 +256,30 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
       {/* Row 2: Weekly Frequency (2×1) | Total Time (1×1) */}
       <motion.div variants={staggerChild} className="relative overflow-hidden rounded-xl bg-[var(--color-surface)] p-3 col-span-2">
         <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent" />
+        <InfoTooltip text="How often you train each day of the week" />
         <div className="relative">
           <div className="flex items-center gap-1.5 mb-2">
             <BarChart3 className="w-3.5 h-3.5 text-violet-500" />
             <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Weekly Frequency</span>
           </div>
-          <div className="flex items-end justify-between gap-1 h-12">
+          <div className="flex items-end gap-1" style={{ height: 40 }}>
             {stats.dayOfWeekCounts.map((count, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
+              <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
                 <motion.div
                   className="w-full rounded-sm bg-violet-500"
-                  initial={prefersReduced ? { height: `${(count / stats.maxDayCount) * 100}%` } : { height: 0 }}
-                  animate={{ height: `${Math.max((count / stats.maxDayCount) * 100, 4)}%` }}
+                  style={{ opacity: count > 0 ? 1 : 0.2 }}
+                  initial={prefersReduced ? false : { height: 0 }}
+                  animate={{ height: count > 0 ? Math.max((count / stats.maxDayCount) * 32, 4) : 2 }}
                   transition={{ type: 'spring', stiffness: 200, damping: 20, delay: i * 0.05 }}
-                  style={{ minHeight: count > 0 ? 4 : 2, opacity: count > 0 ? 1 : 0.2 }}
                 />
-                <span className="text-[8px] text-[var(--color-text-muted)] font-medium">{dayLabels[i]}</span>
               </div>
+            ))}
+          </div>
+          <div className="flex gap-1 mt-1">
+            {dayLabels.map((label, i) => (
+              <span key={i} className="flex-1 text-center text-[8px] text-[var(--color-text-muted)] font-medium">
+                {label}
+              </span>
             ))}
           </div>
         </div>
@@ -254,6 +287,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
 
       <motion.div variants={staggerChild} className="relative overflow-hidden rounded-xl bg-[var(--color-surface)] p-3 flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-sky-500/10 to-transparent" />
+        <InfoTooltip text="Total training time this month" />
         <div className="relative flex flex-col items-center">
           <Clock className="w-4 h-4 text-sky-500 mb-1" />
           <div className="flex items-baseline gap-0.5">
@@ -275,6 +309,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
       {/* Row 3: Workout Mix (2×1) | Sessions (1×1) */}
       <motion.div variants={staggerChild} className="relative overflow-hidden rounded-xl bg-[var(--color-surface)] p-3 col-span-2">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent" />
+        <InfoTooltip text="Balance of weights, cardio, and mobility sessions" />
         <div className="relative">
           <div className="flex items-center gap-1.5 mb-2">
             <Layers className="w-3.5 h-3.5 text-indigo-500" />
@@ -328,6 +363,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
 
       <motion.div variants={staggerChild} className="relative overflow-hidden rounded-xl bg-[var(--color-surface)] p-3 flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent" />
+        <InfoTooltip text="Total completed sessions this month" />
         <div className="relative flex flex-col items-center">
           <Hash className="w-4 h-4 text-amber-500 mb-1" />
           <AnimatedCounter
@@ -341,6 +377,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
       {/* Row 4: Active Days | Per Week | Longest */}
       <motion.div variants={staggerChild} className="relative overflow-hidden rounded-xl bg-[var(--color-surface)] p-3 flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent" />
+        <InfoTooltip text="Days with at least one completed workout" />
         <div className="relative flex flex-col items-center">
           <CalendarDays className="w-4 h-4 text-blue-500 mb-1" />
           <AnimatedCounter
@@ -353,6 +390,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
 
       <motion.div variants={staggerChild} className="relative overflow-hidden rounded-xl bg-[var(--color-surface)] p-3 flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent" />
+        <InfoTooltip text="Average sessions per week this month" />
         <div className="relative flex flex-col items-center">
           <BarChart3 className="w-4 h-4 text-emerald-500 mb-1" />
           <span className="text-xl font-bold text-[var(--color-text)]">{stats.perWeek}</span>
@@ -362,6 +400,7 @@ export function StatsGrid({ calendarDays }: StatsGridProps) {
 
       <motion.div variants={staggerChild} className="relative overflow-hidden rounded-xl bg-[var(--color-surface)] p-3 flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-rose-500/10 to-transparent" />
+        <InfoTooltip text="Your longest single session this month" />
         <div className="relative flex flex-col items-center">
           <Timer className="w-4 h-4 text-rose-500 mb-1" />
           <div className="flex items-baseline gap-0.5">
