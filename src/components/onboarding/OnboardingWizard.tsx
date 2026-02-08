@@ -5,7 +5,7 @@ import { useWorkoutDays, useWorkoutPlans } from '@/hooks/useWorkoutPlan'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useUploadAvatar } from '@/hooks/useAvatar'
 import { OnboardingDayRow, type DaySelection } from './OnboardingDayRow'
-import { X, ChevronDown, ChevronLeft, HelpCircle, RefreshCw, Calendar, Dumbbell, ArrowUp, User, Camera, Sparkles, Sun, Moon, Monitor } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, HelpCircle, RefreshCw, Calendar, Dumbbell, ArrowUp, User, Camera, Sparkles, Sun, Moon, Monitor } from 'lucide-react'
 import { WEIGHTS_CONFIG } from '@/config/workoutConfig'
 import {
   PPL_PLAN_ID,
@@ -385,20 +385,25 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   const broPlan = plans?.find(p => p.id === BRO_SPLIT_PLAN_ID)
   const arnoldPlan = plans?.find(p => p.id === ARNOLD_SPLIT_PLAN_ID)
 
-  // Back button logic
+  // Back button logic — always navigate through all steps
   const handleBack = () => {
     if (step === 1) {
       onClose()
     } else if (step === 2) {
-      if (initialStep >= 2) onClose()
-      else setStep(1)
+      setStep(1)
     } else if (step === 3) {
-      if (initialStep >= 3) onClose()
-      else setStep(2)
+      setStep(2)
     } else {
-      if (initialStep >= 4) onClose()
-      else setStep(3)
+      setStep(3)
     }
+  }
+
+  // Forward button logic
+  const handleForward = () => {
+    if (step === 1) handleProfileNext()
+    else if (step === 2) handleSplitNext()
+    else if (step === 3) { generateSchedule(); setStep(4) }
+    // Step 4 uses the footer "Start Training" button
   }
 
   return (
@@ -413,22 +418,20 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
       {/* Navigation Row */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-2">
-        <div className="w-10">
-          {((step === 2 && initialStep < 2) || (step === 3 && initialStep < 3) || (step === 4 && initialStep < 4)) && (
-            <button
-              onClick={handleBack}
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-          )}
-        </div>
         <button
-          onClick={onClose}
+          onClick={handleBack}
           className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] transition-colors"
         >
-          <X className="w-5 h-5" />
+          <ChevronLeft className="w-5 h-5" />
         </button>
+        {step < 4 && (
+          <button
+            onClick={handleForward}
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] transition-colors"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Scrollable Content */}

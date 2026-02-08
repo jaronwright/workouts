@@ -9,6 +9,7 @@ import { useUserSessions } from '@/hooks/useWorkoutSession'
 import { useUserTemplateWorkouts } from '@/hooks/useTemplateWorkout'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { getDayInfo, type DayInfo } from '@/utils/scheduleUtils'
+import { getWorkoutShortName } from '@/config/workoutConfig'
 import type { ScheduleDay } from '@/services/scheduleService'
 
 interface ScheduleWidgetProps {
@@ -95,18 +96,22 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
       const cycleDay = ((currentCycleDay - 1 + offset) % totalDays) + 1
       const dayInfo = days[cycleDay - 1]
 
+      const cycleDaySchedules = scheduleMap.get(cycleDay) || []
+      const workoutCount = cycleDaySchedules.length
+
       return {
         label,
         completed: completedDayNums.has(dow),
         isToday: dow === todayDow,
         color: completedDayNums.has(dow) ? dayInfo?.color || 'var(--color-primary)' : undefined,
-        workoutName: dayInfo?.name,
+        workoutName: workoutCount > 1 ? 'Multi' : dayInfo?.name ? getWorkoutShortName(dayInfo.name) : undefined,
         workoutIcon: dayInfo?.isRest ? undefined : dayInfo?.icon,
         workoutColor: dayInfo?.color,
         isRest: dayInfo?.isRest,
+        workoutCount,
       }
     })
-  }, [weightsSessions, templateSessions, days, currentCycleDay])
+  }, [weightsSessions, templateSessions, days, currentCycleDay, schedule])
 
   const handleDayClick = (day: DayInfo) => {
     if (day.isRest) {

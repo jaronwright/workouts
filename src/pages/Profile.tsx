@@ -744,7 +744,7 @@ export function ProfilePage() {
       <OnboardingWizard
         isOpen={showOnboarding}
         onClose={() => setShowOnboarding(false)}
-        initialStep={4}
+        initialStep={3}
         initialPlanId={pendingSplitId || currentSplitId}
       />
 

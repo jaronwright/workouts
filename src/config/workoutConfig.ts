@@ -254,6 +254,28 @@ export function getWorkoutDisplayName(dbName: string | null | undefined): string
   return firstWord.charAt(0).toUpperCase() + firstWord.slice(1)
 }
 
+const WORKOUT_SHORT_NAMES: Record<string, string> = {
+  'Full Body A': 'FB A',
+  'Full Body B': 'FB B',
+  'Full Body C': 'FB C',
+  'Full Body D': 'FB D',
+  'Full Body E': 'FB E',
+  'Full Body Recovery': 'FB Rec',
+  'Core Stability': 'Core',
+  'Chest & Back': 'Ch & Bk',
+  'Shoulders & Arms': 'Sh & Ar',
+  'Hip, Knee & Ankle Flow': 'Hip Flow',
+  'Spine Mobility': 'Spine',
+  'Upper Body Flow': 'UB Flow',
+  'Shoulder Prehab': 'Sh Prehab',
+  'Stair Stepper': 'Stairs',
+}
+
+/** Short label for compact UI (e.g., streak bar). Falls back to display name. */
+export function getWorkoutShortName(displayName: string): string {
+  return WORKOUT_SHORT_NAMES[displayName] || displayName
+}
+
 // Helper to get category display label
 export function getCategoryLabel(category: string): string {
   return CATEGORY_LABELS[category.toLowerCase()] || category

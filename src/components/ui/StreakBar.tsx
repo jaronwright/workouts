@@ -11,6 +11,7 @@ export interface StreakDay {
   workoutIcon?: LucideIcon
   workoutColor?: string
   isRest?: boolean
+  workoutCount?: number
 }
 
 interface StreakBarProps {
@@ -54,7 +55,9 @@ export function StreakBar({ days, className = '' }: StreakBarProps) {
                   : undefined
                 }
               >
-                {Icon ? (
+                {day.workoutCount && day.workoutCount > 1 ? (
+                  <span className="text-xs font-bold">{day.workoutCount}</span>
+                ) : Icon ? (
                   <Icon className="w-3.5 h-3.5" strokeWidth={2.5} />
                 ) : (
                   <span className="text-[10px] font-semibold">{day.isRest ? 'R' : '—'}</span>
