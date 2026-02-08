@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui'
+import { CardContent, AnimatedCard } from '@/components/ui'
 import { getCardioStyle } from '@/config/workoutConfig'
 import { getCardioTemplateStats } from '@/utils/cardioUtils'
 import type { WorkoutTemplate, ScheduleDay } from '@/services/scheduleService'
@@ -11,9 +11,10 @@ interface CardioLogCardProps {
   sessions: TemplateWorkoutSession[]
   schedule: ScheduleDay[]
   currentCycleDay: number
+  delay?: number
 }
 
-export function CardioLogCard({ template, sessions, schedule, currentCycleDay }: CardioLogCardProps) {
+export function CardioLogCard({ template, sessions, schedule, currentCycleDay, delay = 0 }: CardioLogCardProps) {
   const navigate = useNavigate()
   const style = getCardioStyle(template.category)
   const Icon = style.icon
@@ -21,9 +22,10 @@ export function CardioLogCard({ template, sessions, schedule, currentCycleDay }:
   const stats = getCardioTemplateStats(template.id, sessions, schedule, currentCycleDay)
 
   return (
-    <Card
+    <AnimatedCard
       interactive
       onClick={() => navigate(`/cardio/${template.id}`)}
+      animationDelay={delay}
     >
       <CardContent className="flex items-center gap-4 py-4">
         {/* Gradient icon */}
@@ -41,17 +43,6 @@ export function CardioLogCard({ template, sessions, schedule, currentCycleDay }:
           <p className="text-xs text-[var(--color-text-muted)] mt-0.5 truncate">
             {stats.lastSessionSummary}
           </p>
-          {stats.weeklyCount > 0 && (
-            <span
-              className="inline-block text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full mt-1"
-              style={{
-                backgroundColor: `${style.color}15`,
-                color: style.color
-              }}
-            >
-              {stats.weeklyCount}x this week
-            </span>
-          )}
         </div>
 
         {/* Chevron */}
@@ -59,6 +50,6 @@ export function CardioLogCard({ template, sessions, schedule, currentCycleDay }:
           <ChevronRight className="w-5 h-5" />
         </div>
       </CardContent>
-    </Card>
+    </AnimatedCard>
   )
 }

@@ -26,8 +26,7 @@ import {
   getCardioStyle,
   getMobilityStyle,
   getWeightsStyleByName,
-  CATEGORY_DEFAULTS,
-  getCategoryLabel
+  CATEGORY_DEFAULTS
 } from '@/config/workoutConfig'
 import type { SessionWithDay } from '@/services/workoutService'
 import type { TemplateWorkoutSession } from '@/services/templateWorkoutService'
@@ -111,14 +110,36 @@ function getWeeklyCount(sessions: { completed_at: string | null }[]): number {
   return days.size
 }
 
+// Get last session summary for a weights workout day
+function getWeightsLastSession(dayId: string, sessions: SessionWithDay[]): string | undefined {
+  const last = sessions
+    .filter(s => s.workout_day_id === dayId && s.completed_at)
+    .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime())[0]
+  if (!last) return undefined
+  return formatRelativeTime(last.completed_at!)
+}
+
+// Get last session summary for a template workout (mobility)
+function getTemplateLastSession(templateId: string, sessions: TemplateWorkoutSession[]): string | undefined {
+  const last = sessions
+    .filter(s => s.template_id === templateId && s.completed_at)
+    .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime())[0]
+  if (!last) return undefined
+  if (last.duration_minutes) {
+    return `${last.duration_minutes} min \u00b7 ${formatRelativeTime(last.completed_at!)}`
+  }
+  return formatRelativeTime(last.completed_at!)
+}
+
 // Workout Day Card Component
 interface WorkoutDayCardProps {
   day: { id: string; name: string; day_number: number }
   onClick: () => void
   delay?: number
+  subtitle?: string
 }
 
-function WorkoutDayCard({ day, onClick, delay = 0 }: WorkoutDayCardProps) {
+function WorkoutDayCard({ day, onClick, delay = 0, subtitle }: WorkoutDayCardProps) {
   const style = getWeightsStyleByName(day.name)
   const Icon = style.icon
 
@@ -134,6 +155,9 @@ function WorkoutDayCard({ day, onClick, delay = 0 }: WorkoutDayCardProps) {
           <h3 className="font-semibold text-[var(--color-text)] text-base leading-tight">
             {getWorkoutDisplayName(day.name)}
           </h3>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5 truncate">
+            {subtitle || 'No sessions yet'}
+          </p>
         </div>
         <div className="w-8 h-8 rounded-full bg-[var(--color-surface-hover)] flex items-center justify-center text-[var(--color-text-muted)]">
           <ChevronRight className="w-5 h-5" />
@@ -148,14 +172,14 @@ interface TemplateCardProps {
   template: WorkoutTemplate
   onClick: () => void
   delay?: number
+  subtitle?: string
 }
 
-function TemplateCard({ template, onClick, delay = 0 }: TemplateCardProps) {
+function TemplateCard({ template, onClick, delay = 0, subtitle }: TemplateCardProps) {
   const style = template.type === 'cardio'
     ? getCardioStyle(template.category)
     : getMobilityStyle(template.category)
   const Icon = style.icon
-  const typeLabel = getCategoryLabel(template.type)
 
   return (
     <AnimatedCard interactive onClick={onClick} animationDelay={delay}>
@@ -166,17 +190,12 @@ function TemplateCard({ template, onClick, delay = 0 }: TemplateCardProps) {
           <Icon className="w-6 h-6 text-white" strokeWidth={2.5} />
         </div>
         <div className="flex-1 min-w-0">
-          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: style.color }}>
-            {typeLabel}
-          </span>
-          <h3 className="font-semibold text-[var(--color-text)] text-base leading-tight mt-0.5">
+          <h3 className="font-semibold text-[var(--color-text)] text-base leading-tight">
             {template.name}
           </h3>
-          {template.duration_minutes && (
-            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-              ~{template.duration_minutes} min
-            </p>
-          )}
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5 truncate">
+            {subtitle || 'No sessions yet'}
+          </p>
         </div>
         <div className="w-8 h-8 rounded-full bg-[var(--color-surface-hover)] flex items-center justify-center text-[var(--color-text-muted)]">
           <ChevronRight className="w-5 h-5" />
@@ -459,6 +478,7 @@ export function HomePage() {
                 day={day}
                 onClick={() => handleStartWorkout(day.id)}
                 delay={idx * 0.06}
+                subtitle={getWeightsLastSession(day.id, weightsSessions)}
               />
             ))
           ) : (
@@ -483,13 +503,14 @@ export function HomePage() {
               ))}
             </div>
           ) : cardioTemplates?.length ? (
-            cardioTemplates.map((template) => (
+            cardioTemplates.map((template, idx) => (
               <CardioLogCard
                 key={template.id}
                 template={template}
                 sessions={templateWorkoutSessions || []}
                 schedule={schedule || []}
                 currentCycleDay={currentCycleDay}
+                delay={idx * 0.06}
               />
             ))
           ) : (
@@ -520,6 +541,7 @@ export function HomePage() {
                 template={template}
                 onClick={() => handleStartMobility(category)}
                 delay={idx * 0.06}
+                subtitle={getTemplateLastSession(template.id, templateSessions)}
               />
             ))
           ) : (
