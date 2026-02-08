@@ -1,10 +1,15 @@
-// Using open source ExerciseDB API which includes GIF URLs
-const BASE_URL = 'https://oss.exercisedb.dev/api/v1'
-const CACHE_KEY = 'exercisedb_cache_v3' // Bump version to clear old cache with improved matching
+// ExerciseDB API service with V2 RapidAPI (primary) and V1 OSS (fallback)
+const V1_BASE_URL = 'https://oss.exercisedb.dev/api/v1'
+const V2_BASE_URL = 'https://exercisedb.p.rapidapi.com'
+const CACHE_KEY = 'exercisedb_cache_v4' // Bump version to clear stale null entries
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000 // 7 days (exercises don't change)
 
+// Read API key dynamically so tests can stub import.meta.env
+function getRapidApiKey(): string | undefined {
+  return import.meta.env.VITE_RAPIDAPI_KEY as string | undefined
+}
+
 // Map app exercise names to ExerciseDB API search terms for better matching
-// These mappings help when our exercise names don't match the API's naming conventions
 const EXERCISE_NAME_MAPPINGS: Record<string, string> = {
   // Push day exercises
   'incline db press': 'dumbbell incline bench press',
@@ -51,6 +56,31 @@ const EXERCISE_NAME_MAPPINGS: Record<string, string> = {
   'rowing machine': 'rowing machine',
   'bike or stair stepper': 'stationary bike',
   'plank': 'plank',
+
+  // Upper/Lower plan
+  'arm circles': 'arm circles',
+  'bent over barbell row': 'barbell bent over row',
+  'overhead press': 'barbell overhead press',
+  'lat pulldown': 'cable lat pulldown',
+  'lateral raises': 'dumbbell lateral raise',
+  'tricep pushdown': 'cable pushdown',
+  'bodyweight squats': 'bodyweight squat',
+  'hip circles': 'hip circles',
+  'hip thrust': 'barbell hip thrust',
+  'rdl': 'barbell romanian deadlift',
+  'leg abduction': 'lever seated hip abduction',
+  'bulgarian split squats': 'dumbbell bulgarian split squat',
+  'leg cable kickback': 'cable kickback',
+
+  // Mobility plan
+  'dead bug': 'dead bug',
+  'pallof press hold': 'pallof press',
+  'hanging knee raise': 'hanging knee raise',
+  'side plank': 'side plank',
+  'cossack squat': 'cossack squat',
+  'cat-cow': 'cat cow stretch',
+  'wall slides': 'wall slide',
+  'shoulder cars': 'shoulder circles',
 }
 
 export interface ExerciseDbExercise {
@@ -71,6 +101,17 @@ interface CacheEntry {
 
 interface CacheStorage {
   [key: string]: CacheEntry
+}
+
+// V2 API returns singular fields instead of arrays
+interface V2Exercise {
+  id: string
+  name: string
+  bodyPart: string
+  target: string
+  equipment: string
+  secondaryMuscles: string[]
+  instructions: string[]
 }
 
 function getCache(): CacheStorage {
@@ -107,7 +148,6 @@ function getCachedExercise(key: string): ExerciseDbExercise | null | undefined {
 }
 
 function normalizeSearchName(name: string): string {
-  // Convert exercise name to a search-friendly format
   const normalized = name
     .toLowerCase()
     .replace(/\s*\([^)]*\)/g, '') // Remove parenthetical notes like "(each side)"
@@ -116,7 +156,6 @@ function normalizeSearchName(name: string): string {
     .replace(/\s+/g, ' ')
     .trim()
 
-  // Check if we have a known mapping for this exercise
   if (EXERCISE_NAME_MAPPINGS[normalized]) {
     return EXERCISE_NAME_MAPPINGS[normalized]
   }
@@ -129,7 +168,8 @@ function getMainKeyword(name: string): string | null {
   const keywords = [
     'press', 'curl', 'row', 'squat', 'lunge', 'deadlift', 'fly', 'raise',
     'extension', 'pulldown', 'pull-up', 'pull up', 'dip', 'crunch', 'plank',
-    'thrust', 'walk', 'step', 'bike', 'rowing'
+    'thrust', 'walk', 'step', 'bike', 'rowing',
+    'rotation', 'stretch', 'hang', 'slide', 'circle', 'bug', 'kickback'
   ]
 
   const nameLower = name.toLowerCase()
@@ -141,27 +181,119 @@ function getMainKeyword(name: string): string | null {
   return null
 }
 
-async function fetchExercises(searchTerm: string): Promise<ExerciseDbExercise[]> {
-  const encoded = encodeURIComponent(searchTerm)
-  const response = await fetch(`${BASE_URL}/exercises?search=${encoded}&limit=10`)
+// --- Exponential backoff fetch ---
 
-  if (response.status === 429) {
-    // Rate limited - wait and retry once
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    const retryResponse = await fetch(`${BASE_URL}/exercises?search=${encoded}&limit=10`)
-    if (!retryResponse.ok) {
-      throw new Error(`API error: ${retryResponse.status}`)
+async function fetchWithRetry(url: string, headers?: Record<string, string>): Promise<Response> {
+  const MAX_RETRIES = 3
+  const BASE_DELAY = 2000 // 2s
+
+  const options: RequestInit = headers ? { headers } : {}
+  let lastResponse: Response | undefined
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const response = await fetch(url, options)
+
+    if (response.status !== 429 || attempt === MAX_RETRIES) {
+      return response
     }
-    const retryData = await retryResponse.json()
-    return retryData.data || []
+
+    lastResponse = response
+    const delay = BASE_DELAY * Math.pow(2, attempt) // 2s, 4s, 8s
+    await new Promise(resolve => setTimeout(resolve, delay))
   }
 
+  // Should not reach here, but satisfy TypeScript
+  return lastResponse!
+}
+
+// --- Serial request queue ---
+// Ensures only 1 API call at a time with minimum gap between calls
+
+let requestQueue: Promise<unknown> = Promise.resolve()
+let minGap = 2000
+
+function throttledFetch(url: string, headers?: Record<string, string>): Promise<Response> {
+  const task = requestQueue.then(async () => {
+    const result = await fetchWithRetry(url, headers)
+    if (minGap > 0) {
+      await new Promise(resolve => setTimeout(resolve, minGap))
+    }
+    return result
+  })
+
+  // Chain onto queue (ignore errors so queue doesn't break)
+  requestQueue = task.catch(() => {})
+
+  return task
+}
+
+/** Reset internal queue and delays — for testing only */
+export function _resetForTesting(): void {
+  requestQueue = Promise.resolve()
+  minGap = 0
+}
+
+// --- V2 RapidAPI support ---
+
+function normalizeV2Exercise(v2: V2Exercise): ExerciseDbExercise {
+  return {
+    exerciseId: v2.id,
+    name: v2.name,
+    gifUrl: `${V2_BASE_URL}/image?exerciseId=${v2.id}&resolution=360&rapidapi-key=${getRapidApiKey()}`,
+    targetMuscles: [v2.target],
+    bodyParts: [v2.bodyPart],
+    equipments: [v2.equipment],
+    secondaryMuscles: v2.secondaryMuscles,
+    instructions: v2.instructions,
+  }
+}
+
+async function fetchExercisesV2(searchTerm: string): Promise<ExerciseDbExercise[]> {
+  const apiKey = getRapidApiKey()
+  if (!apiKey) return []
+
+  const encoded = encodeURIComponent(searchTerm)
+  const response = await throttledFetch(
+    `${V2_BASE_URL}/exercises/name/${encoded}?limit=10`,
+    {
+      'X-RapidAPI-Key': apiKey,
+      'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com',
+    }
+  )
+
   if (!response.ok) {
-    throw new Error(`API error: ${response.status}`)
+    throw new Error(`V2 API error: ${response.status}`)
+  }
+
+  const data: V2Exercise[] = await response.json()
+  return (data || []).map(normalizeV2Exercise)
+}
+
+async function fetchExercisesV1(searchTerm: string): Promise<ExerciseDbExercise[]> {
+  const encoded = encodeURIComponent(searchTerm)
+  const response = await throttledFetch(`${V1_BASE_URL}/exercises?search=${encoded}&limit=10`)
+
+  if (!response.ok) {
+    throw new Error(`V1 API error: ${response.status}`)
   }
 
   const data = await response.json()
   return data.data || []
+}
+
+async function fetchExercises(searchTerm: string): Promise<ExerciseDbExercise[]> {
+  // Try V2 first if API key exists
+  if (getRapidApiKey()) {
+    try {
+      const v2Results = await fetchExercisesV2(searchTerm)
+      if (v2Results.length > 0) return v2Results
+    } catch {
+      // V2 failed, fall through to V1
+    }
+  }
+
+  // Fall back to V1
+  return fetchExercisesV1(searchTerm)
 }
 
 export async function searchExerciseByName(exerciseName: string): Promise<ExerciseDbExercise | null> {
@@ -183,7 +315,6 @@ export async function searchExerciseByName(exerciseName: string): Promise<Exerci
     if (!exercise) {
       const mainKeyword = getMainKeyword(exerciseName)
       if (mainKeyword) {
-        // Try to identify equipment type
         const hasBarbell = /barbell|bb\b/i.test(exerciseName)
         const hasDumbbell = /dumbbell|db\b/i.test(exerciseName)
         const hasCable = /cable|rope/i.test(exerciseName)
@@ -205,6 +336,7 @@ export async function searchExerciseByName(exerciseName: string): Promise<Exerci
 
     return exercise
   } catch (error) {
+    // Don't cache on API errors — allow retries on next attempt
     console.error('Error fetching exercise from ExerciseDB:', error)
     return null
   }
@@ -214,9 +346,8 @@ function findBestMatch(exercises: ExerciseDbExercise[], searchName: string): Exe
   if (exercises.length === 0) return null
 
   const searchLower = searchName.toLowerCase()
-  const searchWords = searchLower.split(' ').filter(w => w.length > 2) // Filter short words
+  const searchWords = searchLower.split(' ').filter(w => w.length > 2)
 
-  // Score-based matching for better results
   let bestMatch: ExerciseDbExercise | null = null
   let bestScore = 0
 
@@ -226,7 +357,7 @@ function findBestMatch(exercises: ExerciseDbExercise[], searchName: string): Exe
 
     // Exact match - highest score
     if (nameLower === searchLower) {
-      return exercise // Immediate return for exact match
+      return exercise
     }
 
     // Starts with search term
@@ -260,7 +391,6 @@ function findBestMatch(exercises: ExerciseDbExercise[], searchName: string): Exe
     }
   }
 
-  // Return best match if score is reasonable, otherwise first result
   return bestScore > 5 ? bestMatch : exercises[0]
 }
 

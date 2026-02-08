@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import {
   searchExerciseByName,
   clearExerciseCache,
+  _resetForTesting,
   ExerciseDbExercise,
 } from '../exerciseDbService'
 
@@ -41,10 +42,15 @@ describe('exerciseDbService', () => {
     vi.clearAllMocks()
     mockLocalStorage.store = {}
     mockFetch.mockReset()
+    // Disable V2 by default — no API key
+    vi.stubEnv('VITE_RAPIDAPI_KEY', '')
+    // Reset serial queue and set delays to 0 for fast tests
+    _resetForTesting()
   })
 
   afterEach(() => {
     clearExerciseCache()
+    vi.unstubAllEnvs()
   })
 
   describe('searchExerciseByName', () => {
@@ -58,7 +64,8 @@ describe('exerciseDbService', () => {
       const result = await searchExerciseByName('bench press')
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('exercises?search=bench%20press')
+        expect.stringContaining('exercises?search=bench%20press'),
+        expect.anything()
       )
       expect(result).toEqual(mockExercise)
     })
@@ -74,7 +81,7 @@ describe('exerciseDbService', () => {
 
       expect(mockLocalStorage.setItem).toHaveBeenCalled()
       const cacheCall = mockLocalStorage.setItem.mock.calls[0]
-      expect(cacheCall[0]).toBe('exercisedb_cache_v3')
+      expect(cacheCall[0]).toBe('exercisedb_cache_v4')
       const cached = JSON.parse(cacheCall[1])
       expect(cached['bench press'].data).toEqual(mockExercise)
     })
@@ -87,7 +94,7 @@ describe('exerciseDbService', () => {
           timestamp: Date.now(),
         },
       }
-      mockLocalStorage.store['exercisedb_cache_v3'] = JSON.stringify(cacheData)
+      mockLocalStorage.store['exercisedb_cache_v4'] = JSON.stringify(cacheData)
 
       const result = await searchExerciseByName('bench press')
 
@@ -103,7 +110,7 @@ describe('exerciseDbService', () => {
           timestamp: Date.now() - 8 * 24 * 60 * 60 * 1000,
         },
       }
-      mockLocalStorage.store['exercisedb_cache_v3'] = JSON.stringify(cacheData)
+      mockLocalStorage.store['exercisedb_cache_v4'] = JSON.stringify(cacheData)
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -143,7 +150,7 @@ describe('exerciseDbService', () => {
       expect(cached['nonexistent exercise'].data).toBeNull()
     })
 
-    it('handles API errors gracefully', async () => {
+    it('handles API errors gracefully without caching', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -152,10 +159,16 @@ describe('exerciseDbService', () => {
       const result = await searchExerciseByName('bench press')
 
       expect(result).toBeNull()
+      // Should NOT cache the error result
+      expect(mockLocalStorage.setItem).not.toHaveBeenCalled()
     })
 
-    it('retries on rate limit (429)', async () => {
+    it('retries on rate limit (429) with exponential backoff', async () => {
       mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 429,
+        })
         .mockResolvedValueOnce({
           ok: false,
           status: 429,
@@ -168,45 +181,44 @@ describe('exerciseDbService', () => {
 
       const result = await searchExerciseByName('bench press')
 
-      expect(mockFetch).toHaveBeenCalledTimes(2)
+      // 3 fetch calls: initial 429, retry 429, retry success
+      expect(mockFetch).toHaveBeenCalledTimes(3)
       expect(result).toEqual(mockExercise)
-    })
+    }, 15000) // Backoff delays: 2s + 4s = 6s minimum
 
     describe('exercise name mapping', () => {
       it('expands "db" to "dumbbell" in search term', async () => {
-        // The normalizer expands "db" to "dumbbell" before checking mappings
-        mockFetch
-          .mockResolvedValueOnce({
-            ok: true,
-            status: 200,
-            json: () => Promise.resolve({ data: [mockExercise] }),
-          })
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ data: [mockExercise] }),
+        })
 
         await searchExerciseByName('incline db press')
 
-        // "incline db press" becomes "incline dumbbell press"
+        // "incline db press" → "db" expands to "dumbbell" → "incline dumbbell press"
         expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('search=incline%20dumbbell%20press')
+          expect.stringContaining('search=incline%20dumbbell%20press'),
+          expect.anything()
         )
       })
 
       it('maps "pull-ups" to "pull up"', async () => {
-        mockFetch
-          .mockResolvedValueOnce({
-            ok: true,
-            status: 200,
-            json: () => Promise.resolve({ data: [mockExercise] }),
-          })
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ data: [mockExercise] }),
+        })
 
         await searchExerciseByName('pull-ups')
 
         expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('search=pull%20up')
+          expect.stringContaining('search=pull%20up'),
+          expect.anything()
         )
       })
 
       it('removes parenthetical notes from exercise names', async () => {
-        // Need fallback search too since lunges doesn't match exactly
         mockFetch
           .mockResolvedValueOnce({
             ok: true,
@@ -223,7 +235,8 @@ describe('exerciseDbService', () => {
 
         // First call should be with 'lunges' without the parenthetical
         expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('search=lunges')
+          expect.stringContaining('search=lunges'),
+          expect.anything()
         )
       })
     })
@@ -282,20 +295,103 @@ describe('exerciseDbService', () => {
         expect(mockFetch).toHaveBeenCalledTimes(2)
         // Second call should include equipment type
         expect(mockFetch).toHaveBeenLastCalledWith(
-          expect.stringContaining('barbell%20press')
+          expect.stringContaining('barbell%20press'),
+          expect.anything()
         )
+      })
+    })
+
+    describe('V2 RapidAPI support', () => {
+      const mockV2Response = [
+        {
+          id: '100',
+          name: 'barbell bench press',
+          bodyPart: 'chest',
+          target: 'pectorals',
+          equipment: 'barbell',
+          secondaryMuscles: ['triceps', 'shoulders'],
+          instructions: ['Lie on bench', 'Press up'],
+        },
+      ]
+
+      it('uses V2 API when RAPIDAPI_KEY is set', async () => {
+        vi.stubEnv('VITE_RAPIDAPI_KEY', 'test-key-123')
+
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(mockV2Response),
+        })
+
+        const result = await searchExerciseByName('bench press')
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          expect.stringContaining('exercisedb.p.rapidapi.com'),
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              'X-RapidAPI-Key': 'test-key-123',
+            }),
+          })
+        )
+        expect(result).not.toBeNull()
+      })
+
+      it('normalizes V2 singular fields to arrays', async () => {
+        vi.stubEnv('VITE_RAPIDAPI_KEY', 'test-key-123')
+
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(mockV2Response),
+        })
+
+        const result = await searchExerciseByName('bench press')
+
+        expect(result).not.toBeNull()
+        expect(result!.bodyParts).toEqual(['chest'])
+        expect(result!.targetMuscles).toEqual(['pectorals'])
+        expect(result!.equipments).toEqual(['barbell'])
+        expect(result!.gifUrl).toContain('exercisedb.p.rapidapi.com/image')
+        expect(result!.gifUrl).toContain('exerciseId=100')
+      })
+
+      it('falls back to V1 when V2 returns empty results', async () => {
+        vi.stubEnv('VITE_RAPIDAPI_KEY', 'test-key-123')
+
+        mockFetch
+          // V2 returns empty
+          .mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            json: () => Promise.resolve([]),
+          })
+          // V1 returns result
+          .mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            json: () => Promise.resolve({ data: [mockExercise] }),
+          })
+
+        const result = await searchExerciseByName('bench press')
+
+        expect(mockFetch).toHaveBeenCalledTimes(2)
+        // First call: V2
+        expect(mockFetch.mock.calls[0][0]).toContain('exercisedb.p.rapidapi.com')
+        // Second call: V1
+        expect(mockFetch.mock.calls[1][0]).toContain('oss.exercisedb.dev')
+        expect(result).toEqual(mockExercise)
       })
     })
   })
 
   describe('clearExerciseCache', () => {
     it('removes cache from localStorage', () => {
-      mockLocalStorage.store['exercisedb_cache_v3'] = JSON.stringify({})
+      mockLocalStorage.store['exercisedb_cache_v4'] = JSON.stringify({})
 
       clearExerciseCache()
 
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith(
-        'exercisedb_cache_v3'
+        'exercisedb_cache_v4'
       )
     })
   })

@@ -16,8 +16,8 @@ export function useExerciseInfo(exerciseName: string | undefined): UseExerciseIn
     enabled: !!exerciseName,
     staleTime: 7 * 24 * 60 * 60 * 1000, // 7 days - exercises don't change
     gcTime: 30 * 24 * 60 * 60 * 1000, // Keep in cache for 30 days
-    retry: 2,
-    retryDelay: 1000
+    retry: 1,
+    retryDelay: 5000
   })
 
   return {
