@@ -110,25 +110,18 @@ function getWeeklyCount(sessions: { completed_at: string | null }[]): number {
   return days.size
 }
 
-// Get last session summary for a weights workout day
-function getWeightsLastSession(dayId: string, sessions: SessionWithDay[]): string | undefined {
-  const last = sessions
-    .filter(s => s.workout_day_id === dayId && s.completed_at)
-    .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime())[0]
-  if (!last) return undefined
-  return formatRelativeTime(last.completed_at!)
+// Get session summary for a weights workout day
+function getWeightsSessionSummary(dayId: string, sessions: SessionWithDay[]): string | undefined {
+  const completed = sessions.filter(s => s.workout_day_id === dayId && s.completed_at)
+  if (completed.length === 0) return undefined
+  return `${completed.length} session${completed.length !== 1 ? 's' : ''} completed`
 }
 
-// Get last session summary for a template workout (mobility)
-function getTemplateLastSession(templateId: string, sessions: TemplateWorkoutSession[]): string | undefined {
-  const last = sessions
-    .filter(s => s.template_id === templateId && s.completed_at)
-    .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime())[0]
-  if (!last) return undefined
-  if (last.duration_minutes) {
-    return `${last.duration_minutes} min \u00b7 ${formatRelativeTime(last.completed_at!)}`
-  }
-  return formatRelativeTime(last.completed_at!)
+// Get session summary for a mobility category (matches all duration variants)
+function getMobilityCategorySummary(category: string, sessions: TemplateWorkoutSession[]): string | undefined {
+  const completed = sessions.filter(s => s.completed_at && s.template?.category === category)
+  if (completed.length === 0) return undefined
+  return `${completed.length} session${completed.length !== 1 ? 's' : ''} completed`
 }
 
 // Workout Day Card Component
@@ -478,7 +471,7 @@ export function HomePage() {
                 day={day}
                 onClick={() => handleStartWorkout(day.id)}
                 delay={idx * 0.06}
-                subtitle={getWeightsLastSession(day.id, weightsSessions)}
+                subtitle={getWeightsSessionSummary(day.id, weightsSessions)}
               />
             ))
           ) : (
@@ -541,7 +534,7 @@ export function HomePage() {
                 template={template}
                 onClick={() => handleStartMobility(category)}
                 delay={idx * 0.06}
-                subtitle={getTemplateLastSession(template.id, templateSessions)}
+                subtitle={getMobilityCategorySummary(category, templateSessions)}
               />
             ))
           ) : (

@@ -1,4 +1,3 @@
-import { formatRelativeTime } from '@/utils/formatters'
 import type { TemplateWorkoutSession } from '@/services/templateWorkoutService'
 import type { ScheduleDay } from '@/services/scheduleService'
 
@@ -59,15 +58,9 @@ export function getCardioTemplateStats(
 
   // Build summary string
   let lastSessionSummary = 'No sessions yet'
-  if (lastSession) {
-    const timePart = formatRelativeTime(lastSession.completed_at!)
-    if (lastSession.distance_value && lastSession.distance_unit) {
-      lastSessionSummary = `${lastSession.distance_value} ${lastSession.distance_unit} \u00b7 ${timePart}`
-    } else if (lastSession.duration_minutes) {
-      lastSessionSummary = `${lastSession.duration_minutes} min \u00b7 ${timePart}`
-    } else {
-      lastSessionSummary = timePart
-    }
+  const count = templateSessions.length
+  if (count > 0) {
+    lastSessionSummary = `${count} session${count !== 1 ? 's' : ''} completed`
   }
 
   // Weekly count: sessions completed since start of current week (Sunday)
