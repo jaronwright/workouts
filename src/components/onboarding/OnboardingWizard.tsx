@@ -20,7 +20,7 @@ import type { ScheduleWorkoutItem } from '@/services/scheduleService'
 interface OnboardingWizardProps {
   isOpen: boolean
   onClose: () => void
-  initialStep?: 1 | 2 | 3
+  initialStep?: 1 | 2 | 3 | 4
   initialPlanId?: string
 }
 
@@ -44,7 +44,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   const { mutateAsync: uploadAvatar } = useUploadAvatar()
   const { theme, setTheme } = useTheme()
 
-  const [step, setStep] = useState<1 | 2 | 3>(initialStep)
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(initialStep)
   const [selectedPlanId, setSelectedPlanId] = useState<string>(initialPlanId || profile?.selected_plan_id || PPL_PLAN_ID)
   const { data: workoutDays } = useWorkoutDays(selectedPlanId)
 
@@ -61,7 +61,6 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   const [expandedSplit, setExpandedSplit] = useState<string | null>(null)
 
   // Auto-builder state
-  const [showAutoBuilder, setShowAutoBuilder] = useState(false)
   const [autoFocus, setAutoFocus] = useState<'all-weights' | 'all-cardio' | 'mix'>('mix')
   const [restDays, setRestDays] = useState<1 | 2 | 3>(2)
   const [mobilityImportant, setMobilityImportant] = useState(true)
@@ -89,7 +88,6 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
       setExpandedDay(null)
 
       // Auto-builder defaults
-      setShowAutoBuilder(false)
       setAutoFocus('mix')
       setRestDays(2)
       setMobilityImportant(true)
@@ -373,7 +371,6 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
     }
 
     setSelections(newSelections)
-    setShowAutoBuilder(false)
     setError(null)
   }, [autoFocus, restDays, mobilityImportant, workoutDays, cardioTemplates, mobilityTemplates])
 
@@ -395,9 +392,12 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
     } else if (step === 2) {
       if (initialStep >= 2) onClose()
       else setStep(1)
-    } else {
+    } else if (step === 3) {
       if (initialStep >= 3) onClose()
       else setStep(2)
+    } else {
+      if (initialStep >= 4) onClose()
+      else setStep(3)
     }
   }
 
@@ -408,12 +408,13 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
         <div className={`flex-1 h-1.5 rounded-full transition-colors ${step >= 1 ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`} />
         <div className={`flex-1 h-1.5 rounded-full transition-colors ${step >= 2 ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`} />
         <div className={`flex-1 h-1.5 rounded-full transition-colors ${step >= 3 ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`} />
+        <div className={`flex-1 h-1.5 rounded-full transition-colors ${step >= 4 ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`} />
       </div>
 
       {/* Navigation Row */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-2">
         <div className="w-10">
-          {((step === 2 && initialStep < 2) || (step === 3 && initialStep < 3)) && (
+          {((step === 2 && initialStep < 2) || (step === 3 && initialStep < 3) || (step === 4 && initialStep < 4)) && (
             <button
               onClick={handleBack}
               className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] transition-colors"
@@ -858,8 +859,8 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
               </div>
             )}
           </div>
-        ) : (
-          /* Step 3: Schedule Setup */
+        ) : step === 3 ? (
+          /* Step 3: Build Your Program */
           <div className="max-w-lg mx-auto px-6 py-4 space-y-6">
             {/* Heading */}
             <div className="space-y-1">
@@ -867,7 +868,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                 Build Your Workout Cycle
               </h2>
               <p className="text-[var(--color-text-muted)]">
-                Create a 7-day rotation that fits your goals
+                Answer a few questions and we'll create a 7-day rotation for you
               </p>
             </div>
 
@@ -943,123 +944,123 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
               )}
             </div>
 
-            {/* Auto-Builder Section */}
-            <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setShowAutoBuilder(!showAutoBuilder)}
-                className="w-full flex items-center gap-3 p-4 hover:bg-[var(--color-surface-hover)] transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-amber-500" />
+            {/* Auto-Builder Questions (shown directly) */}
+            <div className="space-y-5">
+              {/* Q1: Workout Focus */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-[var(--color-text)]">What's your workout focus?</p>
+                <div className="flex gap-2">
+                  {([['all-weights', 'All Weights'], ['all-cardio', 'All Cardio'], ['mix', 'Mix of Both']] as const).map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setAutoFocus(value)}
+                      className={`flex-1 py-2 px-3 rounded-full text-sm font-medium transition-all ${
+                        autoFocus === value
+                          ? 'bg-[var(--color-primary)] text-white'
+                          : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium text-[var(--color-text)]">Build a program for me</p>
-                  <p className="text-sm text-[var(--color-text-muted)]">Let us fill in your schedule</p>
+              </div>
+
+              {/* Q2: Rest Days */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-[var(--color-text)]">How many rest days per week?</p>
+                <div className="flex gap-2">
+                  {([1, 2, 3] as const).map(value => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setRestDays(value)}
+                      className={`flex-1 py-2 px-3 rounded-full text-sm font-medium transition-all ${
+                        restDays === value
+                          ? 'bg-[var(--color-primary)] text-white'
+                          : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                      }`}
+                    >
+                      {value} day{value > 1 ? 's' : ''}
+                    </button>
+                  ))}
                 </div>
-                <ChevronDown className={`w-5 h-5 text-[var(--color-text-muted)] transition-transform duration-200 ${showAutoBuilder ? 'rotate-180' : ''}`} />
-              </button>
+              </div>
 
-              {showAutoBuilder && (
-                <div className="border-t border-[var(--color-border)] p-4 space-y-5 bg-[var(--color-background)]">
-                  {/* Q1: Workout Focus */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-[var(--color-text)]">What's your workout focus?</p>
-                    <div className="flex gap-2">
-                      {([['all-weights', 'All Weights'], ['all-cardio', 'All Cardio'], ['mix', 'Mix of Both']] as const).map(([value, label]) => (
-                        <button
-                          key={value}
-                          type="button"
-                          onClick={() => setAutoFocus(value)}
-                          className={`flex-1 py-2 px-3 rounded-full text-sm font-medium transition-all ${
-                            autoFocus === value
-                              ? 'bg-[var(--color-primary)] text-white'
-                              : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Q2: Rest Days */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-[var(--color-text)]">How many rest days per week?</p>
-                    <div className="flex gap-2">
-                      {([1, 2, 3] as const).map(value => (
-                        <button
-                          key={value}
-                          type="button"
-                          onClick={() => setRestDays(value)}
-                          className={`flex-1 py-2 px-3 rounded-full text-sm font-medium transition-all ${
-                            restDays === value
-                              ? 'bg-[var(--color-primary)] text-white'
-                              : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-                          }`}
-                        >
-                          {value} day{value > 1 ? 's' : ''}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Q3: Mobility */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-[var(--color-text)]">Include mobility work?</p>
-                    <div className="flex gap-2">
-                      {([true, false] as const).map(value => (
-                        <button
-                          key={String(value)}
-                          type="button"
-                          onClick={() => setMobilityImportant(value)}
-                          className={`flex-1 py-2 px-3 rounded-full text-sm font-medium transition-all ${
-                            mobilityImportant === value
-                              ? 'bg-[var(--color-primary)] text-white'
-                              : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-                          }`}
-                        >
-                          {value ? 'Yes' : 'No'}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-xs text-[var(--color-text-muted)] italic leading-relaxed pt-1">
-                      I highly recommend including mobility work — it changed everything for me after an injury.{' '}
-                      <button
-                        type="button"
-                        onClick={() => setShowMobilityNote(!showMobilityNote)}
-                        className="text-[var(--color-primary)] hover:underline not-italic font-medium"
-                      >
-                        {showMobilityNote ? 'Less' : 'My story'}
-                      </button>
-                    </p>
-                    {showMobilityNote && (
-                      <div className="text-xs text-[var(--color-text-muted)] leading-relaxed bg-[var(--color-surface-hover)] rounded-lg p-3">
-                        <p>
-                          A knee injury led to chronic low back pain that stopped me from doing the things I loved every day — it really affected my mood and who I was. I ended up spending a month in Bali training at Nirvana Strength, where I rebuilt my body through daily mobility work. That experience is what inspired this app, and where I first started building it with Claude Code. I now practice mobility every single day and I genuinely believe it belongs in every training program. — Jaron
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Build Button */}
+              {/* Q3: Mobility */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-[var(--color-text)]">Include mobility work?</p>
+                <div className="flex gap-2">
+                  {([true, false] as const).map(value => (
+                    <button
+                      key={String(value)}
+                      type="button"
+                      onClick={() => setMobilityImportant(value)}
+                      className={`flex-1 py-2 px-3 rounded-full text-sm font-medium transition-all ${
+                        mobilityImportant === value
+                          ? 'bg-[var(--color-primary)] text-white'
+                          : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                      }`}
+                    >
+                      {value ? 'Yes' : 'No'}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-[var(--color-text-muted)] italic leading-relaxed pt-1">
+                  I highly recommend including mobility work — it changed everything for me after an injury.{' '}
                   <button
                     type="button"
-                    onClick={generateSchedule}
-                    className="w-full py-3 rounded-xl bg-[var(--color-primary)] text-white font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                    onClick={() => setShowMobilityNote(!showMobilityNote)}
+                    className="text-[var(--color-primary)] hover:underline not-italic font-medium"
                   >
-                    <Sparkles className="w-4 h-4" />
-                    Build My Program
+                    {showMobilityNote ? 'Less' : 'My story'}
                   </button>
-                </div>
-              )}
+                </p>
+                {showMobilityNote && (
+                  <div className="text-xs text-[var(--color-text-muted)] leading-relaxed bg-[var(--color-surface-hover)] rounded-lg p-3">
+                    <p>
+                      A knee injury led to chronic low back pain that stopped me from doing the things I loved every day — it really affected my mood and who I was. I ended up spending a month in Bali training at Nirvana Strength, where I rebuilt my body through daily mobility work. That experience is what inspired this app, and where I first started building it with Claude Code. I now practice mobility every single day and I genuinely believe it belongs in every training program. — Jaron
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
+          </div>
+        ) : (
+          /* Step 4: Your 7-Day Cycle */
+          <div className="max-w-lg mx-auto px-6 py-4 space-y-6">
+            {/* Heading */}
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold text-[var(--color-text)]">
+                Your 7-Day Cycle
+              </h2>
+              <p className="text-[var(--color-text-muted)]">
+                Review and customize your schedule
+              </p>
+            </div>
+
+            {/* Contextual message */}
+            {configuredCount > 0 ? (
+              <div className="rounded-2xl bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 p-4 flex items-start gap-3">
+                <Sparkles className="w-5 h-5 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-[var(--color-text-muted)]">
+                  Your program is ready — feel free to customize any day below.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-4">
+                <p className="text-sm text-[var(--color-text-muted)]">
+                  Configure each day of your 7-day cycle.
+                </p>
+              </div>
+            )}
 
             {/* Day Selection */}
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-                  Your 7-Day Cycle
+                  Schedule
                 </h3>
                 <span className="text-sm text-[var(--color-text-muted)]">
                   {configuredCount}/7 days set
@@ -1102,6 +1103,24 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
             <Button size="lg" onClick={handleSplitNext} loading={isSplitSaving} disabled={isSplitSaving} className="w-full">
               Continue
             </Button>
+          ) : step === 3 ? (
+            <div className="space-y-2">
+              <Button
+                size="lg"
+                onClick={() => { generateSchedule(); setStep(4) }}
+                className="w-full"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Build My Program
+              </Button>
+              <button
+                type="button"
+                onClick={() => setStep(4)}
+                className="w-full py-2 text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+              >
+                No thanks, I'll build it from scratch
+              </button>
+            </div>
           ) : (
             <Button
               size="lg"
