@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
 import {
   useTemplate,
+  useLastTemplateSession,
   useQuickLogTemplateWorkout,
   useStartTemplateWorkout,
   useCompleteTemplateWorkout
@@ -23,6 +24,7 @@ export function CardioWorkoutPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const { data: template, isLoading } = useTemplate(templateId)
+  const { data: lastSession } = useLastTemplateSession(templateId)
 
   const quickLog = useQuickLogTemplateWorkout()
   const startWorkout = useStartTemplateWorkout()
@@ -225,11 +227,18 @@ export function CardioWorkoutPage() {
               <h2 className="text-lg font-bold text-[var(--color-text)]">
                 {template.name}
               </h2>
-              {template.duration_minutes && (
-                <p className="text-sm text-[var(--color-text-muted)]">
-                  Target: {template.duration_minutes} min
-                </p>
-              )}
+              <p className="text-sm text-[var(--color-text-muted)]">
+                {lastSession ? (
+                  <>
+                    Last: {lastSession.duration_minutes ? `${lastSession.duration_minutes} min` : ''}
+                    {lastSession.duration_minutes && lastSession.distance_value ? ' · ' : ''}
+                    {lastSession.distance_value ? `${lastSession.distance_value} ${lastSession.distance_unit || ''}` : ''}
+                    {!lastSession.duration_minutes && !lastSession.distance_value ? 'Completed' : ''}
+                  </>
+                ) : (
+                  'No previous sessions'
+                )}
+              </p>
             </div>
           </CardContent>
         </Card>

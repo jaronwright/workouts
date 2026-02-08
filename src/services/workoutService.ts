@@ -83,6 +83,13 @@ export async function getWorkoutDayWithSections(dayId: string): Promise<WorkoutD
 }
 
 export async function startWorkoutSession(userId: string, workoutDayId: string): Promise<WorkoutSession> {
+  // Clean up any orphaned incomplete sessions before starting a new one
+  await supabase
+    .from('workout_sessions')
+    .delete()
+    .eq('user_id', userId)
+    .is('completed_at', null)
+
   const { data, error } = await supabase
     .from('workout_sessions')
     .insert({

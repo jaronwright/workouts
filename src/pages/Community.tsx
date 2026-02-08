@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Users, MessageCircle, Trophy, Heart, Cpu, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { AppShell } from '@/components/layout/AppShell'
 
 export function CommunityPage() {
   const [showOpenClaw, setShowOpenClaw] = useState(false)
+  const navigate = useNavigate()
 
   return (
     <AppShell title="Community">
@@ -30,7 +32,14 @@ export function CommunityPage() {
           </p>
 
           <p>
-            If you spot any bugs, just text me. Everyone on the app right now is a friend of mine, so don't be shy.
+            If you spot any bugs or have a feature idea, you can{' '}
+            <button
+              onClick={() => navigate('/profile', { state: { openFeedback: true } })}
+              className="text-[var(--color-primary)] font-medium underline underline-offset-2"
+            >
+              report it right in the app
+            </button>
+            . Everyone on the app right now is a friend of mine, so don't be shy.
           </p>
 
           {/* What's Coming */}

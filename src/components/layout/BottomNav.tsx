@@ -6,7 +6,7 @@ const navItems = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/community', icon: Users, label: 'Community' },
   { to: '/schedule', icon: Calendar, label: 'Schedule' },
-  { to: '/history', icon: History, label: 'History' },
+  { to: '/history', icon: History, label: 'Review' },
   { to: '/profile', icon: User, label: 'Profile' }
 ]
 
@@ -22,9 +22,9 @@ export function BottomNav() {
                 to={to}
                 end={to === '/'}
                 className={({ isActive }) => `
-                  relative flex flex-col items-center justify-center gap-0.5
-                  w-16 py-2 rounded-[var(--radius-lg)]
-                  transition-colors duration-100
+                  relative flex flex-col items-center justify-center gap-1
+                  min-w-14 px-2 py-1.5
+                  transition-colors duration-150
                   ${isActive
                     ? 'text-[var(--color-primary)]'
                     : 'text-[var(--color-text-muted)]'
@@ -33,31 +33,22 @@ export function BottomNav() {
               >
                 {({ isActive }) => (
                   <>
-                    {isActive && (
-                      <motion.div
-                        layoutId="nav-active-indicator"
-                        className="absolute inset-1 bg-[var(--color-primary)]/10 rounded-[var(--radius-md)]"
-                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    <div className="relative flex items-center justify-center w-10 h-7">
+                      {isActive && (
+                        <motion.div
+                          layoutId="nav-active-pill"
+                          className="absolute inset-0 bg-[var(--color-primary)]/12 rounded-full"
+                          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                        />
+                      )}
+                      <Icon
+                        className="relative w-[18px] h-[18px]"
+                        strokeWidth={isActive ? 2.5 : 1.8}
                       />
-                    )}
-                    <Icon
-                      className="relative w-5 h-5"
-                      strokeWidth={isActive ? 2.5 : 2}
-                    />
-                    {isActive ? (
-                      <motion.span
-                        initial={{ opacity: 0, y: 2 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-                        className="relative text-[10px] tracking-wide font-semibold"
-                      >
-                        {label}
-                      </motion.span>
-                    ) : (
-                      <span className="relative text-[10px] tracking-wide font-medium">
-                        {label}
-                      </span>
-                    )}
+                    </div>
+                    <span className={`relative text-[10px] leading-none ${isActive ? 'font-semibold' : 'font-medium'}`}>
+                      {label}
+                    </span>
                   </>
                 )}
               </NavLink>

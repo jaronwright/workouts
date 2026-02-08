@@ -105,7 +105,15 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
 
   const cardioTemplates = useMemo(() => templates?.filter(t => t.type === 'cardio') || [], [templates])
-  const mobilityTemplates = useMemo(() => templates?.filter(t => t.type === 'mobility') || [], [templates])
+  const mobilityTemplates = useMemo(() => {
+    const all = templates?.filter(t => t.type === 'mobility') || []
+    const seen = new Set<string>()
+    return all.filter(t => {
+      if (seen.has(t.name)) return false
+      seen.add(t.name)
+      return true
+    })
+  }, [templates])
 
   const handleSelectPlan = useCallback((planId: string) => {
     setSelectedPlanId(planId)

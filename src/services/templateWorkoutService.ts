@@ -130,6 +130,32 @@ export async function quickLogTemplateWorkout(
   return completed
 }
 
+export async function getLastCompletedTemplateSession(
+  userId: string,
+  templateId: string
+): Promise<TemplateWorkoutSession | null> {
+  const { data, error } = await supabase
+    .from('template_workout_sessions')
+    .select(`
+      *,
+      template:workout_templates(*)
+    `)
+    .eq('user_id', userId)
+    .eq('template_id', templateId)
+    .not('completed_at', 'is', null)
+    .order('completed_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    if (error.code === '42P01' || error.message?.includes('does not exist')) {
+      return null
+    }
+    throw error
+  }
+  return data as TemplateWorkoutSession | null
+}
+
 export async function getActiveTemplateWorkout(userId: string): Promise<TemplateWorkoutSession | null> {
   const { data, error } = await supabase
     .from('template_workout_sessions')

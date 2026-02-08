@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { AppShell } from '@/components/layout'
 import { Button, Input, Card, CardContent, Modal, AnimatedCounter } from '@/components/ui'
@@ -15,10 +16,11 @@ import { PasswordStrengthIndicator } from '@/components/auth/PasswordStrengthInd
 import { validatePassword } from '@/utils/validation'
 import { deleteUserAccount } from '@/services/profileService'
 import { staggerContainer, staggerChild } from '@/config/animationConfig'
-import { Calendar, Shield, Mail, ChevronDown, ChevronUp, LogOut, Sun, Moon as MoonIcon, Monitor, Dumbbell, Trophy, Flame, Star, ArrowLeftRight, ArrowUpDown, Heart } from 'lucide-react'
+import { Calendar, Shield, Mail, ChevronDown, ChevronUp, LogOut, Sun, Moon as MoonIcon, Monitor, Dumbbell, Trophy, Flame, Star, ArrowLeftRight, ArrowUpDown, Heart, MessageSquarePlus, Bug, Lightbulb, Pencil, Check, X } from 'lucide-react'
 import { AvatarUpload } from '@/components/profile/AvatarUpload'
 import { OnboardingWizard } from '@/components/onboarding'
 import { useTheme } from '@/hooks/useTheme'
+import { useSubmitFeedback, useUserFeedback } from '@/hooks/useFeedback'
 import { getWorkoutDisplayName } from '@/config/workoutConfig'
 import type { SessionWithDay } from '@/services/workoutService'
 import {
@@ -93,6 +95,8 @@ function useLifetimeStats() {
 }
 
 export function ProfilePage() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const updatePassword = useAuthStore((s) => s.updatePassword)
   const updateEmail = useAuthStore((s) => s.updateEmail)
@@ -102,12 +106,14 @@ export function ProfilePage() {
   const { mutate: updateProfile, mutateAsync: updateProfileAsync, isPending: isSaving } = useUpdateProfile()
   const currentCycleDay = useCycleDay()
   const dateInputRef = useRef<HTMLInputElement>(null)
+  const feedbackRef = useRef<HTMLDivElement>(null)
   const { theme, setTheme } = useTheme()
   const { success, error: showError } = useToast()
   const prefersReduced = useReducedMotion()
   const lifetimeStats = useLifetimeStats()
 
   const [displayName, setDisplayName] = useState('')
+  const [isEditingName, setIsEditingName] = useState(false)
   const [saved, setSaved] = useState(false)
 
   // Security section state
@@ -132,12 +138,28 @@ export function ProfilePage() {
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // Feedback section state
+  const openFeedback = (location.state as { openFeedback?: boolean } | null)?.openFeedback ?? false
+  const [feedbackExpanded, setFeedbackExpanded] = useState(openFeedback)
+  const [feedbackType, setFeedbackType] = useState<'bug' | 'feature'>('bug')
+  const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
+  const { mutate: submitFeedback, isPending: isSubmittingFeedback } = useSubmitFeedback()
+  const { data: pastFeedback } = useUserFeedback()
+
   // Initialize form from profile data
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || '')
     }
   }, [profile])
+
+  // Scroll to feedback section when navigated with openFeedback state
+  useEffect(() => {
+    if (openFeedback && feedbackRef.current) {
+      setTimeout(() => feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)
+    }
+  }, [openFeedback])
 
   const handleSave = () => {
     updateProfile(
@@ -147,6 +169,7 @@ export function ProfilePage() {
       {
         onSuccess: () => {
           setSaved(true)
+          setIsEditingName(false)
           success('Profile saved')
           setTimeout(() => setSaved(false), 2000)
         },
@@ -304,10 +327,54 @@ export function ProfilePage() {
             <CardContent className="py-4">
               <div className="flex items-center gap-4">
                 <AvatarUpload />
-                <div>
-                  <h2 className="text-lg font-semibold text-[var(--color-text)]">
-                    {displayName || 'No name set'}
-                  </h2>
+                <div className="flex-1 min-w-0">
+                  {isEditingName ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSave()
+                          if (e.key === 'Escape') {
+                            setDisplayName(profile?.display_name || '')
+                            setIsEditingName(false)
+                          }
+                        }}
+                        autoFocus
+                        className="text-lg font-semibold text-[var(--color-text)] bg-transparent border-b-2 border-[var(--color-primary)] outline-none w-full min-w-0"
+                        placeholder="Enter your name"
+                      />
+                      <button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="p-1 text-emerald-500 hover:bg-emerald-500/10 rounded-md shrink-0"
+                        aria-label="Save name"
+                      >
+                        <Check className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDisplayName(profile?.display_name || '')
+                          setIsEditingName(false)
+                        }}
+                        className="p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] rounded-md shrink-0"
+                        aria-label="Cancel editing"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setIsEditingName(true)}
+                      className="flex items-center gap-2 group text-left"
+                    >
+                      <h2 className="text-lg font-semibold text-[var(--color-text)] truncate">
+                        {displayName || 'No name set'}
+                      </h2>
+                      <Pencil className="w-3.5 h-3.5 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                    </button>
+                  )}
                   <p className="text-sm text-[var(--color-text-muted)]">{user?.email}</p>
                 </div>
               </div>
@@ -351,26 +418,6 @@ export function ProfilePage() {
               </CardContent>
             </Card>
           </div>
-        </motion.div>
-
-        {/* Edit Form */}
-        <motion.div variants={staggerChild}>
-          <Card>
-            <CardContent className="py-4 space-y-4">
-              <h3 className="font-semibold text-[var(--color-text)]">Edit Profile</h3>
-
-              <Input
-                label="Display Name"
-                placeholder="Enter your name"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-              />
-
-              <Button onClick={handleSave} loading={isSaving} className="w-full">
-                {saved ? 'Saved!' : 'Save Changes'}
-              </Button>
-            </CardContent>
-          </Card>
         </motion.div>
 
         {/* Workout Split Section */}
@@ -694,6 +741,152 @@ export function ProfilePage() {
           </Card>
         </motion.div>
 
+        {/* Feedback Section */}
+        <motion.div variants={staggerChild} ref={feedbackRef}>
+          <Card>
+            <CardContent className="py-4">
+              <button
+                onClick={() => {
+                  setFeedbackExpanded(!feedbackExpanded)
+                  if (!feedbackExpanded) setFeedbackSubmitted(false)
+                }}
+                className="w-full flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center">
+                    <MessageSquarePlus className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-semibold text-[var(--color-text)]">Feedback</h3>
+                    <p className="text-sm text-[var(--color-text-muted)]">Report a bug or request a feature</p>
+                  </div>
+                </div>
+                {feedbackExpanded ? (
+                  <ChevronUp className="w-5 h-5 text-[var(--color-text-muted)]" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-[var(--color-text-muted)]" />
+                )}
+              </button>
+
+              <AnimatePresence initial={false}>
+                {feedbackExpanded && (
+                  <motion.div
+                    initial={prefersReduced ? false : { height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <div className="mt-4 pt-4 border-t border-[var(--color-border)] space-y-4">
+                      {feedbackSubmitted ? (
+                        <div className="text-center py-4">
+                          <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <MessageSquarePlus className="w-6 h-6 text-emerald-500" />
+                          </div>
+                          <p className="font-medium text-[var(--color-text)]">Thanks for your feedback!</p>
+                          <p className="text-sm text-[var(--color-text-muted)] mt-1">We'll review it soon.</p>
+                          <button
+                            onClick={() => setFeedbackSubmitted(false)}
+                            className="text-sm font-medium text-[var(--color-primary)] mt-3"
+                          >
+                            Submit another
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          {/* Type selector pills */}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setFeedbackType('bug')}
+                              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border-2 transition-all text-sm font-medium ${
+                                feedbackType === 'bug'
+                                  ? 'border-red-500 bg-red-500/10 text-red-500'
+                                  : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-border-strong)]'
+                              }`}
+                            >
+                              <Bug className="w-4 h-4" />
+                              Bug Report
+                            </button>
+                            <button
+                              onClick={() => setFeedbackType('feature')}
+                              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border-2 transition-all text-sm font-medium ${
+                                feedbackType === 'feature'
+                                  ? 'border-amber-500 bg-amber-500/10 text-amber-500'
+                                  : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-border-strong)]'
+                              }`}
+                            >
+                              <Lightbulb className="w-4 h-4" />
+                              Feature Request
+                            </button>
+                          </div>
+
+                          {/* Message textarea */}
+                          <textarea
+                            value={feedbackMessage}
+                            onChange={(e) => setFeedbackMessage(e.target.value)}
+                            placeholder={feedbackType === 'bug' ? 'Describe the bug...' : 'Describe the feature you\'d like...'}
+                            rows={3}
+                            className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none text-sm"
+                          />
+
+                          {/* Submit */}
+                          <Button
+                            onClick={() => {
+                              submitFeedback(
+                                { type: feedbackType, message: feedbackMessage },
+                                {
+                                  onSuccess: () => {
+                                    setFeedbackMessage('')
+                                    setFeedbackSubmitted(true)
+                                    success('Feedback submitted!')
+                                  },
+                                  onError: () => showError('Failed to submit feedback'),
+                                }
+                              )
+                            }}
+                            loading={isSubmittingFeedback}
+                            disabled={!feedbackMessage.trim()}
+                            className="w-full"
+                          >
+                            Submit Feedback
+                          </Button>
+                        </>
+                      )}
+
+                      {/* Past submissions */}
+                      {pastFeedback && pastFeedback.length > 0 && (
+                        <div className="pt-4 border-t border-[var(--color-border)]">
+                          <h4 className="text-sm font-medium text-[var(--color-text)] mb-3">Past Submissions</h4>
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                            {pastFeedback.map((fb) => (
+                              <div key={fb.id} className="p-3 rounded-lg bg-[var(--color-surface-hover)] text-sm">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                                    fb.type === 'bug'
+                                      ? 'bg-red-500/10 text-red-500'
+                                      : 'bg-amber-500/10 text-amber-500'
+                                  }`}>
+                                    {fb.type === 'bug' ? <Bug className="w-3 h-3" /> : <Lightbulb className="w-3 h-3" />}
+                                    {fb.type === 'bug' ? 'Bug' : 'Feature'}
+                                  </span>
+                                  <span className="text-xs text-[var(--color-text-muted)]">
+                                    {new Date(fb.created_at).toLocaleDateString()}
+                                  </span>
+                                </div>
+                                <p className="text-[var(--color-text)] line-clamp-2">{fb.message}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Log Out */}
         <motion.div variants={staggerChild}>
           <Button
@@ -744,7 +937,7 @@ export function ProfilePage() {
       {/* Onboarding Wizard for schedule setup after split change */}
       <OnboardingWizard
         isOpen={showOnboarding}
-        onClose={() => { setShowOnboarding(false); setPendingSplitId(null) }}
+        onClose={() => { setShowOnboarding(false); setPendingSplitId(null); navigate('/') }}
         initialStep={3}
         initialPlanId={pendingSplitId || currentSplitId}
       />

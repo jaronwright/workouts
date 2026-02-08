@@ -15,7 +15,7 @@ export function Card({
   highlight = false,
   ...props
 }: CardProps) {
-  const baseStyles = 'rounded-[var(--radius-xl)] overflow-hidden'
+  const baseStyles = 'relative rounded-[var(--radius-xl)] overflow-hidden'
 
   const variants = {
     default: 'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-xs)]',

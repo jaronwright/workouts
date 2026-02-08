@@ -6,6 +6,7 @@ import {
   quickLogTemplateWorkout,
   getUserTemplateWorkouts,
   getActiveTemplateWorkout,
+  getLastCompletedTemplateSession,
   getTemplateById,
   type TemplateWorkoutSession,
   type CompleteTemplateWorkoutData
@@ -17,6 +18,16 @@ export function useTemplate(templateId: string | undefined) {
     queryKey: ['template', templateId],
     queryFn: () => getTemplateById(templateId!),
     enabled: !!templateId
+  })
+}
+
+export function useLastTemplateSession(templateId: string | undefined) {
+  const user = useAuthStore((s) => s.user)
+
+  return useQuery<TemplateWorkoutSession | null>({
+    queryKey: ['last-template-session', user?.id, templateId],
+    queryFn: () => getLastCompletedTemplateSession(user!.id, templateId!),
+    enabled: !!user?.id && !!templateId
   })
 }
 

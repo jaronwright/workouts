@@ -269,6 +269,16 @@ vi.mock('@/hooks/useTheme', () => ({
   }),
 }))
 
+vi.mock('@/hooks/useFeedback', () => ({
+  useSubmitFeedback: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+  useUserFeedback: () => ({
+    data: [],
+  }),
+}))
+
 // ---------------------------------------------------------------------------
 // Mocks: stores
 // ---------------------------------------------------------------------------
@@ -345,6 +355,12 @@ vi.mock('lucide-react', () => {
     ArrowLeftRight: icon,
     ArrowUpDown: icon,
     Heart: icon,
+    MessageSquarePlus: icon,
+    Bug: icon,
+    Lightbulb: icon,
+    Pencil: icon,
+    Check: icon,
+    X: icon,
   }
 })
 
@@ -355,27 +371,32 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-// ===== 1. Profile save flow =====
+// ===== 1. Profile save flow (inline edit) =====
 describe('ProfilePage - Profile Save Flow', () => {
-  it('calls updateProfile with correct data structure on Save Changes', async () => {
+  async function enterEditMode() {
     const user = userEvent.setup()
+    render(<ProfilePage />)
+    // Click the display name to enter edit mode
+    await user.click(screen.getByText('Test User'))
+    return user
+  }
+
+  it('calls updateProfile with correct data structure on save', async () => {
+    const user = await enterEditMode()
     mockUpdateProfile.mockImplementation(
       (_data: unknown, opts: { onSuccess?: () => void }) => {
         opts?.onSuccess?.()
       },
     )
 
-    render(<ProfilePage />)
-
-    // Verify the initial display name is populated from profile
+    // Input should be visible with the current name
     const nameInput = screen.getByPlaceholderText('Enter your name') as HTMLInputElement
     expect(nameInput.value).toBe('Test User')
 
-    // Click Save Changes - should send current state values
-    const saveBtn = screen.getByRole('button', { name: /save changes/i })
+    // Click the save (check) button
+    const saveBtn = screen.getByRole('button', { name: /save name/i })
     await user.click(saveBtn)
 
-    // updateProfile is called with display_name plus onSuccess and onError callbacks
     expect(mockUpdateProfile).toHaveBeenCalledTimes(1)
     const [data, callbacks] = mockUpdateProfile.mock.calls[0]
     expect(data).toHaveProperty('display_name')
@@ -383,53 +404,43 @@ describe('ProfilePage - Profile Save Flow', () => {
     expect(callbacks).toHaveProperty('onError')
   })
 
-  it('pre-populates form with profile data and saves current state', async () => {
-    const user = userEvent.setup()
+  it('pre-populates input with profile data and saves current state', async () => {
+    const user = await enterEditMode()
 
-    render(<ProfilePage />)
-
-    // The form is pre-populated from the profile data via useEffect
     const nameInput = screen.getByPlaceholderText('Enter your name') as HTMLInputElement
     expect(nameInput.value).toBe('Test User')
 
-    // Click Save - sends the current form state
-    const saveBtn = screen.getByRole('button', { name: /save changes/i })
+    const saveBtn = screen.getByRole('button', { name: /save name/i })
     await user.click(saveBtn)
 
     expect(mockUpdateProfile).toHaveBeenCalledTimes(1)
     const [data] = mockUpdateProfile.mock.calls[0]
-    // display_name is 'Test User' from the populated profile
     expect(data.display_name).toBe('Test User')
   })
 
-  it('shows "Saved!" text temporarily after successful save', async () => {
-    const user = userEvent.setup()
+  it('shows success toast after successful save', async () => {
+    const user = await enterEditMode()
     mockUpdateProfile.mockImplementation(
       (_data: unknown, opts: { onSuccess?: () => void }) => {
         opts?.onSuccess?.()
       },
     )
 
-    render(<ProfilePage />)
-
-    const saveBtn = screen.getByRole('button', { name: /save changes/i })
+    const saveBtn = screen.getByRole('button', { name: /save name/i })
     await user.click(saveBtn)
 
-    expect(screen.getByText('Saved!')).toBeInTheDocument()
     expect(mockSuccess).toHaveBeenCalledWith('Profile saved')
   })
 
   it('shows error toast when save fails', async () => {
-    const user = userEvent.setup()
+    const user = await enterEditMode()
     mockUpdateProfile.mockImplementation(
       (_data: unknown, opts: { onError?: () => void }) => {
         opts?.onError?.()
       },
     )
 
-    render(<ProfilePage />)
-
-    const saveBtn = screen.getByRole('button', { name: /save changes/i })
+    const saveBtn = screen.getByRole('button', { name: /save name/i })
     await user.click(saveBtn)
 
     expect(mockShowError).toHaveBeenCalledWith('Failed to save profile')
