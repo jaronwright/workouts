@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { AppShell } from '@/components/layout'
 import { ScheduleDayEditor } from '@/components/schedule'
 import { useUserSchedule } from '@/hooks/useSchedule'
-import { useProfile } from '@/hooks/useProfile'
+import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
+import { useCycleDay } from '@/hooks/useCycleDay'
+import { formatCycleStartDate } from '@/utils/cycleDay'
 import { type ScheduleDay } from '@/services/scheduleService'
 import { Moon, Plus, ChevronRight } from 'lucide-react'
 import {
-  getWeightsStyleByDayNumber,
-  getWeightsLabel,
+  getWeightsStyleByName,
+  getWorkoutDisplayName,
   getCardioStyle,
   getMobilityStyle
 } from '@/config/workoutConfig'
@@ -22,8 +24,8 @@ function getWorkoutChip(schedule: ScheduleDay) {
     }
   }
   if (schedule.workout_day) {
-    const style = getWeightsStyleByDayNumber(schedule.workout_day.day_number)
-    const label = getWeightsLabel(schedule.workout_day.day_number)
+    const style = getWeightsStyleByName(schedule.workout_day.name)
+    const label = getWorkoutDisplayName(schedule.workout_day.name)
     return {
       Icon: style.icon,
       color: style.color,
@@ -57,8 +59,11 @@ function getWorkoutChip(schedule: ScheduleDay) {
 export function SchedulePage() {
   const { data: schedule, isLoading } = useUserSchedule()
   const { data: profile } = useProfile()
+  const { mutate: updateProfile } = useUpdateProfile()
+  const currentCycleDay = useCycleDay()
 
   const [editingDay, setEditingDay] = useState<number | null>(null)
+  const dateInputRef = useRef<HTMLInputElement>(null)
 
   // Group schedules by day number (supports multiple workouts per day)
   const schedulesByDay = new Map<number, ScheduleDay[]>()
@@ -84,20 +89,43 @@ export function SchedulePage() {
     <AppShell title="Schedule">
       <div className="p-4 space-y-3">
         {/* Current Day Indicator */}
-        {profile?.current_cycle_day && (
-          <div className="flex items-center justify-center gap-2 py-3 mb-2">
+        <div className="flex flex-col items-center gap-1 py-3 mb-2">
+          <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
             <span className="text-sm font-medium text-[var(--color-text-muted)]">
-              Currently on <span className="text-[var(--color-primary)] font-semibold">Day {profile.current_cycle_day}</span>
+              Currently on <span className="text-[var(--color-primary)] font-semibold">Day {currentCycleDay}</span>
             </span>
           </div>
-        )}
+          <div className="relative flex items-center justify-center gap-2 mt-1">
+            <span className="text-xs text-[var(--color-text-muted)]">
+              Cycle started {formatCycleStartDate(profile?.cycle_start_date)}
+            </span>
+            <button
+              type="button"
+              className="text-xs font-semibold text-[var(--color-primary)] cursor-pointer"
+              onClick={() => dateInputRef.current?.showPicker()}
+            >
+              Change
+            </button>
+            <input
+              ref={dateInputRef}
+              type="date"
+              className="absolute opacity-0 pointer-events-none"
+              value={profile?.cycle_start_date || ''}
+              onChange={(e) => {
+                if (e.target.value) {
+                  updateProfile({ cycle_start_date: e.target.value })
+                }
+              }}
+            />
+          </div>
+        </div>
 
         {/* Schedule List */}
         <div className="space-y-2">
           {[1, 2, 3, 4, 5, 6, 7].map((dayNumber) => {
             const daySchedules = schedulesByDay.get(dayNumber) || []
-            const isCurrentDay = profile?.current_cycle_day === dayNumber
+            const isCurrentDay = currentCycleDay === dayNumber
             const hasWorkouts = daySchedules.length > 0 && !daySchedules[0]?.is_rest_day
             const isRestDay = daySchedules.length > 0 && daySchedules[0]?.is_rest_day
 

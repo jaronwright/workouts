@@ -13,6 +13,7 @@ interface ExerciseCardProps {
   exercise: PlanExercise
   completedSets: ExerciseSet[]
   onExerciseComplete: (reps: number | null, weight: number | null) => void
+  onExerciseUncomplete?: () => void
   onExerciseUpdate?: (exercise: PlanExercise) => void
 }
 
@@ -22,7 +23,11 @@ function isBodyweightOrCardio(exercise: PlanExercise): boolean {
     'walk', 'run', 'bike', 'rowing', 'stepper', 'hang', 'hold', 'plank',
     'push-up', 'push up', 'pushup', 'pull-up', 'pull up', 'pullup',
     'band', 'squat hold', 'air squat', 'lunge', 'crunch', 'leg raise',
-    'ab wheel', 'rollout'
+    'ab wheel', 'rollout',
+    'dead bug', 'cossack', '90/90', 'hip switch',
+    'cat-cow', 'cat cow', 'thoracic', 'jefferson curl',
+    'scorpion', 'wall slide', 'thread the needle',
+    'shoulder car', 'ankle car', 'wrist car'
   ]
   return (
     exercise.reps_unit === 'minutes' ||
@@ -36,6 +41,7 @@ export function ExerciseCard({
   exercise,
   completedSets,
   onExerciseComplete,
+  onExerciseUncomplete,
   onExerciseUpdate
 }: ExerciseCardProps) {
   const [showDetailModal, setShowDetailModal] = useState(false)
@@ -86,7 +92,11 @@ export function ExerciseCard({
   const isCompleted = completedSets.length > 0
 
   const handleComplete = () => {
-    if (isCompleted) return
+    if (isCompleted) {
+      // Uncomplete: revert to empty circle
+      onExerciseUncomplete?.()
+      return
+    }
     const reps = exercise.reps_min
     const weightValue = noWeight ? null : (weight ? parseFloat(weight) : null)
     setJustCompleted(true)
@@ -115,7 +125,6 @@ export function ExerciseCard({
         {/* Completion Toggle */}
         <button
           onClick={handleComplete}
-          disabled={isCompleted}
           className={`
             w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
             transition-transform duration-100

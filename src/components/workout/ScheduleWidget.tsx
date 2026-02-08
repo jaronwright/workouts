@@ -2,9 +2,9 @@ import { useNavigate } from 'react-router-dom'
 import { Moon, Dumbbell, ChevronRight, Calendar } from 'lucide-react'
 import { Card, CardContent, Button } from '@/components/ui'
 import { useUserSchedule } from '@/hooks/useSchedule'
-import { useProfile } from '@/hooks/useProfile'
+import { useCycleDay } from '@/hooks/useCycleDay'
 import {
-  getWeightsStyleByDayNumber,
+  getWeightsStyleByName,
   getCardioStyle,
   getMobilityStyle,
   getWorkoutDisplayName
@@ -47,7 +47,7 @@ function getDayInfo(schedule: ScheduleDay | undefined, dayNumber: number): DayIn
   }
 
   if (schedule.workout_day) {
-    const style = getWeightsStyleByDayNumber(schedule.workout_day.day_number)
+    const style = getWeightsStyleByName(schedule.workout_day.name)
     return {
       dayNumber,
       icon: style.icon,
@@ -77,6 +77,7 @@ function getDayInfo(schedule: ScheduleDay | undefined, dayNumber: number): DayIn
     }
     if (template.type === 'mobility') {
       style = getMobilityStyle(template.category)
+      const mobilityDayId = (template as any).workout_day_id as string | null
       return {
         dayNumber,
         icon: style.icon,
@@ -84,8 +85,9 @@ function getDayInfo(schedule: ScheduleDay | undefined, dayNumber: number): DayIn
         bgColor: `${style.color}20`,
         name: template.name,
         isRest: false,
-        templateId: schedule.template_id || undefined,
-        templateType: template.type
+        workoutDayId: mobilityDayId || undefined,
+        templateId: mobilityDayId ? undefined : (schedule.template_id || undefined),
+        templateType: mobilityDayId ? undefined : template.type
       }
     }
   }
@@ -107,8 +109,7 @@ interface ScheduleWidgetProps {
 export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
   const navigate = useNavigate()
   const { data: schedule, isLoading } = useUserSchedule()
-  const { data: profile } = useProfile()
-  const currentCycleDay = profile?.current_cycle_day || 1
+  const currentCycleDay = useCycleDay()
 
   // Create a map of day_number to schedule for quick lookup
   const scheduleMap = new Map<number, ScheduleDay>()

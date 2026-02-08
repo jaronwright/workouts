@@ -10,6 +10,8 @@ import {
   Workflow,
   Activity,
   Wind,
+  ArrowUp,
+  ArrowDownUp,
   type LucideIcon
 } from 'lucide-react'
 
@@ -20,7 +22,7 @@ export interface WorkoutStyle {
   icon: LucideIcon
 }
 
-// WEIGHTS - Red/Orange Theme
+// WEIGHTS - Red/Orange Theme (PPL) + Blue/Purple Theme (Upper/Lower)
 export const WEIGHTS_CONFIG: Record<string, WorkoutStyle> = {
   push: {
     color: '#EF4444',
@@ -39,6 +41,18 @@ export const WEIGHTS_CONFIG: Record<string, WorkoutStyle> = {
     bgColor: 'rgba(220, 38, 38, 0.15)',
     gradient: 'from-red-600 to-red-500',
     icon: Footprints
+  },
+  upper: {
+    color: '#3B82F6',
+    bgColor: 'rgba(59, 130, 246, 0.15)',
+    gradient: 'from-blue-500 to-blue-400',
+    icon: ArrowUp
+  },
+  lower: {
+    color: '#8B5CF6',
+    bgColor: 'rgba(139, 92, 246, 0.15)',
+    gradient: 'from-purple-500 to-violet-500',
+    icon: ArrowDownUp
   }
 }
 
@@ -143,6 +157,8 @@ export const WORKOUT_DISPLAY_NAMES: Record<string, string> = {
   'push': 'Push',
   'pull': 'Pull',
   'legs': 'Legs',
+  'upper': 'Upper',
+  'lower': 'Lower',
 
   // Cardio workouts
   'cycling': 'Cycling',
@@ -192,6 +208,17 @@ export function getWorkoutDisplayName(dbName: string | null | undefined): string
 // Helper to get category display label
 export function getCategoryLabel(category: string): string {
   return CATEGORY_LABELS[category.toLowerCase()] || category
+}
+
+// Helper function to get workout style by name (works for any split)
+export function getWeightsStyleByName(dayName: string): WorkoutStyle {
+  const lower = dayName.toLowerCase()
+  if (lower.includes('push')) return WEIGHTS_CONFIG.push
+  if (lower.includes('pull')) return WEIGHTS_CONFIG.pull
+  if (lower.includes('leg')) return WEIGHTS_CONFIG.legs
+  if (lower.includes('upper')) return WEIGHTS_CONFIG.upper
+  if (lower.includes('lower')) return WEIGHTS_CONFIG.lower
+  return CATEGORY_DEFAULTS.weights
 }
 
 // Helper function to get workout style by day number (for weights)

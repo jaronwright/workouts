@@ -1,37 +1,76 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
-import { Button, Card, CardContent, Input } from '@/components/ui'
-import { useTemplate, useStartTemplateWorkout, useCompleteTemplateWorkout } from '@/hooks/useTemplateWorkout'
-import { Play, Pause, Square, Heart } from 'lucide-react'
+import { Button, Card, CardContent } from '@/components/ui'
+import {
+  useTemplate,
+  useQuickLogTemplateWorkout,
+  useStartTemplateWorkout,
+  useCompleteTemplateWorkout
+} from '@/hooks/useTemplateWorkout'
+import { useToast } from '@/hooks/useToast'
+import { getCardioStyle } from '@/config/workoutConfig'
+import {
+  CARDIO_INPUT_CONFIG,
+  getCardioPreference,
+  setCardioPreference
+} from '@/utils/cardioUtils'
+import { Play, Pause, ChevronDown, Timer } from 'lucide-react'
 
 export function CardioWorkoutPage() {
   const { templateId } = useParams<{ templateId: string }>()
   const navigate = useNavigate()
+  const toast = useToast()
   const { data: template, isLoading } = useTemplate(templateId)
-  const { mutate: startWorkout, isPending: isStarting } = useStartTemplateWorkout()
-  const { mutate: completeWorkout, isPending: isCompleting } = useCompleteTemplateWorkout()
 
+  const quickLog = useQuickLogTemplateWorkout()
+  const startWorkout = useStartTemplateWorkout()
+  const completeWorkout = useCompleteTemplateWorkout()
+
+  // Input state
+  const [selectedModeIndex, setSelectedModeIndex] = useState(0)
+  const [value, setValue] = useState('')
+  const [sliderValue, setSliderValue] = useState(1000)
+
+  // Timer state
+  const [timerOpen, setTimerOpen] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [isRunning, setIsRunning] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
-  const [distance, setDistance] = useState('')
-  const [distanceUnit, setDistanceUnit] = useState<'miles' | 'km'>('miles')
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const startTimeRef = useRef<number | null>(null)
 
+  // Derived
+  const category = template?.category || ''
+  const modes = CARDIO_INPUT_CONFIG[category] || CARDIO_INPUT_CONFIG.run
+  const currentMode = modes[selectedModeIndex]
+  const hasToggle = modes.length > 1
+  const style = template ? getCardioStyle(template.category) : null
+  const Icon = style?.icon
+
+  // Preference initialization
+  useEffect(() => {
+    if (!template?.category) return
+    const pref = getCardioPreference(template.category)
+    if (pref) {
+      const idx = modes.findIndex(m => m.mode === pref.mode && m.unit === pref.unit)
+      if (idx >= 0) setSelectedModeIndex(idx)
+    }
+  }, [template?.category]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Cleanup timer on unmount
   useEffect(() => {
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current)
     }
   }, [])
 
-  const handleStart = () => {
+  // ─── Timer controls ───────────────────────────────────────────────────
+
+  const handleTimerStart = () => {
     if (!templateId) return
 
-    startWorkout(templateId, {
+    startWorkout.mutate(templateId, {
       onSuccess: (session) => {
         setSessionId(session.id)
         setIsRunning(true)
@@ -43,7 +82,7 @@ export function CardioWorkoutPage() {
     })
   }
 
-  const handlePause = () => {
+  const handleTimerPause = () => {
     setIsRunning(false)
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
@@ -51,34 +90,13 @@ export function CardioWorkoutPage() {
     }
   }
 
-  const handleResume = () => {
+  const handleTimerResume = () => {
     setIsRunning(true)
     const currentElapsed = elapsedSeconds
     startTimeRef.current = Date.now() - currentElapsed * 1000
     intervalRef.current = setInterval(() => {
       setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current!) / 1000))
     }, 1000)
-  }
-
-  const handleComplete = () => {
-    if (!sessionId) return
-
-    handlePause()
-    const durationMinutes = Math.ceil(elapsedSeconds / 60)
-
-    completeWorkout(
-      {
-        sessionId,
-        durationMinutes,
-        distanceValue: distance ? parseFloat(distance) : undefined,
-        distanceUnit: distance ? distanceUnit : undefined
-      },
-      {
-        onSuccess: () => {
-          navigate('/history')
-        }
-      }
-    )
   }
 
   const formatTime = (seconds: number) => {
@@ -91,6 +109,73 @@ export function CardioWorkoutPage() {
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
+  // ─── Completion ───────────────────────────────────────────────────────
+
+  const onSuccess = () => {
+    if (template?.category) {
+      setCardioPreference(template.category, {
+        mode: currentMode.mode,
+        unit: currentMode.unit
+      })
+    }
+    toast.success(`${template?.name || 'Workout'} logged!`)
+    navigate('/')
+  }
+
+  const onError = () => {
+    toast.error('Failed to log workout')
+  }
+
+  const handleLog = () => {
+    if (!templateId) return
+
+    const isSlider = currentMode.slider
+    const numericValue = isSlider ? sliderValue : parseFloat(value)
+
+    // Timer flow: if timer was used, always use timer duration
+    if (sessionId) {
+      handleTimerPause()
+      const durationMinutes = Math.ceil(elapsedSeconds / 60)
+
+      completeWorkout.mutate(
+        {
+          sessionId,
+          durationMinutes,
+          distanceValue: currentMode.mode === 'distance' && numericValue > 0 ? numericValue : undefined,
+          distanceUnit: currentMode.mode === 'distance' && numericValue > 0 ? currentMode.unit : undefined
+        },
+        { onSuccess, onError }
+      )
+      return
+    }
+
+    // Manual flow: require a value
+    if (!numericValue || numericValue <= 0) {
+      toast.warning('Please enter a value')
+      return
+    }
+
+    const params: {
+      templateId: string
+      durationMinutes?: number
+      distanceValue?: number
+      distanceUnit?: string
+    } = { templateId }
+
+    if (currentMode.mode === 'time') {
+      params.durationMinutes = numericValue
+    } else {
+      params.distanceValue = numericValue
+      params.distanceUnit = currentMode.unit
+    }
+
+    quickLog.mutate(params, { onSuccess, onError })
+  }
+
+  const isPending = quickLog.isPending || completeWorkout.isPending
+
+  // ─── Loading / Not Found ──────────────────────────────────────────────
+
   if (isLoading) {
     return (
       <AppShell title="Loading..." showBack>
@@ -101,7 +186,7 @@ export function CardioWorkoutPage() {
     )
   }
 
-  if (!template) {
+  if (!template || !style || !Icon) {
     return (
       <AppShell title="Not Found" showBack>
         <div className="p-4 text-center text-[var(--color-text-muted)]">
@@ -111,115 +196,177 @@ export function CardioWorkoutPage() {
     )
   }
 
-  // Pre-workout view
-  if (!sessionId) {
-    return (
-      <AppShell title={template.name} showBack>
-        <div className="p-4 space-y-6">
-          <Card>
-            <CardContent className="py-8 text-center">
-              <div className="w-16 h-16 bg-[var(--color-cardio)]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-8 h-8 text-[var(--color-cardio)]" />
-              </div>
-              <h2 className="text-xl font-semibold text-[var(--color-text)] mb-2">
+  // ─── Main UI ──────────────────────────────────────────────────────────
+
+  return (
+    <AppShell title={template.name} showBack>
+      <div className="p-4 space-y-5">
+        {/* Template info card */}
+        <Card>
+          <CardContent className="py-5 flex items-center gap-4">
+            <div
+              className={`w-14 h-14 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center shadow-sm`}
+            >
+              <Icon className="w-7 h-7 text-white" strokeWidth={2.5} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-[var(--color-text)]">
                 {template.name}
               </h2>
-              {template.description && (
-                <p className="text-[var(--color-text-muted)] mb-4">
-                  {template.description}
+              {template.duration_minutes && (
+                <p className="text-sm text-[var(--color-text-muted)]">
+                  Target: {template.duration_minutes} min
                 </p>
               )}
-              <p className="text-sm text-[var(--color-text-muted)] mb-6">
-                Target: {template.duration_minutes} minutes
-              </p>
-              <Button onClick={handleStart} loading={isStarting} size="lg">
-                Start Workout
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </AppShell>
-    )
-  }
+            </div>
+          </CardContent>
+        </Card>
 
-  // Active workout view
-  return (
-    <AppShell title={template.name} showBack hideNav>
-      <div className="p-4 space-y-6">
-        {/* Timer Display */}
+        {/* Metric toggle */}
+        {hasToggle && (
+          <div className="flex gap-1 p-1 bg-[var(--color-surface-hover)] rounded-[var(--radius-lg)]">
+            {modes.map((mode, idx) => (
+              <button
+                key={mode.label}
+                onClick={() => {
+                  setSelectedModeIndex(idx)
+                  setValue('')
+                  setSliderValue(mode.slider?.min ?? 1000)
+                }}
+                className={`flex-1 py-2.5 text-sm font-semibold rounded-[var(--radius-md)] transition-all duration-150 ${
+                  selectedModeIndex === idx
+                    ? 'bg-white text-[var(--color-text)] shadow-sm dark:bg-[var(--color-surface)]'
+                    : 'text-[var(--color-text-muted)]'
+                }`}
+                style={selectedModeIndex === idx ? { color: style.color } : undefined}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Large input area */}
         <Card>
           <CardContent className="py-8">
-            <div className="text-center">
-              <p className="text-sm text-[var(--color-text-muted)] mb-2">Elapsed Time</p>
-              <span className="text-5xl font-bold text-[var(--color-text)] tabular-nums">
-                {formatTime(elapsedSeconds)}
-              </span>
-            </div>
+            {currentMode.slider ? (
+              <div className="space-y-4">
+                <div className="text-center">
+                  <span className="text-5xl font-bold text-[var(--color-text)] tabular-nums">
+                    {sliderValue.toLocaleString()}
+                  </span>
+                  <span className="text-base text-[var(--color-text-muted)] ml-2">{currentMode.unit}</span>
+                </div>
+                <input
+                  type="range"
+                  min={currentMode.slider.min}
+                  max={currentMode.slider.max}
+                  step={currentMode.slider.step}
+                  value={sliderValue}
+                  onChange={(e) => setSliderValue(Number(e.target.value))}
+                  className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, ${style.color} 0%, ${style.color} ${
+                      ((sliderValue - currentMode.slider.min) / (currentMode.slider.max - currentMode.slider.min)) * 100
+                    }%, var(--color-surface-hover) ${
+                      ((sliderValue - currentMode.slider.min) / (currentMode.slider.max - currentMode.slider.min)) * 100
+                    }%, var(--color-surface-hover) 100%)`
+                  }}
+                />
+                <div className="flex justify-between text-[10px] text-[var(--color-text-muted)]">
+                  <span>{currentMode.slider.min.toLocaleString()}</span>
+                  <span>{currentMode.slider.max.toLocaleString()}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-3">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  placeholder="0"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  className="w-32 text-center text-5xl font-bold bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-[var(--radius-lg)] py-4 text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-offset-1 tabular-nums"
+                  style={{ '--tw-ring-color': style.color } as React.CSSProperties}
+                />
+                <span className="text-base font-medium text-[var(--color-text-muted)]">{currentMode.unit}</span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Controls */}
-        <div className="flex justify-center gap-4">
-          {isRunning ? (
-            <button
-              onClick={handlePause}
-              className="w-16 h-16 bg-[var(--color-warning)] rounded-full flex items-center justify-center text-[var(--color-text-inverse)]"
-            >
-              <Pause className="w-8 h-8" />
-            </button>
-          ) : (
-            <button
-              onClick={handleResume}
-              className="w-16 h-16 bg-[var(--color-success)] rounded-full flex items-center justify-center text-[var(--color-text-inverse)]"
-            >
-              <Play className="w-8 h-8 ml-1" />
-            </button>
-          )}
-        </div>
-
-        {/* Distance Input */}
+        {/* Optional timer section */}
         <Card>
-          <CardContent className="py-4">
-            <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-              Distance (optional)
-            </label>
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                inputMode="decimal"
-                pattern="[0-9]*\.?[0-9]*"
-                placeholder="0.00"
-                value={distance}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9.]/g, '')
-                  setDistance(val)
-                }}
-                className="flex-1"
+          <CardContent className="py-0">
+            <button
+              onClick={() => setTimerOpen(!timerOpen)}
+              className="w-full flex items-center justify-between py-4"
+            >
+              <div className="flex items-center gap-2 text-[var(--color-text-muted)]">
+                <Timer className="w-4 h-4" />
+                <span className="text-sm font-medium">Use Timer</span>
+              </div>
+              <ChevronDown
+                className={`w-4 h-4 text-[var(--color-text-muted)] transition-transform duration-200 ${timerOpen ? 'rotate-180' : ''}`}
               />
-              <select
-                value={distanceUnit}
-                onChange={(e) => setDistanceUnit(e.target.value as 'miles' | 'km')}
-                className="px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)]"
-              >
-                <option value="miles">miles</option>
-                <option value="km">km</option>
-              </select>
+            </button>
+
+            <div
+              className={`overflow-hidden transition-all duration-250 ease-in-out ${
+                timerOpen ? 'max-h-60 opacity-100 pb-4' : 'max-h-0 opacity-0'
+              }`}
+            >
+              {/* Timer display */}
+              {(sessionId || elapsedSeconds > 0) && (
+                <div className="text-center mb-4">
+                  <span className="text-4xl font-bold text-[var(--color-text)] tabular-nums">
+                    {formatTime(elapsedSeconds)}
+                  </span>
+                </div>
+              )}
+
+              {/* Timer controls */}
+              <div className="flex justify-center gap-3">
+                {!sessionId ? (
+                  <Button
+                    onClick={handleTimerStart}
+                    loading={startWorkout.isPending}
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Play className="w-4 h-4" />
+                    Start Timer
+                  </Button>
+                ) : isRunning ? (
+                  <button
+                    onClick={handleTimerPause}
+                    className="w-14 h-14 bg-[var(--color-warning)] rounded-full flex items-center justify-center text-white"
+                  >
+                    <Pause className="w-6 h-6" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleTimerResume}
+                    className="w-14 h-14 bg-[var(--color-success)] rounded-full flex items-center justify-center text-white"
+                  >
+                    <Play className="w-6 h-6 ml-0.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Complete Button */}
-        <div className="pt-4">
-          <Button
-            onClick={handleComplete}
-            loading={isCompleting}
-            className="w-full"
-            size="lg"
-          >
-            <Square className="w-5 h-5 mr-2" />
-            Complete Workout
-          </Button>
-        </div>
+        {/* Log workout button */}
+        <Button
+          variant="gradient"
+          className="w-full"
+          size="lg"
+          onClick={handleLog}
+          loading={isPending}
+        >
+          Log Workout
+        </Button>
       </div>
     </AppShell>
   )

@@ -1,7 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import type { WorkoutDay } from '@/types/workout'
 import { Card, CardContent } from '@/components/ui'
-import { getWeightsStyleByDayNumber, getWeightsLabel, CATEGORY_LABELS } from '@/config/workoutConfig'
+import { getWeightsStyleByName, getWorkoutDisplayName, CATEGORY_LABELS } from '@/config/workoutConfig'
 
 interface WorkoutDayCardProps {
   day: WorkoutDay
@@ -9,8 +9,8 @@ interface WorkoutDayCardProps {
 }
 
 export function WorkoutDayCard({ day, onClick }: WorkoutDayCardProps) {
-  const style = getWeightsStyleByDayNumber(day.day_number)
-  const label = getWeightsLabel(day.day_number)
+  const style = getWeightsStyleByName(day.name)
+  const label = getWorkoutDisplayName(day.name)
   const Icon = style.icon
 
   return (

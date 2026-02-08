@@ -3,7 +3,7 @@ import { Play, Heart, Activity, ChevronRight, Dumbbell, X } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
 import { WorkoutDayCard, ScheduleWidget } from '@/components/workout'
-import { useWorkoutPlans, useWorkoutDays } from '@/hooks/useWorkoutPlan'
+import { useSelectedPlanDays } from '@/hooks/useWorkoutPlan'
 import { useActiveSession, useDeleteSession } from '@/hooks/useWorkoutSession'
 import { useWorkoutTemplatesByType } from '@/hooks/useSchedule'
 import type { WorkoutTemplate } from '@/services/scheduleService'
@@ -61,14 +61,13 @@ function TemplateCard({ template, onClick }: TemplateCardProps) {
 
 export function WorkoutSelectPage() {
   const navigate = useNavigate()
-  const { data: plans, isLoading: plansLoading } = useWorkoutPlans()
-  const { data: days, isLoading: daysLoading } = useWorkoutDays(plans?.[0]?.id)
+  const { data: days, isLoading: daysLoading } = useSelectedPlanDays()
   const { data: cardioTemplates, isLoading: cardioLoading } = useWorkoutTemplatesByType('cardio')
   const { data: mobilityTemplates, isLoading: mobilityLoading } = useWorkoutTemplatesByType('mobility')
   const { data: activeSession } = useActiveSession()
   const deleteSession = useDeleteSession()
 
-  const isLoading = plansLoading || daysLoading
+  const isLoading = daysLoading
 
   const handleStartWorkout = (dayId: string) => {
     navigate(`/workout/${dayId}`)

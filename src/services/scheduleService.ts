@@ -8,6 +8,7 @@ export interface WorkoutTemplate {
   description: string | null
   icon: string | null
   duration_minutes: number | null
+  workout_day_id: string | null
   created_at: string
 }
 
@@ -273,27 +274,59 @@ export async function upsertScheduleDay(
   return result[0] || null
 }
 
-// Initialize a default schedule for a new user
-export async function initializeDefaultSchedule(userId: string): Promise<ScheduleDay[]> {
-  // Get the workout days (Push/Pull/Legs)
-  const { data: workoutDays, error: workoutError } = await supabase
-    .from('workout_days')
-    .select('id, day_number')
-    .order('day_number')
-    .limit(3)
+// Clear all schedule entries for a user
+export async function clearUserSchedule(userId: string): Promise<void> {
+  const { error } = await supabase
+    .from('user_schedules')
+    .delete()
+    .eq('user_id', userId)
 
+  if (error) throw error
+}
+
+// Initialize a default schedule for a new user
+export async function initializeDefaultSchedule(userId: string, planId?: string): Promise<ScheduleDay[]> {
+  // Get the workout days for the specified plan (or default PPL)
+  let query = supabase
+    .from('workout_days')
+    .select('id, day_number, plan_id')
+    .order('day_number')
+
+  if (planId) {
+    query = query.eq('plan_id', planId)
+  } else {
+    query = query.limit(3)
+  }
+
+  const { data: workoutDays, error: workoutError } = await query
   if (workoutError) throw workoutError
 
-  // Create default schedule: Push, Pull, Legs, Rest, Push, Pull, Rest
-  const defaultSchedule = [
-    { day_number: 1, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
-    { day_number: 2, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
-    { day_number: 3, workout_day_id: workoutDays?.[2]?.id || null, is_rest_day: false },
-    { day_number: 4, is_rest_day: true, workout_day_id: null },
-    { day_number: 5, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
-    { day_number: 6, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
-    { day_number: 7, is_rest_day: true, workout_day_id: null }
-  ]
+  // Build default schedule based on number of workout days
+  let defaultSchedule: Array<{ day_number: number; workout_day_id: string | null; is_rest_day: boolean }>
+
+  if (workoutDays && workoutDays.length === 2) {
+    // Upper/Lower: Upper, Lower, Rest, Upper, Lower, Rest, Rest
+    defaultSchedule = [
+      { day_number: 1, workout_day_id: workoutDays[0]?.id || null, is_rest_day: false },
+      { day_number: 2, workout_day_id: workoutDays[1]?.id || null, is_rest_day: false },
+      { day_number: 3, is_rest_day: true, workout_day_id: null },
+      { day_number: 4, workout_day_id: workoutDays[0]?.id || null, is_rest_day: false },
+      { day_number: 5, workout_day_id: workoutDays[1]?.id || null, is_rest_day: false },
+      { day_number: 6, is_rest_day: true, workout_day_id: null },
+      { day_number: 7, is_rest_day: true, workout_day_id: null }
+    ]
+  } else {
+    // PPL (3 days): Push, Pull, Legs, Rest, Push, Pull, Rest
+    defaultSchedule = [
+      { day_number: 1, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
+      { day_number: 2, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
+      { day_number: 3, workout_day_id: workoutDays?.[2]?.id || null, is_rest_day: false },
+      { day_number: 4, is_rest_day: true, workout_day_id: null },
+      { day_number: 5, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
+      { day_number: 6, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
+      { day_number: 7, is_rest_day: true, workout_day_id: null }
+    ]
+  }
 
   const scheduleData = defaultSchedule.map(day => ({
     user_id: userId,

@@ -3,13 +3,13 @@ import { useAuthStore } from '@/stores/authStore'
 import {
   startTemplateWorkout,
   completeTemplateWorkout,
+  quickLogTemplateWorkout,
   getUserTemplateWorkouts,
   getActiveTemplateWorkout,
   getTemplateById,
   type TemplateWorkoutSession,
   type CompleteTemplateWorkoutData
 } from '@/services/templateWorkoutService'
-import { advanceCycleDay } from '@/services/profileService'
 import type { WorkoutTemplate } from '@/services/scheduleService'
 
 export function useTemplate(templateId: string | undefined) {
@@ -55,17 +55,35 @@ export function useStartTemplateWorkout() {
 
 export function useCompleteTemplateWorkout() {
   const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ sessionId, ...data }: CompleteTemplateWorkoutData) =>
+      completeTemplateWorkout(sessionId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-template-workout'] })
+      queryClient.invalidateQueries({ queryKey: ['user-template-workouts'] })
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: ['todays-workout'] })
+    }
+  })
+}
+
+export function useQuickLogTemplateWorkout() {
+  const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
 
   return useMutation({
-    mutationFn: async ({ sessionId, ...data }: CompleteTemplateWorkoutData) => {
-      const session = await completeTemplateWorkout(sessionId, data)
-      // Advance to next day in cycle after completing workout
-      if (user?.id) {
-        await advanceCycleDay(user.id)
-      }
-      return session
-    },
+    mutationFn: (params: {
+      templateId: string
+      durationMinutes?: number
+      distanceValue?: number
+      distanceUnit?: string
+    }) =>
+      quickLogTemplateWorkout(user!.id, params.templateId, {
+        durationMinutes: params.durationMinutes,
+        distanceValue: params.distanceValue,
+        distanceUnit: params.distanceUnit
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['active-template-workout'] })
       queryClient.invalidateQueries({ queryKey: ['user-template-workouts'] })

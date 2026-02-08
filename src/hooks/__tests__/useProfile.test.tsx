@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useProfile, useUpdateProfile, useUpsertProfile, useAdvanceCycleDay } from '../useProfile'
+import { useProfile, useUpdateProfile, useUpsertProfile } from '../useProfile'
 import { useAuthStore } from '@/stores/authStore'
 import * as profileService from '@/services/profileService'
 import { ReactNode } from 'react'
@@ -14,18 +14,20 @@ vi.mock('@/stores/authStore', () => ({
 vi.mock('@/services/profileService', () => ({
   getProfile: vi.fn(),
   upsertProfile: vi.fn(),
-  advanceCycleDay: vi.fn(),
 }))
 
 describe('useProfile hooks', () => {
   const mockUser = { id: 'user-123', email: 'test@example.com' }
-  const mockProfile = {
+  const mockProfile: profileService.UserProfile = {
     id: 'user-123',
     display_name: 'Test User',
     gender: 'male',
     avatar_url: null,
+    selected_plan_id: null,
     current_cycle_day: 1,
     last_workout_date: '2024-01-15',
+    cycle_start_date: null,
+    timezone: null,
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-15T00:00:00Z',
   }
@@ -151,28 +153,4 @@ describe('useProfile hooks', () => {
     })
   })
 
-  describe('useAdvanceCycleDay', () => {
-    it('calls advanceCycleDay with user id', async () => {
-      const updatedProfile = { ...mockProfile, current_cycle_day: 2 }
-      vi.mocked(profileService.advanceCycleDay).mockResolvedValue(updatedProfile)
-
-      const { result } = renderHook(() => useAdvanceCycleDay(), { wrapper })
-
-      await result.current.mutateAsync()
-
-      expect(profileService.advanceCycleDay).toHaveBeenCalledWith('user-123')
-    })
-
-    it('invalidates profile queries on success', async () => {
-      const updatedProfile = { ...mockProfile, current_cycle_day: 2 }
-      vi.mocked(profileService.advanceCycleDay).mockResolvedValue(updatedProfile)
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
-
-      const { result } = renderHook(() => useAdvanceCycleDay(), { wrapper })
-
-      await result.current.mutateAsync()
-
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['profile'] })
-    })
-  })
 })

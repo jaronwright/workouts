@@ -1,3 +1,4 @@
+export { CardioLogCard } from './CardioLogCard'
 export { CollapsibleSection } from './CollapsibleSection'
 export { ExerciseCard } from './ExerciseCard'
 export { PRCelebration } from './PRCelebration'

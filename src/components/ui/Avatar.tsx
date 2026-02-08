@@ -1,4 +1,5 @@
 import { User } from 'lucide-react'
+import { isDefaultAvatar, getDefaultAvatarKey, getDefaultAvatarByKey } from '@/config/defaultAvatars'
 
 const SIZES = {
   sm: { container: 'w-8 h-8', icon: 'w-4 h-4' },
@@ -15,6 +16,29 @@ interface AvatarProps {
 
 export function Avatar({ src, alt = 'Avatar', size = 'md', className = '' }: AvatarProps) {
   const { container, icon } = SIZES[size]
+
+  if (src && isDefaultAvatar(src)) {
+    const avatar = getDefaultAvatarByKey(getDefaultAvatarKey(src))
+    if (avatar) {
+      return (
+        <div
+          className={`${container} bg-[var(--color-primary)]/20 rounded-full flex items-center justify-center ${className}`}
+        >
+          <svg
+            viewBox={avatar.viewBox}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`${icon} text-[var(--color-primary)]`}
+          >
+            <path d={avatar.svgPath} />
+          </svg>
+        </div>
+      )
+    }
+  }
 
   if (src) {
     return (

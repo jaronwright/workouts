@@ -127,6 +127,20 @@ export async function getUserTemplateWorkouts(userId: string): Promise<TemplateW
   return data as TemplateWorkoutSession[]
 }
 
+export async function quickLogTemplateWorkout(
+  userId: string,
+  templateId: string,
+  data: { durationMinutes?: number; distanceValue?: number; distanceUnit?: string }
+): Promise<TemplateWorkoutSession> {
+  const session = await startTemplateWorkout(userId, templateId)
+  const completed = await completeTemplateWorkout(session.id, {
+    durationMinutes: data.durationMinutes,
+    distanceValue: data.distanceValue,
+    distanceUnit: data.distanceUnit
+  })
+  return completed
+}
+
 export async function getActiveTemplateWorkout(userId: string): Promise<TemplateWorkoutSession | null> {
   const { data, error } = await supabase
     .from('template_workout_sessions')

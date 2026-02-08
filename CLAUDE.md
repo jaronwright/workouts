@@ -34,23 +34,33 @@ npx vitest run src/utils/__tests__/formatters.test.ts  # Run single test file
 ### Data Flow
 1. **Authentication**: `useAuth` hook → `authStore` (Zustand) → Supabase Auth
 2. **Workout Data**: Pages → custom hooks (`useWorkoutPlan`, `useWorkoutSession`) → TanStack Query → `workoutService` → Supabase
-3. **Active Session State**: `workoutStore` (Zustand) manages active workout, completed sets, rest timer
+3. **Profile/Schedule/Templates**: Same pattern — `useProfile`, `useSchedule`, `useTemplateWorkout` hooks → TanStack Query → corresponding services → Supabase
+4. **Active Session State**: `workoutStore` (Zustand) manages active workout, completed sets, rest timer
 
 ### Key Directories
-- `src/pages/` - Route components (Auth, Home, Workout, History, SessionDetail)
-- `src/components/` - UI (`ui/`), layout (`layout/`), workout-specific (`workout/`)
-- `src/hooks/` - React Query hooks wrapping workoutService calls
-- `src/services/` - Supabase client and all database operations (`workoutService.ts`)
-- `src/stores/` - Zustand stores for auth and workout state
+- `src/pages/` - Route components (Home, Workout, CardioWorkout, MobilityWorkout, History, Profile, Schedule, RestDay, Auth)
+- `src/components/` - UI (`ui/`), layout (`layout/`), workout-specific (`workout/`), onboarding (`onboarding/`), profile (`profile/`), schedule (`schedule/`)
+- `src/hooks/` - React Query hooks wrapping service calls
+- `src/services/` - Supabase client and database operations: `workoutService`, `profileService`, `scheduleService`, `templateWorkoutService`, `avatarService`, `progressionService`, `prService`, `socialService`, `exerciseDbService`
+- `src/stores/` - Zustand stores: `authStore`, `workoutStore`, `settingsStore` (weight units), `themeStore` (dark mode), `toastStore`
+- `src/config/` - `workoutConfig.ts` (centralized style/display-name mappings), `defaultAvatars.ts`, `restDayActivities.ts`
 - `src/types/` - TypeScript types including Supabase-generated database types
 
 ### Database Schema
 - `workout_plans` → `workout_days` → `exercise_sections` → `plan_exercises` (workout structure)
 - `workout_sessions` → `exercise_sets` (user's logged data)
-- RLS policies ensure users only access their own session data
+- `user_profiles` (display name, gender, avatar, selected plan)
+- `user_schedules` (day-of-week → workout day mapping, supports multiple workouts per day)
+- `template_workouts` (cardio/mobility templates)
+- RLS policies ensure users only access their own data
 
 ### Routing
-Protected routes require authentication. Routes: `/auth` (public), `/` (home), `/workout/:dayId`, `/workout/:dayId/active`, `/history`, `/history/:sessionId`
+Protected routes require authentication. Full route list:
+- `/auth` (public), `/auth/callback` (OAuth redirect)
+- `/` (home), `/profile`, `/schedule`, `/rest-day`
+- `/workout/:dayId`, `/workout/:dayId/active`
+- `/cardio/:templateId`, `/mobility/:templateId`
+- `/history`, `/history/:sessionId`, `/history/cardio/:sessionId`
 
 ## Configuration
 

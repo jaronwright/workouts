@@ -8,6 +8,7 @@ import {
   saveScheduleDayWorkouts,
   deleteScheduleDay,
   initializeDefaultSchedule,
+  clearUserSchedule,
   getWorkoutTemplates,
   getWorkoutTemplatesByType,
   getTodaysScheduledWorkout,
@@ -126,10 +127,25 @@ export function useInitializeSchedule() {
   const user = useAuthStore((s) => s.user)
 
   return useMutation({
-    mutationFn: () => initializeDefaultSchedule(user!.id),
+    mutationFn: (planId?: string) => initializeDefaultSchedule(user!.id, planId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-schedule'] })
       queryClient.invalidateQueries({ queryKey: ['schedule-day'] })
+      queryClient.invalidateQueries({ queryKey: ['todays-workout'] })
+    }
+  })
+}
+
+export function useClearSchedule() {
+  const queryClient = useQueryClient()
+  const user = useAuthStore((s) => s.user)
+
+  return useMutation({
+    mutationFn: () => clearUserSchedule(user!.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-schedule'] })
+      queryClient.invalidateQueries({ queryKey: ['schedule-day'] })
+      queryClient.invalidateQueries({ queryKey: ['schedule-day-workouts'] })
       queryClient.invalidateQueries({ queryKey: ['todays-workout'] })
     }
   })

@@ -12,7 +12,7 @@ export function CollapsibleSection({
   title,
   subtitle,
   children,
-  defaultOpen = false
+  defaultOpen = true
 }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
 

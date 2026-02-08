@@ -1,15 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { AppShell } from '@/components/layout'
 import { Button, Input, Card, CardContent, Modal } from '@/components/ui'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
+import { useCycleDay } from '@/hooks/useCycleDay'
+import { formatCycleStartDate } from '@/utils/cycleDay'
+import { useClearSchedule } from '@/hooks/useSchedule'
 import { useAuthStore } from '@/stores/authStore'
 import { useToast } from '@/hooks/useToast'
 import { PasswordStrengthIndicator } from '@/components/auth/PasswordStrengthIndicator'
 import { validatePassword } from '@/utils/validation'
 import { deleteUserAccount } from '@/services/profileService'
-import { Calendar, Shield, Mail, ChevronDown, ChevronUp, LogOut, Sun, Moon, Monitor } from 'lucide-react'
+import { Calendar, Shield, Mail, ChevronDown, ChevronUp, LogOut, Sun, Moon, Monitor, Dumbbell } from 'lucide-react'
 import { AvatarUpload } from '@/components/profile/AvatarUpload'
+import { OnboardingWizard } from '@/components/onboarding'
 import { useTheme } from '@/hooks/useTheme'
+
+const PPL_PLAN_ID = '00000000-0000-0000-0000-000000000001'
+const UPPER_LOWER_PLAN_ID = '00000000-0000-0000-0000-000000000002'
 
 const GENDER_OPTIONS = [
   { value: '', label: 'Select gender' },
@@ -26,7 +33,9 @@ export function ProfilePage() {
   const signOut = useAuthStore((s) => s.signOut)
   const signOutAllDevices = useAuthStore((s) => s.signOutAllDevices)
   const { data: profile, isLoading } = useProfile()
-  const { mutate: updateProfile, isPending: isSaving } = useUpdateProfile()
+  const { mutate: updateProfile, mutateAsync: updateProfileAsync, isPending: isSaving } = useUpdateProfile()
+  const currentCycleDay = useCycleDay()
+  const dateInputRef = useRef<HTMLInputElement>(null)
   const { theme, setTheme } = useTheme()
   const { success, error: showError } = useToast()
 
@@ -44,6 +53,12 @@ export function ProfilePage() {
   const [emailExpanded, setEmailExpanded] = useState(false)
   const [newEmail, setNewEmail] = useState('')
   const [isChangingEmail, setIsChangingEmail] = useState(false)
+
+  // Workout split state
+  const [showSplitConfirm, setShowSplitConfirm] = useState(false)
+  const [pendingSplitId, setPendingSplitId] = useState<string | null>(null)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const { mutateAsync: clearSchedule } = useClearSchedule()
 
   // Delete account state
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -169,6 +184,30 @@ export function ProfilePage() {
     }
   }
 
+  const currentSplitId = profile?.selected_plan_id || PPL_PLAN_ID
+  const currentSplitName = currentSplitId === UPPER_LOWER_PLAN_ID ? 'Upper / Lower' : 'Push / Pull / Legs'
+
+  const handleSplitChange = (newPlanId: string) => {
+    if (newPlanId === currentSplitId) return
+    setPendingSplitId(newPlanId)
+    setShowSplitConfirm(true)
+  }
+
+  const confirmSplitChange = async () => {
+    if (!pendingSplitId) return
+    try {
+      await updateProfileAsync({ selected_plan_id: pendingSplitId })
+      await clearSchedule()
+      setShowSplitConfirm(false)
+      setPendingSplitId(null)
+      setShowOnboarding(true)
+    } catch {
+      showError('Failed to change workout split')
+      setShowSplitConfirm(false)
+      setPendingSplitId(null)
+    }
+  }
+
   if (isLoading) {
     return (
       <AppShell title="Profile">
@@ -231,6 +270,55 @@ export function ProfilePage() {
             <Button onClick={handleSave} loading={isSaving} className="w-full">
               {saved ? 'Saved!' : 'Save Changes'}
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Workout Split Section */}
+        <Card>
+          <CardContent className="py-4 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center">
+                <Dumbbell className="w-5 h-5 text-red-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-[var(--color-text)]">Workout Split</h3>
+                <p className="text-sm text-[var(--color-text-muted)]">Currently: {currentSplitName}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => handleSplitChange(PPL_PLAN_ID)}
+                className={`
+                  flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
+                  ${currentSplitId === PPL_PLAN_ID
+                    ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
+                    : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
+                  }
+                `}
+              >
+                <Dumbbell className={`w-6 h-6 ${currentSplitId === PPL_PLAN_ID ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
+                <span className={`text-sm font-medium ${currentSplitId === PPL_PLAN_ID ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
+                  Push/Pull/Legs
+                </span>
+              </button>
+
+              <button
+                onClick={() => handleSplitChange(UPPER_LOWER_PLAN_ID)}
+                className={`
+                  flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
+                  ${currentSplitId === UPPER_LOWER_PLAN_ID
+                    ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
+                    : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
+                  }
+                `}
+              >
+                <Dumbbell className={`w-6 h-6 ${currentSplitId === UPPER_LOWER_PLAN_ID ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
+                <span className={`text-sm font-medium ${currentSplitId === UPPER_LOWER_PLAN_ID ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
+                  Upper/Lower
+                </span>
+              </button>
+            </div>
           </CardContent>
         </Card>
 
@@ -446,15 +534,33 @@ export function ProfilePage() {
               <div>
                 <p className="text-sm text-[var(--color-text-muted)]">Current Cycle Day</p>
                 <p className="text-lg font-semibold text-[var(--color-text)]">
-                  Day {profile?.current_cycle_day || 1} of 7
+                  Day {currentCycleDay} of 7
                 </p>
               </div>
             </div>
-            {profile?.last_workout_date && (
-              <p className="text-sm text-[var(--color-text-muted)] mt-3">
-                Last workout: {new Date(profile.last_workout_date).toLocaleDateString()}
+            <div className="relative flex items-center gap-2 mt-3">
+              <p className="text-sm text-[var(--color-text-muted)]">
+                Cycle started {formatCycleStartDate(profile?.cycle_start_date)}
               </p>
-            )}
+              <button
+                type="button"
+                className="text-sm font-semibold text-[var(--color-primary)] cursor-pointer"
+                onClick={() => dateInputRef.current?.showPicker()}
+              >
+                Change
+              </button>
+              <input
+                ref={dateInputRef}
+                type="date"
+                className="absolute opacity-0 pointer-events-none"
+                value={profile?.cycle_start_date || ''}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    updateProfile({ cycle_start_date: e.target.value })
+                  }
+                }}
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -468,6 +574,48 @@ export function ProfilePage() {
           Log Out
         </Button>
       </div>
+
+      {/* Split Change Confirmation Modal */}
+      <Modal
+        isOpen={showSplitConfirm}
+        onClose={() => {
+          setShowSplitConfirm(false)
+          setPendingSplitId(null)
+        }}
+        title="Change Workout Split"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[var(--color-text-muted)]">
+            Changing your workout split will reset your schedule. You'll be able to set up a new schedule for the selected split.
+          </p>
+          <p className="text-sm text-[var(--color-text-muted)]">
+            Your existing workout history will not be affected.
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowSplitConfirm(false)
+                setPendingSplitId(null)
+              }}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button onClick={confirmSplitChange} loading={isSaving} className="flex-1">
+              Change Split
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Onboarding Wizard for schedule setup after split change */}
+      <OnboardingWizard
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        initialStep={3}
+        initialPlanId={pendingSplitId || currentSplitId}
+      />
 
       {/* Delete Account Modal */}
       <Modal

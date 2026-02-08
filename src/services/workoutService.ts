@@ -34,6 +34,7 @@ export async function getAllWorkoutDays(): Promise<WorkoutDay[]> {
   const { data, error } = await supabase
     .from('workout_days')
     .select('*')
+    .neq('plan_id', '00000000-0000-0000-0000-000000000003')
     .order('day_number')
 
   if (error) throw error
@@ -305,19 +306,26 @@ export async function updateExerciseWeightUnit(
   exerciseId: string,
   weightUnit: 'lbs' | 'kg'
 ): Promise<PlanExercise | null> {
-  const { data, error } = await supabase
+  // Use count:'exact' to avoid 406 errors when RLS prevents the update
+  const { count, error } = await supabase
     .from('plan_exercises')
-    .update({ weight_unit: weightUnit })
+    .update({ weight_unit: weightUnit }, { count: 'exact' })
     .eq('id', exerciseId)
-    .select()
-    .maybeSingle()
 
   // If update fails (e.g., RLS restriction on seed data), return null silently
   // The UI will handle this by keeping the local state
-  if (error) {
-    console.warn('Could not persist weight unit preference:', error.message)
+  if (error || count === 0) {
+    if (error) console.warn('Could not persist weight unit preference:', error.message)
     return null
   }
+
+  // Fetch the updated row only if the update succeeded
+  const { data } = await supabase
+    .from('plan_exercises')
+    .select()
+    .eq('id', exerciseId)
+    .maybeSingle()
+
   return data as PlanExercise | null
 }
 

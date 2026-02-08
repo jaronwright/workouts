@@ -43,6 +43,7 @@ describe('templateWorkoutService', () => {
           description: 'Pool laps',
           icon: 'waves',
           duration_minutes: 30,
+          workout_day_id: null,
           created_at: '2024-01-01T00:00:00Z',
         },
       }

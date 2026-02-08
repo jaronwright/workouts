@@ -12,6 +12,7 @@ interface WorkoutState {
   setActiveSession: (session: WorkoutSession | null) => void
   setActiveWorkoutDay: (day: WorkoutDayWithSections | null) => void
   addCompletedSet: (exerciseId: string, set: ExerciseSet) => void
+  removeCompletedSets: (exerciseId: string) => void
   clearCompletedSets: () => void
   startRestTimer: (seconds: number) => void
   stopRestTimer: () => void
@@ -38,6 +39,13 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     const updated = new Map(current)
     const existing = updated.get(exerciseId) || []
     updated.set(exerciseId, [...existing, exerciseSet])
+    set({ completedSets: updated })
+  },
+
+  removeCompletedSets: (exerciseId) => {
+    const current = get().completedSets
+    const updated = new Map(current)
+    updated.delete(exerciseId)
     set({ completedSets: updated })
   },
 

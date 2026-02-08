@@ -10,14 +10,17 @@ import { CardioLogCard, ScheduleWidget } from '@/components/workout'
 import { OnboardingWizard } from '@/components/onboarding'
 import { useActiveSession, useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
 import { useProfile } from '@/hooks/useProfile'
+import { useCycleDay } from '@/hooks/useCycleDay'
 import { useAvatarUrl } from '@/hooks/useAvatar'
-import { useWorkoutPlans, useWorkoutDays } from '@/hooks/useWorkoutPlan'
+import { useSelectedPlanDays } from '@/hooks/useWorkoutPlan'
 import { useWorkoutTemplatesByType, useUserSchedule } from '@/hooks/useSchedule'
+import { useUserTemplateWorkouts } from '@/hooks/useTemplateWorkout'
 import { formatRelativeTime } from '@/utils/formatters'
 import {
   getWorkoutDisplayName,
   getCardioStyle,
   getMobilityStyle,
+  getWeightsStyleByName,
   CATEGORY_DEFAULTS,
   getCategoryLabel
 } from '@/config/workoutConfig'
@@ -104,7 +107,8 @@ interface WorkoutDayCardProps {
 }
 
 function WorkoutDayCard({ day, onClick }: WorkoutDayCardProps) {
-  const style = CATEGORY_DEFAULTS.weights
+  const style = getWeightsStyleByName(day.name)
+  const Icon = style.icon
 
   return (
     <Card interactive onClick={onClick}>
@@ -112,11 +116,11 @@ function WorkoutDayCard({ day, onClick }: WorkoutDayCardProps) {
         <div
           className={`w-12 h-12 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center shadow-sm`}
         >
-          <Dumbbell className="w-6 h-6 text-white" strokeWidth={2.5} />
+          <Icon className="w-6 h-6 text-white" strokeWidth={2.5} />
         </div>
         <div className="flex-1 min-w-0">
           <span className="text-xs font-bold uppercase tracking-wider" style={{ color: style.color }}>
-            Weights
+            {style.label}
           </span>
           <h3 className="font-semibold text-[var(--color-text)] text-base leading-tight mt-0.5">
             {getWorkoutDisplayName(day.name)}
@@ -209,11 +213,12 @@ export function HomePage() {
   const deleteSession = useDeleteSession()
   const { data: sessions, isLoading: sessionsLoading } = useUserSessions()
   const { data: profile } = useProfile()
-  const { data: plans } = useWorkoutPlans()
-  const { data: days, isLoading: daysLoading } = useWorkoutDays(plans?.[0]?.id)
+  const currentCycleDay = useCycleDay()
+  const { data: days, isLoading: daysLoading } = useSelectedPlanDays()
   const { data: cardioTemplates, isLoading: cardioLoading } = useWorkoutTemplatesByType('cardio')
   const { data: mobilityTemplates, isLoading: mobilityLoading } = useWorkoutTemplatesByType('mobility')
   const { data: schedule, isLoading: scheduleLoading } = useUserSchedule()
+  const { data: templateWorkoutSessions } = useUserTemplateWorkouts()
 
   // Onboarding wizard state
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -248,7 +253,13 @@ export function HomePage() {
 
   // Handlers
   const handleStartWorkout = (dayId: string) => navigate(`/workout/${dayId}`)
-  const handleStartMobility = (templateId: string) => navigate(`/mobility/${templateId}`)
+  const handleStartMobility = (template: WorkoutTemplate) => {
+    if (template.workout_day_id) {
+      navigate(`/workout/${template.workout_day_id}`)
+    } else {
+      navigate(`/mobility/${template.id}`)
+    }
+  }
   const handleContinueWorkout = () => {
     if (activeSession) {
       navigate(`/workout/${activeSession.workout_day_id}/active`)
@@ -416,6 +427,9 @@ export function HomePage() {
               <CardioLogCard
                 key={template.id}
                 template={template}
+                sessions={templateWorkoutSessions || []}
+                schedule={schedule || []}
+                currentCycleDay={currentCycleDay}
               />
             ))
           ) : (
@@ -444,7 +458,7 @@ export function HomePage() {
               <TemplateCard
                 key={template.id}
                 template={template}
-                onClick={() => handleStartMobility(template.id)}
+                onClick={() => handleStartMobility(template)}
               />
             ))
           ) : (

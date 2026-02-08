@@ -4,7 +4,7 @@ import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
 import { CollapsibleSection, ExerciseCard, RestTimer } from '@/components/workout'
 import { useWorkoutDay } from '@/hooks/useWorkoutPlan'
-import { useStartWorkout, useCompleteWorkout, useLogSet, useSessionSets } from '@/hooks/useWorkoutSession'
+import { useStartWorkout, useCompleteWorkout, useLogSet, useDeleteSet, useSessionSets } from '@/hooks/useWorkoutSession'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { useAuthStore } from '@/stores/authStore'
 import { getWorkoutDisplayName } from '@/config/workoutConfig'
@@ -24,6 +24,7 @@ export function WorkoutPage() {
   const { mutate: startWorkout, isPending: isStarting } = useStartWorkout()
   const { mutate: completeWorkout, isPending: isCompleting } = useCompleteWorkout()
   const { mutate: logSet } = useLogSet()
+  const { mutate: deleteSet } = useDeleteSet()
 
   const {
     activeSession,
@@ -82,6 +83,14 @@ export function WorkoutPage() {
       repsCompleted: reps,
       weightUsed: weight
     })
+  }
+
+  const handleExerciseUncomplete = (exerciseId: string) => {
+    const sets = completedSets.get(exerciseId) || []
+    // Delete all sets for this exercise from the database
+    sets.forEach((s) => deleteSet(s.id))
+    // Remove from local store immediately for responsive UI
+    useWorkoutStore.getState().removeCompletedSets(exerciseId)
   }
 
   if (isLoading) {
@@ -213,6 +222,7 @@ export function WorkoutPage() {
                     onExerciseComplete={(reps, weight) =>
                       handleExerciseComplete(exercise.id, reps, weight)
                     }
+                    onExerciseUncomplete={() => handleExerciseUncomplete(exercise.id)}
                   />
                 ))}
               </CollapsibleSection>
@@ -233,6 +243,7 @@ export function WorkoutPage() {
                     onExerciseComplete={(reps, weight) =>
                       handleExerciseComplete(exercise.id, reps, weight)
                     }
+                    onExerciseUncomplete={() => handleExerciseUncomplete(exercise.id)}
                   />
                 ))}
               </div>

@@ -3,7 +3,6 @@ import { useAuthStore } from '@/stores/authStore'
 import {
   getProfile,
   upsertProfile,
-  advanceCycleDay,
   type UserProfile,
   type UpdateProfileData
 } from '@/services/profileService'
@@ -43,14 +42,3 @@ export function useUpsertProfile() {
   })
 }
 
-export function useAdvanceCycleDay() {
-  const queryClient = useQueryClient()
-  const user = useAuthStore((s) => s.user)
-
-  return useMutation({
-    mutationFn: () => advanceCycleDay(user!.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
-    }
-  })
-}

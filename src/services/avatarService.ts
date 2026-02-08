@@ -7,6 +7,7 @@ const MAX_WIDTH_PX = 512
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 export function getAvatarPublicUrl(path: string): string {
+  if (path.startsWith('default:')) return path
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
   return data.publicUrl
 }

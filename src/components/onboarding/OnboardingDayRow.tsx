@@ -37,6 +37,8 @@ function getWeightsKey(name: string): keyof typeof WEIGHTS_CONFIG {
   if (lower.includes('push')) return 'push'
   if (lower.includes('pull')) return 'pull'
   if (lower.includes('leg')) return 'legs'
+  if (lower.includes('upper')) return 'upper'
+  if (lower.includes('lower')) return 'lower'
   return 'push'
 }
 

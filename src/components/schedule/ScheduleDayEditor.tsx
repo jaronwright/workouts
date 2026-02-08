@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Modal, Button } from '@/components/ui'
 import { useWorkoutTemplates, useSaveScheduleDayWorkouts } from '@/hooks/useSchedule'
-import { useWorkoutDays } from '@/hooks/useWorkoutPlan'
+import { useSelectedPlanDays } from '@/hooks/useWorkoutPlan'
 import { type ScheduleDay, type ScheduleWorkoutItem } from '@/services/scheduleService'
 import { Moon, Plus, X, Trash2 } from 'lucide-react'
 import {
@@ -35,6 +35,8 @@ function getWeightsKey(name: string): keyof typeof WEIGHTS_CONFIG {
   if (lower.includes('push')) return 'push'
   if (lower.includes('pull')) return 'pull'
   if (lower.includes('leg')) return 'legs'
+  if (lower.includes('upper')) return 'upper'
+  if (lower.includes('lower')) return 'lower'
   return 'push' // default
 }
 
@@ -45,7 +47,7 @@ export function ScheduleDayEditor({
   currentSchedules = []
 }: ScheduleDayEditorProps) {
   const { data: templates } = useWorkoutTemplates()
-  const { data: workoutDays } = useWorkoutDays()
+  const { data: workoutDays } = useSelectedPlanDays()
   const { mutate: saveWorkouts, isPending } = useSaveScheduleDayWorkouts()
 
   const [selectedWorkouts, setSelectedWorkouts] = useState<SelectedWorkout[]>([])

@@ -55,6 +55,7 @@ describe('scheduleService', () => {
         description: 'Pool laps',
         icon: 'waves',
         duration_minutes: 30,
+        workout_day_id: null,
         created_at: '2024-01-01T00:00:00Z'
       }
 
@@ -124,6 +125,7 @@ describe('scheduleService', () => {
         description: null,
         icon: null,
         duration_minutes: null,
+        workout_day_id: null,
         created_at: '2024-01-01T00:00:00Z'
       }
       expect(template.type).toBe('weights')
@@ -138,6 +140,7 @@ describe('scheduleService', () => {
         description: 'Outdoor run',
         icon: 'footprints',
         duration_minutes: 30,
+        workout_day_id: null,
         created_at: '2024-01-01T00:00:00Z'
       }
       expect(template.type).toBe('cardio')
@@ -152,6 +155,7 @@ describe('scheduleService', () => {
         description: 'Lower body mobility',
         icon: 'activity',
         duration_minutes: 15,
+        workout_day_id: '00000000-0000-0000-0000-000000000032',
         created_at: '2024-01-01T00:00:00Z'
       }
       expect(template.type).toBe('mobility')

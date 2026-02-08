@@ -24,7 +24,7 @@ export function AppShell({
     <div className="min-h-screen bg-[var(--color-background)]">
       <VerificationBanner />
       <Header title={title} showBack={showBack} showLogout={showLogout} headerAction={headerAction} />
-      <main className={`${hideNav ? 'pb-6' : 'pb-28'}`}>
+      <main className={`${hideNav ? 'pb-6' : 'pb-32'}`}>
         {children}
       </main>
       {!hideNav && <BottomNav />}

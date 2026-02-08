@@ -7,6 +7,7 @@ import { upsertProfile } from '@/services/profileService'
 export function useAvatarUrl(): string | null {
   const { data: profile } = useProfile()
   if (!profile?.avatar_url) return null
+  if (profile.avatar_url.startsWith('default:')) return profile.avatar_url
   return getAvatarPublicUrl(profile.avatar_url)
 }
 
