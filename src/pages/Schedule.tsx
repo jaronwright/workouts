@@ -143,7 +143,9 @@ export function SchedulePage() {
                       }
                     `}
                   >
-                    {chip?.Icon ? (
+                    {daySchedules.length > 1 ? (
+                      <span className="text-xs font-bold">{daySchedules.length}</span>
+                    ) : chip?.Icon ? (
                       <chip.Icon className="w-4 h-4" />
                     ) : (
                       day

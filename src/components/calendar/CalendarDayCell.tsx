@@ -36,6 +36,10 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
   // Show an icon if we have a projected workout OR a completed session
   const hasIcon = showProjectedIcon || (hasCompletedSession && sessionStyle)
 
+  // Determine if we should show a count badge instead of an icon
+  const multiCount = sessions.length > 1 ? sessions.length : (isFuture || isToday) && day.projectedCount > 1 ? day.projectedCount : 0
+  const showCountBadge = multiCount > 1 && isCurrentMonth
+
   // Missed workout: past day + scheduled (not rest) + no completed session
   const isMissed = isCurrentMonth && !isFuture && !isToday && hasProjection && !isRest && !hasCompletedSession
 
@@ -83,7 +87,19 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
       </span>
 
       {/* Workout icon circle */}
-      {hasIcon && Icon ? (
+      {showCountBadge ? (
+        <div className="relative mt-0.5">
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.15))',
+              opacity: iconOpacity
+            }}
+          >
+            <span className="text-[11px] font-bold text-[var(--color-text)]">{multiCount}</span>
+          </div>
+        </div>
+      ) : hasIcon && Icon ? (
         <div className="relative mt-0.5">
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center"
@@ -122,13 +138,6 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
       {/* Missed workout red dot */}
       {isMissed && isCurrentMonth && (
         <div className="absolute bottom-0.5 w-1.5 h-1.5 rounded-full bg-[var(--color-danger)]" />
-      )}
-
-      {/* Multiple workouts badge */}
-      {sessions.length > 1 && isCurrentMonth && (
-        <span className="absolute top-0.5 right-0.5 text-[8px] font-bold text-[var(--color-text-muted)]">
-          +{sessions.length - 1}
-        </span>
       )}
     </button>
   )

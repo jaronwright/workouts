@@ -222,6 +222,16 @@ export function ScheduleDayEditor({
           )}
         </div>
 
+        {/* Overtraining Warning */}
+        {selectedWorkouts.length >= 3 && selectedWorkouts[0]?.type !== 'rest' && (
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <span className="text-amber-500 text-lg flex-shrink-0">⚠️</span>
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              Scheduling {selectedWorkouts.length} sessions in one day increases injury and overtraining risk. Consider spreading workouts across multiple days.
+            </p>
+          </div>
+        )}
+
         {/* Add Workout Button / Menu */}
         {!isRestDay && (
           <div className="relative">

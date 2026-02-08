@@ -29,6 +29,7 @@ function makeCalendarDay(overrides: Partial<CalendarDay> = {}): CalendarDay {
     isFuture: false,
     cycleDay: 1,
     projected: null,
+    projectedCount: 0,
     sessions: [],
     hasCompletedSession: false,
     ...overrides,
@@ -155,5 +156,84 @@ describe('CalendarDayCell', () => {
     )
     const button = screen.getByRole('button')
     expect(button.className).toContain('opacity-30')
+  })
+
+  it('shows count badge when multiple sessions exist', () => {
+    const day = makeCalendarDay({
+      sessions: [
+        { id: 's1', type: 'weights', category: 'push', name: 'Push Day', started_at: '2026-02-07T10:00:00Z', completed_at: '2026-02-07T11:00:00Z', notes: null, originalSession: {} as any },
+        { id: 's2', type: 'cardio', category: 'running', name: 'Running', started_at: '2026-02-07T14:00:00Z', completed_at: '2026-02-07T15:00:00Z', notes: null, originalSession: {} as any },
+      ],
+      hasCompletedSession: true,
+      isCurrentMonth: true,
+    })
+    render(
+      <CalendarDayCell day={day} isSelected={false} onSelect={vi.fn()} />
+    )
+
+    // Should show "2" count badge instead of an icon
+    expect(screen.getByText('2')).toBeInTheDocument()
+  })
+
+  it('shows single session icon (not count badge) for one session', () => {
+    const day = makeCalendarDay({
+      sessions: [
+        { id: 's1', type: 'weights', category: 'push', name: 'Push Day', started_at: '2026-02-07T10:00:00Z', completed_at: '2026-02-07T11:00:00Z', notes: null, originalSession: {} as any },
+      ],
+      hasCompletedSession: true,
+      isCurrentMonth: true,
+    })
+    const { container } = render(
+      <CalendarDayCell day={day} isSelected={false} onSelect={vi.fn()} />
+    )
+
+    // Should show an SVG icon, not a count number
+    const svg = container.querySelector('svg')
+    expect(svg).toBeInTheDocument()
+    // Should NOT have the count badge text
+    expect(screen.queryByText('1')).not.toBeInTheDocument()
+  })
+
+  it('shows count badge for projected multi-workout future days', () => {
+    const day = makeCalendarDay({
+      projected: {
+        dayNumber: 1,
+        icon: Dumbbell,
+        color: '#3B82F6',
+        bgColor: 'rgba(59, 130, 246, 0.15)',
+        name: 'Push Day',
+        isRest: false,
+        workoutDayId: 'day-1',
+      },
+      projectedCount: 3,
+      isFuture: true,
+      isCurrentMonth: true,
+    })
+    render(
+      <CalendarDayCell day={day} isSelected={false} onSelect={vi.fn()} />
+    )
+
+    // Should show "3" count badge for projected multi-workout day
+    expect(screen.getByText('3')).toBeInTheDocument()
+  })
+
+  it('shows green completion dot alongside count badge when sessions completed', () => {
+    const day = makeCalendarDay({
+      sessions: [
+        { id: 's1', type: 'weights', category: 'push', name: 'Push Day', started_at: '2026-02-07T10:00:00Z', completed_at: '2026-02-07T11:00:00Z', notes: null, originalSession: {} as any },
+        { id: 's2', type: 'cardio', category: 'running', name: 'Running', started_at: '2026-02-07T14:00:00Z', completed_at: '2026-02-07T15:00:00Z', notes: null, originalSession: {} as any },
+      ],
+      hasCompletedSession: true,
+      isCurrentMonth: true,
+    })
+    const { container } = render(
+      <CalendarDayCell day={day} isSelected={false} onSelect={vi.fn()} />
+    )
+
+    // Count badge
+    expect(screen.getByText('2')).toBeInTheDocument()
+    // Green completion dot should still be present
+    const greenDot = container.querySelector('.bg-\\[var\\(--color-success\\)\\]')
+    expect(greenDot).toBeInTheDocument()
   })
 })

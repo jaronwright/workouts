@@ -176,12 +176,13 @@ export async function saveScheduleDayWorkouts(
   dayNumber: number,
   workouts: ScheduleWorkoutItem[]
 ): Promise<ScheduleDay[]> {
-  console.log('saveScheduleDayWorkouts called:', { userId, dayNumber, workouts })
+  if (workouts.length > 3) {
+    console.warn('Overtraining risk: User scheduling', workouts.length, 'workouts on day', dayNumber)
+  }
 
   // Delete existing schedules for this day
   try {
     await deleteScheduleDay(userId, dayNumber)
-    console.log('Deleted existing schedules for day', dayNumber)
   } catch (deleteError) {
     console.error('Failed to delete existing schedules:', deleteError)
     throw new Error(`Failed to clear existing schedule: ${deleteError instanceof Error ? deleteError.message : String(deleteError)}`)
@@ -189,13 +190,11 @@ export async function saveScheduleDayWorkouts(
 
   // If no workouts selected, just clear the day (don't insert anything)
   if (workouts.length === 0) {
-    console.log('No workouts selected, day cleared')
     return []
   }
 
   // If rest day explicitly selected, insert rest entry
   if (workouts[0]?.type === 'rest') {
-    console.log('Inserting rest day')
     const { data, error } = await supabase
       .from('user_schedules')
       .insert({
@@ -230,8 +229,6 @@ export async function saveScheduleDayWorkouts(
     workout_day_id: workout.type === 'weights' ? workout.id : null,
     sort_order: index
   }))
-
-  console.log('Inserting schedule data:', scheduleData)
 
   const { data, error } = await supabase
     .from('user_schedules')
@@ -284,7 +281,6 @@ export async function saveScheduleDayWorkouts(
 
     throw new Error(`Failed to save schedule: ${error.message}`)
   }
-  console.log('Successfully saved schedules:', data)
   return (data || []).map(d => ({
     ...d,
     sort_order: d.sort_order ?? 0
