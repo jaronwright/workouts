@@ -61,7 +61,7 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
     })
   }, [weightsSessions, templateSessions])
 
-  // Compute weekly completion for StreakBar
+  // Compute weekly completion for StreakBar with schedule info
   const streakDays = useMemo(() => {
     const now = new Date()
     const startOfWeek = new Date(now)
@@ -83,15 +83,30 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
     })
 
     const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-    const todayDow = now.getDay()
+    const todayDow = now.getDay() // 0=Sun, 1=Mon, ...
 
-    return dayLabels.map((label, i) => ({
-      label,
-      completed: completedDayNums.has(i),
-      isToday: i === todayDow,
-      color: completedDayNums.has(i) ? 'var(--color-primary)' : undefined,
-    }))
-  }, [weightsSessions, templateSessions])
+    // Map day-of-week to cycle day number
+    // currentCycleDay corresponds to todayDow
+    // So for any dow, cycleDay = ((dow - todayDow + 7) % 7) + currentCycleDay, wrapped to totalDays
+    const totalDays = days.length // always 7
+
+    return dayLabels.map((label, dow) => {
+      const offset = ((dow - todayDow + 7) % 7)
+      const cycleDay = ((currentCycleDay - 1 + offset) % totalDays) + 1
+      const dayInfo = days[cycleDay - 1]
+
+      return {
+        label,
+        completed: completedDayNums.has(dow),
+        isToday: dow === todayDow,
+        color: completedDayNums.has(dow) ? dayInfo?.color || 'var(--color-primary)' : undefined,
+        workoutName: dayInfo?.name,
+        workoutIcon: dayInfo?.isRest ? undefined : dayInfo?.icon,
+        workoutColor: dayInfo?.color,
+        isRest: dayInfo?.isRest,
+      }
+    })
+  }, [weightsSessions, templateSessions, days, currentCycleDay])
 
   const handleDayClick = (day: DayInfo) => {
     if (day.isRest) {
