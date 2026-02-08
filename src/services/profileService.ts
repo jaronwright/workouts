@@ -16,7 +16,6 @@ export interface UserProfile {
 
 export interface UpdateProfileData {
   display_name?: string | null
-  gender?: UserProfile['gender']
   avatar_url?: string | null
   selected_plan_id?: string | null
   current_cycle_day?: number

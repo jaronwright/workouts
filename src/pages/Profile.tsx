@@ -21,17 +21,14 @@ import { OnboardingWizard } from '@/components/onboarding'
 import { useTheme } from '@/hooks/useTheme'
 import { getWorkoutDisplayName } from '@/config/workoutConfig'
 import type { SessionWithDay } from '@/services/workoutService'
-
-const PPL_PLAN_ID = '00000000-0000-0000-0000-000000000001'
-const UPPER_LOWER_PLAN_ID = '00000000-0000-0000-0000-000000000002'
-
-const GENDER_OPTIONS = [
-  { value: '', label: 'Select gender' },
-  { value: 'male', label: 'Male' },
-  { value: 'female', label: 'Female' },
-  { value: 'non-binary', label: 'Non-binary' },
-  { value: 'prefer-not-to-say', label: 'Prefer not to say' }
-] as const
+import {
+  PPL_PLAN_ID,
+  UPPER_LOWER_PLAN_ID,
+  FULL_BODY_PLAN_ID,
+  BRO_SPLIT_PLAN_ID,
+  ARNOLD_SPLIT_PLAN_ID,
+  SPLIT_NAMES,
+} from '@/config/planConstants'
 
 // Calculate lifetime stats
 function useLifetimeStats() {
@@ -110,7 +107,6 @@ export function ProfilePage() {
   const lifetimeStats = useLifetimeStats()
 
   const [displayName, setDisplayName] = useState('')
-  const [gender, setGender] = useState<string>('')
   const [saved, setSaved] = useState(false)
 
   // Security section state
@@ -139,15 +135,13 @@ export function ProfilePage() {
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || '')
-      setGender(profile.gender || '')
     }
   }, [profile])
 
   const handleSave = () => {
     updateProfile(
       {
-        display_name: displayName || null,
-        gender: (gender || null) as 'male' | 'female' | 'non-binary' | 'prefer-not-to-say' | null
+        display_name: displayName || null
       },
       {
         onSuccess: () => {
@@ -254,7 +248,7 @@ export function ProfilePage() {
   }
 
   const currentSplitId = profile?.selected_plan_id || PPL_PLAN_ID
-  const currentSplitName = currentSplitId === UPPER_LOWER_PLAN_ID ? 'Upper / Lower' : 'Push / Pull / Legs'
+  const currentSplitName = SPLIT_NAMES[currentSplitId] || 'Push / Pull / Legs'
 
   const handleSplitChange = (newPlanId: string) => {
     if (newPlanId === currentSplitId) return
@@ -372,23 +366,6 @@ export function ProfilePage() {
                 onChange={(e) => setDisplayName(e.target.value)}
               />
 
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text)] mb-1.5">
-                  Gender
-                </label>
-                <select
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                >
-                  {GENDER_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <Button onClick={handleSave} loading={isSaving} className="w-full">
                 {saved ? 'Saved!' : 'Save Changes'}
               </Button>
@@ -411,37 +388,30 @@ export function ProfilePage() {
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => handleSplitChange(PPL_PLAN_ID)}
-                  className={`
-                    flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
-                    ${currentSplitId === PPL_PLAN_ID
-                      ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
-                      : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
-                    }
-                  `}
-                >
-                  <Dumbbell className={`w-6 h-6 ${currentSplitId === PPL_PLAN_ID ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
-                  <span className={`text-sm font-medium ${currentSplitId === PPL_PLAN_ID ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
-                    Push/Pull/Legs
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => handleSplitChange(UPPER_LOWER_PLAN_ID)}
-                  className={`
-                    flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
-                    ${currentSplitId === UPPER_LOWER_PLAN_ID
-                      ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
-                      : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
-                    }
-                  `}
-                >
-                  <Dumbbell className={`w-6 h-6 ${currentSplitId === UPPER_LOWER_PLAN_ID ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
-                  <span className={`text-sm font-medium ${currentSplitId === UPPER_LOWER_PLAN_ID ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
-                    Upper/Lower
-                  </span>
-                </button>
+                {([
+                  [PPL_PLAN_ID, 'Push/Pull/Legs'],
+                  [UPPER_LOWER_PLAN_ID, 'Upper/Lower'],
+                  [FULL_BODY_PLAN_ID, 'Full Body'],
+                  [BRO_SPLIT_PLAN_ID, 'Bro Split'],
+                  [ARNOLD_SPLIT_PLAN_ID, 'Arnold Split'],
+                ] as const).map(([planId, label]) => (
+                  <button
+                    key={planId}
+                    onClick={() => handleSplitChange(planId)}
+                    className={`
+                      flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
+                      ${currentSplitId === planId
+                        ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
+                        : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
+                      }
+                    `}
+                  >
+                    <Dumbbell className={`w-6 h-6 ${currentSplitId === planId ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
+                    <span className={`text-sm font-medium text-center ${currentSplitId === planId ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
+                      {label}
+                    </span>
+                  </button>
+                ))}
               </div>
             </CardContent>
           </Card>

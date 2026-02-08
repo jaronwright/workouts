@@ -8,14 +8,6 @@ import { upsertProfile } from '@/services/profileService'
 import { PasswordStrengthIndicator } from '@/components/auth/PasswordStrengthIndicator'
 import { validatePassword } from '@/utils/validation'
 
-const GENDER_OPTIONS = [
-  { value: '', label: 'Select gender (optional)' },
-  { value: 'male', label: 'Male' },
-  { value: 'female', label: 'Female' },
-  { value: 'non-binary', label: 'Non-binary' },
-  { value: 'prefer-not-to-say', label: 'Prefer not to say' }
-] as const
-
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset'
 
 export function AuthPage() {
@@ -27,7 +19,6 @@ export function AuthPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
-  const [gender, setGender] = useState<string>('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
@@ -105,10 +96,9 @@ export function AuthPage() {
       await signUp(email.trim(), password)
       const newUser = useAuthStore.getState().user
 
-      if (newUser && (gender || displayName)) {
+      if (newUser && displayName) {
         await upsertProfile(newUser.id, {
-          display_name: displayName.trim() || null,
-          gender: (gender || null) as 'male' | 'female' | 'non-binary' | 'prefer-not-to-say' | null
+          display_name: displayName.trim() || null
         })
       }
 
@@ -199,7 +189,6 @@ export function AuthPage() {
     setPassword('')
     setConfirmPassword('')
     setDisplayName('')
-    setGender('')
     setError('')
     setSuccess('')
     setRememberMe(true)
@@ -303,29 +292,6 @@ export function AuthPage() {
                         onChange={(e) => setDisplayName(e.target.value)}
                         autoComplete="name"
                       />
-                      <div>
-                        <label className="block text-sm font-semibold text-[var(--color-text)] mb-2">
-                          Gender
-                        </label>
-                        <select
-                          value={gender}
-                          onChange={(e) => setGender(e.target.value)}
-                          className="
-                            w-full px-4 py-3
-                            rounded-[var(--radius-lg)]
-                            border-2 border-[var(--color-border)]
-                            bg-[var(--color-surface)]
-                            text-[var(--color-text)] text-base
-                            focus:outline-none focus:border-[var(--color-primary)]
-                          "
-                        >
-                          {GENDER_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
                     </div>
                   )}
 
