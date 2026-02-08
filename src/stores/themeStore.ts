@@ -29,6 +29,13 @@ function isValidTheme(value: string | null): value is Theme {
   return value === 'light' || value === 'dark' || value === 'system'
 }
 
+let themeListenerAttached = false
+
+/** Reset listener guard — for testing only */
+export function _resetThemeListenerForTesting(): void {
+  themeListenerAttached = false
+}
+
 export const useThemeStore = create<ThemeState>()(
   (set, get) => ({
     theme: 'dark',
@@ -53,8 +60,9 @@ export const useThemeStore = create<ThemeState>()(
       applyTheme(resolvedTheme)
       set({ resolvedTheme })
 
-      // Listen for system theme changes
-      if (typeof window !== 'undefined') {
+      // Listen for system theme changes (only attach once)
+      if (typeof window !== 'undefined' && !themeListenerAttached) {
+        themeListenerAttached = true
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
         const handleChange = () => {
           const currentTheme = get().theme

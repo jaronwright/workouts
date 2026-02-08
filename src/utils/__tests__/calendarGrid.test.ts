@@ -82,6 +82,115 @@ describe('getMonthGridDates', () => {
       expect(dates[i].getTime()).toBeGreaterThan(dates[i - 1].getTime())
     }
   })
+
+  it('returns 42 dates (6 rows) when a month requires it', () => {
+    // June 2024 starts on Saturday (day index 6) and has 30 days
+    // Grid needs: 1 leading day (Sat) + 30 days spans into row 6
+    // Actually: June 1 is Saturday -> grid starts Sun May 26
+    // June 30 is Sunday -> grid ends Sat July 6
+    // That's 42 days = 6 weeks
+    const dates = getMonthGridDates(new Date(2024, 5, 1)) // June 2024
+    expect(dates).toHaveLength(42)
+    expect(dates.length % 7).toBe(0)
+  })
+
+  it('handles February starting on Sunday in a non-leap year (exactly 4 rows)', () => {
+    // February 2015 starts on Sunday and has 28 days
+    // Feb 1 = Sunday, Feb 28 = Saturday => exactly 4 weeks = 28 dates
+    const dates = getMonthGridDates(new Date(2015, 1, 1))
+    expect(dates).toHaveLength(28)
+    // First date should be Feb 1
+    expect(dates[0].getMonth()).toBe(1)
+    expect(dates[0].getDate()).toBe(1)
+    // Last date should be Feb 28
+    const lastDate = dates[dates.length - 1]
+    expect(lastDate.getMonth()).toBe(1)
+    expect(lastDate.getDate()).toBe(28)
+  })
+
+  it('handles December correctly (year boundary)', () => {
+    // December 2024 starts on Sunday, has 31 days
+    const dates = getMonthGridDates(new Date(2024, 11, 1))
+    const decDates = dates.filter(
+      d => d.getMonth() === 11 && d.getFullYear() === 2024
+    )
+    expect(decDates).toHaveLength(31)
+    // Grid should include trailing January 2025 days
+    const lastDate = dates[dates.length - 1]
+    expect(lastDate.getDay()).toBe(6) // Saturday
+    // December 31 is a Tuesday, so trailing days go into January 2025
+    const janDates = dates.filter(
+      d => d.getMonth() === 0 && d.getFullYear() === 2025
+    )
+    expect(janDates.length).toBeGreaterThan(0)
+  })
+
+  it('handles January correctly with leading December days from previous year', () => {
+    // January 2025 starts on Wednesday
+    const dates = getMonthGridDates(new Date(2025, 0, 1))
+    // Grid starts on Sunday Dec 29, 2024
+    const firstDate = dates[0]
+    expect(firstDate.getMonth()).toBe(11) // December
+    expect(firstDate.getFullYear()).toBe(2024)
+    expect(firstDate.getDay()).toBe(0) // Sunday
+  })
+
+  it('always ends on a Saturday', () => {
+    // Test several different months
+    const months = [
+      new Date(2024, 0, 1),  // January
+      new Date(2024, 3, 1),  // April
+      new Date(2024, 6, 1),  // July
+      new Date(2024, 9, 1),  // October
+      new Date(2025, 1, 1),  // February
+    ]
+    for (const month of months) {
+      const dates = getMonthGridDates(month)
+      const lastDate = dates[dates.length - 1]
+      expect(lastDate.getDay()).toBe(6) // Saturday
+    }
+  })
+
+  it('always returns a length that is a multiple of 7', () => {
+    // Test all 12 months of 2024
+    for (let m = 0; m < 12; m++) {
+      const dates = getMonthGridDates(new Date(2024, m, 1))
+      expect(dates.length % 7).toBe(0)
+    }
+  })
+
+  it('handles the same month across multiple years consistently', () => {
+    // March across different years: always 31 days covered
+    for (const year of [2020, 2021, 2022, 2023, 2024, 2025]) {
+      const dates = getMonthGridDates(new Date(year, 2, 1))
+      const marchDates = dates.filter(
+        d => d.getMonth() === 2 && d.getFullYear() === year
+      )
+      expect(marchDates).toHaveLength(31)
+    }
+  })
+
+  it('handles a month where the 1st is Saturday and has 31 days', () => {
+    // August 2024 starts on Thursday... Let's find one that starts on Saturday
+    // March 2025 starts on Saturday
+    const dates = getMonthGridDates(new Date(2025, 2, 1))
+    // Grid starts Sun Feb 23, grid needs 6 rows because Mar 1 = Sat, 31 days
+    // Last day of March is Monday Mar 31
+    // Grid end: Sat Apr 5 = 6 rows = 42
+    expect(dates).toHaveLength(42)
+    expect(dates[0].getDay()).toBe(0) // starts on Sunday
+    const marchDates = dates.filter(
+      d => d.getMonth() === 2 && d.getFullYear() === 2025
+    )
+    expect(marchDates).toHaveLength(31)
+  })
+
+  it('accepts any day of the month as input, not just the 1st', () => {
+    // Passing the 15th of the month should produce the same grid as the 1st
+    const fromFirst = getMonthGridDates(new Date(2024, 5, 1))
+    const fromFifteenth = getMonthGridDates(new Date(2024, 5, 15))
+    expect(fromFirst).toEqual(fromFifteenth)
+  })
 })
 
 describe('getCycleDayForDate', () => {
@@ -147,6 +256,57 @@ describe('getCycleDayForDate', () => {
   it('returns null for date one day before start', () => {
     const result = getCycleDayForDate(new Date(2024, 1, 29), cycleStart, 7)
     expect(result).toBeNull()
+  })
+
+  it('works with a 1-day cycle (always returns 1)', () => {
+    expect(getCycleDayForDate(new Date(2024, 2, 1), cycleStart, 1)).toBe(1)
+    expect(getCycleDayForDate(new Date(2024, 2, 2), cycleStart, 1)).toBe(1)
+    expect(getCycleDayForDate(new Date(2024, 2, 100), cycleStart, 1)).toBe(1)
+  })
+
+  it('works with a large cycle length', () => {
+    // 30-day cycle
+    // Day 1: March 1 -> cycle day 1
+    // Day 30: March 30 -> cycle day 30
+    // Day 31: March 31 -> cycle day 1 (wraps)
+    expect(getCycleDayForDate(new Date(2024, 2, 1), cycleStart, 30)).toBe(1)
+    expect(getCycleDayForDate(new Date(2024, 2, 30), cycleStart, 30)).toBe(30)
+    expect(getCycleDayForDate(new Date(2024, 2, 31), cycleStart, 30)).toBe(1)
+    expect(getCycleDayForDate(new Date(2024, 3, 1), cycleStart, 30)).toBe(2)
+  })
+
+  it('handles cycle start crossing year boundary', () => {
+    const yearEndStart = '2024-12-30'
+    // Dec 30 = day 1, Dec 31 = day 2, Jan 1 2025 = day 3
+    expect(getCycleDayForDate(new Date(2024, 11, 30), yearEndStart, 7)).toBe(1)
+    expect(getCycleDayForDate(new Date(2024, 11, 31), yearEndStart, 7)).toBe(2)
+    expect(getCycleDayForDate(new Date(2025, 0, 1), yearEndStart, 7)).toBe(3)
+    // Jan 5 = 7 days after Dec 30, so wraps to day 1
+    expect(getCycleDayForDate(new Date(2025, 0, 5), yearEndStart, 7)).toBe(7)
+    expect(getCycleDayForDate(new Date(2025, 0, 6), yearEndStart, 7)).toBe(1)
+  })
+
+  it('handles cycle start crossing a leap day boundary', () => {
+    // Start on Feb 28, 2024 (leap year)
+    const leapStart = '2024-02-28'
+    // Feb 28 = day 1, Feb 29 = day 2, Mar 1 = day 3
+    expect(getCycleDayForDate(new Date(2024, 1, 28), leapStart, 7)).toBe(1)
+    expect(getCycleDayForDate(new Date(2024, 1, 29), leapStart, 7)).toBe(2)
+    expect(getCycleDayForDate(new Date(2024, 2, 1), leapStart, 7)).toBe(3)
+  })
+
+  it('returns null for all dates before start, even years prior', () => {
+    expect(getCycleDayForDate(new Date(2023, 0, 1), cycleStart, 7)).toBeNull()
+    expect(getCycleDayForDate(new Date(2020, 5, 15), cycleStart, 7)).toBeNull()
+  })
+
+  it('returns correct cycle day at exact cycle boundary multiples', () => {
+    // At exactly N * totalDays offset, should always be cycle day 1
+    for (let n = 1; n <= 10; n++) {
+      const date = new Date(2024, 2, 1)
+      date.setDate(date.getDate() + n * 7)
+      expect(getCycleDayForDate(date, cycleStart, 7)).toBe(1)
+    }
   })
 })
 
@@ -228,6 +388,116 @@ describe('groupSessionsByDate', () => {
     expect(laResult.size).toBe(1)
     expect(laResult.get('2024-03-15')).toHaveLength(2)
   })
+
+  it('preserves session data including category field', () => {
+    const sessions = [
+      makeSession({
+        id: 's1',
+        type: 'cardio',
+        category: 'running',
+        name: 'Easy Run',
+        started_at: '2024-03-15T10:00:00Z'
+      })
+    ]
+    const result = groupSessionsByDate(sessions, 'UTC')
+    const daySessions = result.get('2024-03-15')!
+    expect(daySessions[0].type).toBe('cardio')
+    expect(daySessions[0].category).toBe('running')
+    expect(daySessions[0].name).toBe('Easy Run')
+  })
+
+  it('groups mixed session types on the same date together', () => {
+    const sessions = [
+      makeSession({
+        id: 's1',
+        type: 'weights',
+        name: 'Push',
+        started_at: '2024-03-15T08:00:00Z'
+      }),
+      makeSession({
+        id: 's2',
+        type: 'cardio',
+        category: 'running',
+        name: 'Run',
+        started_at: '2024-03-15T17:00:00Z'
+      }),
+      makeSession({
+        id: 's3',
+        type: 'mobility',
+        category: 'yoga',
+        name: 'Yoga',
+        started_at: '2024-03-15T20:00:00Z'
+      })
+    ]
+    const result = groupSessionsByDate(sessions, 'UTC')
+    expect(result.size).toBe(1)
+    expect(result.get('2024-03-15')).toHaveLength(3)
+  })
+
+  it('handles sessions with null completed_at', () => {
+    const sessions = [
+      makeSession({
+        id: 's1',
+        started_at: '2024-03-15T10:00:00Z',
+        completed_at: null
+      })
+    ]
+    const result = groupSessionsByDate(sessions, 'UTC')
+    expect(result.size).toBe(1)
+    const daySessions = result.get('2024-03-15')!
+    expect(daySessions[0].completed_at).toBeNull()
+  })
+
+  it('handles sessions spanning many days', () => {
+    const sessions = []
+    for (let d = 1; d <= 31; d++) {
+      const day = String(d).padStart(2, '0')
+      sessions.push(
+        makeSession({
+          id: `s${d}`,
+          started_at: `2024-03-${day}T12:00:00Z`
+        })
+      )
+    }
+    const result = groupSessionsByDate(sessions, 'UTC')
+    expect(result.size).toBe(31)
+    for (let d = 1; d <= 31; d++) {
+      const day = String(d).padStart(2, '0')
+      expect(result.has(`2024-03-${day}`)).toBe(true)
+    }
+  })
+
+  it('handles negative UTC offset pushing date backward', () => {
+    // 2024-03-16T01:00:00Z in America/New_York (UTC-4 in March) = March 15 9 PM
+    const sessions = [
+      makeSession({ started_at: '2024-03-16T01:00:00Z' })
+    ]
+    const result = groupSessionsByDate(sessions, 'America/New_York')
+    expect(result.has('2024-03-15')).toBe(true)
+    expect(result.has('2024-03-16')).toBe(false)
+  })
+
+  it('handles positive UTC offset pushing date forward', () => {
+    // 2024-03-15T22:00:00Z in Asia/Kolkata (UTC+5:30) = March 16 3:30 AM
+    const sessions = [
+      makeSession({ started_at: '2024-03-15T22:00:00Z' })
+    ]
+    const result = groupSessionsByDate(sessions, 'Asia/Kolkata')
+    expect(result.has('2024-03-16')).toBe(true)
+    expect(result.has('2024-03-15')).toBe(false)
+  })
+
+  it('handles sessions on New Year boundary', () => {
+    // Dec 31 at 11 PM UTC -> in UTC it's still Dec 31, in UTC+2 it's Jan 1
+    const sessions = [
+      makeSession({ started_at: '2024-12-31T23:00:00Z' })
+    ]
+    const utcResult = groupSessionsByDate(sessions, 'UTC')
+    expect(utcResult.has('2024-12-31')).toBe(true)
+
+    const eetResult = groupSessionsByDate(sessions, 'Europe/Helsinki') // UTC+2
+    expect(eetResult.has('2025-01-01')).toBe(true)
+  })
 })
 
 describe('toDateKey', () => {
@@ -254,5 +524,33 @@ describe('toDateKey', () => {
   it('handles Feb 29 in a leap year', () => {
     const result = toDateKey(new Date(2024, 1, 29))
     expect(result).toBe('2024-02-29')
+  })
+
+  it('handles Feb 28 in a non-leap year', () => {
+    const result = toDateKey(new Date(2023, 1, 28))
+    expect(result).toBe('2023-02-28')
+  })
+
+  it('handles year 2000 (century leap year)', () => {
+    const result = toDateKey(new Date(2000, 0, 1))
+    expect(result).toBe('2000-01-01')
+  })
+
+  it('handles each month correctly', () => {
+    const expected = [
+      '2024-01-15', '2024-02-15', '2024-03-15', '2024-04-15',
+      '2024-05-15', '2024-06-15', '2024-07-15', '2024-08-15',
+      '2024-09-15', '2024-10-15', '2024-11-15', '2024-12-15'
+    ]
+    for (let m = 0; m < 12; m++) {
+      expect(toDateKey(new Date(2024, m, 15))).toBe(expected[m])
+    }
+  })
+
+  it('handles double-digit day at month boundary', () => {
+    // November 30
+    expect(toDateKey(new Date(2024, 10, 30))).toBe('2024-11-30')
+    // October 31
+    expect(toDateKey(new Date(2024, 9, 31))).toBe('2024-10-31')
   })
 })

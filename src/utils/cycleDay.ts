@@ -27,6 +27,7 @@ export function getCurrentCycleDay(
   const startDateStr = cycleStartDate.substring(0, 10)
   const start = parseISO(startDateStr)
   const daysSinceStart = differenceInCalendarDays(today, start)
+  if (totalDays <= 0) return 1
   return ((daysSinceStart % totalDays) + totalDays) % totalDays + 1
 }
 

@@ -342,6 +342,9 @@ vi.mock('lucide-react', () => {
     Trophy: icon,
     Flame: icon,
     Star: icon,
+    ArrowLeftRight: icon,
+    ArrowUpDown: icon,
+    Heart: icon,
   }
 })
 

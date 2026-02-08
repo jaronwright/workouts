@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@/test/utils'
+import { render, screen, fireEvent, act } from '@/test/utils'
 import { WorkoutPage } from '../Workout'
 
 const mockNavigate = vi.fn()
@@ -81,6 +81,46 @@ vi.mock('@/stores/authStore', () => ({
 
 vi.mock('@/config/workoutConfig', () => ({
   getWorkoutDisplayName: (name: string) => name || 'Workout',
+}))
+
+vi.mock('@/hooks/useToast', () => ({
+  useToast: () => ({
+    success: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+  }),
+}))
+
+vi.mock('motion/react', () => ({
+  motion: {
+    button: ({ children, ...props }: Record<string, unknown>) => {
+      const {
+        whileTap, animate: _a, transition: _t, initial: _i,
+        ...validProps
+      } = props
+      return <button {...(validProps as Record<string, unknown>)}>{children as React.ReactNode}</button>
+    },
+    div: ({ children, ...props }: Record<string, unknown>) => {
+      const {
+        variants: _v, initial: _i, animate: _a, exit: _e, transition: _t,
+        layoutId: _l, whileTap: _wt, ...validProps
+      } = props
+      return <div {...(validProps as Record<string, unknown>)}>{children as React.ReactNode}</div>
+    },
+    span: ({ children, ...props }: Record<string, unknown>) => {
+      const {
+        animate: _a, transition: _t, ...validProps
+      } = props
+      return <span {...(validProps as Record<string, unknown>)}>{children as React.ReactNode}</span>
+    },
+    p: ({ children, ...props }: Record<string, unknown>) => {
+      const {
+        initial: _i, animate: _a, transition: _t, ...validProps
+      } = props
+      return <p {...(validProps as Record<string, unknown>)}>{children as React.ReactNode}</p>
+    },
+  },
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
 
 vi.mock('@/components/layout', () => ({
@@ -191,6 +231,7 @@ describe('WorkoutPage Workflows', () => {
     })
 
     it('calls startWorkout.mutate when Start Workout is clicked', () => {
+      vi.useFakeTimers()
       mockWorkoutDay = makeWorkoutDay()
 
       render(<WorkoutPage />)
@@ -198,12 +239,19 @@ describe('WorkoutPage Workflows', () => {
       const startBtn = screen.getByRole('button', { name: /Start Workout/i })
       fireEvent.click(startBtn)
 
+      // handleStart uses setTimeout(2000) for splash screen
+      act(() => {
+        vi.advanceTimersByTime(2000)
+      })
+
       expect(mockStartWorkoutMutate).toHaveBeenCalledTimes(1)
       // First argument is the dayId
       expect(mockStartWorkoutMutate).toHaveBeenCalledWith(
         'day-1',
         expect.objectContaining({ onSuccess: expect.any(Function) })
       )
+
+      vi.useRealTimers()
     })
 
     it('does not show Complete Workout button when there is no active session', () => {

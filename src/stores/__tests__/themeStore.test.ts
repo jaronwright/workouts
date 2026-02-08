@@ -9,7 +9,7 @@ vi.mock('zustand/middleware', async () => {
   }
 })
 
-import { useThemeStore } from '../themeStore'
+import { useThemeStore, _resetThemeListenerForTesting } from '../themeStore'
 
 describe('themeStore', () => {
   beforeEach(() => {
@@ -20,6 +20,8 @@ describe('themeStore', () => {
     })
     // Clear any added classes
     document.documentElement.classList.remove('dark')
+    // Reset listener guard so tests can verify addEventListener
+    _resetThemeListenerForTesting()
   })
 
   describe('setTheme', () => {

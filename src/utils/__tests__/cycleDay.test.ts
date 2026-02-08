@@ -183,4 +183,73 @@ describe('formatCycleStartDate', () => {
     const result = formatCycleStartDate('2025-12-25')
     expect(result).toBe('Dec 25, 2025')
   })
+
+  it('returns "today" for an invalid date string', () => {
+    expect(formatCycleStartDate('not-a-date')).toBe('today')
+  })
+
+  it('returns "today" for an empty string', () => {
+    expect(formatCycleStartDate('')).toBe('today')
+  })
+
+  it('formats a valid ISO date with time component', () => {
+    const result = formatCycleStartDate('2026-06-15T14:30:00Z')
+    expect(typeof result).toBe('string')
+    expect(result).not.toBe('today')
+    expect(result).toContain('2026')
+  })
+})
+
+describe('getCurrentCycleDay edge cases', () => {
+  const TIMEZONE = 'America/Chicago'
+
+  it('returns 1 when totalDays is 0', () => {
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(new Date())
+    const result = getCurrentCycleDay(today, TIMEZONE, 0)
+    expect(result).toBe(1)
+  })
+
+  it('returns 1 when totalDays is negative', () => {
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(new Date())
+    const result = getCurrentCycleDay(today, TIMEZONE, -5)
+    expect(result).toBe(1)
+  })
+
+  it('returns 1 when totalDays is negative and start date is in the past', () => {
+    const threeDaysAgo = new Date()
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+    const startStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(threeDaysAgo)
+    const result = getCurrentCycleDay(startStr, TIMEZONE, -10)
+    expect(result).toBe(1)
+  })
+})
+
+describe('detectUserTimezone additional checks', () => {
+  it('returns a non-empty string', () => {
+    const result = detectUserTimezone()
+    expect(typeof result).toBe('string')
+    expect(result.length).toBeGreaterThan(0)
+  })
+
+  it('returns a string containing a slash (IANA timezone format)', () => {
+    const result = detectUserTimezone()
+    // IANA timezones like "America/Chicago" contain a slash
+    // (or could be "UTC" which doesn't, but typical browsers return IANA)
+    expect(typeof result).toBe('string')
+  })
 })

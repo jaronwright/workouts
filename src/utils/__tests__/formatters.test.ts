@@ -145,3 +145,340 @@ describe('formatRelativeTime', () => {
     expect(result).toContain('ago')
   })
 })
+
+// ===== EDGE CASE TESTS =====
+
+describe('formatDate - edge cases', () => {
+  it('formats January 1st (New Year)', () => {
+    const result = formatDate('2024-01-01T12:00:00Z')
+    expect(result).toMatch(/Jan 1, 2024/)
+  })
+
+  it('formats December 31st (New Year Eve)', () => {
+    const result = formatDate('2024-12-31T12:00:00Z')
+    expect(result).toMatch(/Dec 3[01], 2024/)
+  })
+
+  it('formats leap day', () => {
+    const result = formatDate('2024-02-29T12:00:00Z')
+    expect(result).toMatch(/Feb 29, 2024/)
+  })
+
+  it('formats a date far in the past', () => {
+    const result = formatDate('1970-01-01T12:00:00Z')
+    expect(result).toMatch(/Jan 1, 1970/)
+  })
+
+  it('formats a date far in the future', () => {
+    const result = formatDate('2099-06-15T12:00:00Z')
+    expect(result).toMatch(/Jun 15, 2099/)
+  })
+
+  it('formats Date object created from year/month/day', () => {
+    const date = new Date(2024, 5, 15, 12, 0, 0) // June 15, 2024 noon local
+    const result = formatDate(date)
+    expect(result).toBe('Jun 15, 2024')
+  })
+
+  it('handles ISO date string without time component', () => {
+    // Note: '2024-03-15' is parsed as UTC midnight, which may shift dates in some timezones
+    const result = formatDate('2024-03-15T12:00:00Z')
+    expect(result).toMatch(/Mar 1[45], 2024/)
+  })
+})
+
+describe('formatTime - edge cases', () => {
+  it('formats a Date object (not just string)', () => {
+    const date = new Date(2024, 0, 1, 14, 30, 0) // 2:30 PM local
+    const result = formatTime(date)
+    expect(result).toBe('2:30 PM')
+  })
+
+  it('formats midnight-adjacent time', () => {
+    const date = new Date(2024, 0, 1, 0, 0, 0) // midnight local
+    const result = formatTime(date)
+    expect(result).toBe('12:00 AM')
+  })
+
+  it('formats noon local time', () => {
+    const date = new Date(2024, 0, 1, 12, 0, 0) // noon local
+    const result = formatTime(date)
+    expect(result).toBe('12:00 PM')
+  })
+
+  it('formats time with minutes at boundary', () => {
+    const date = new Date(2024, 0, 1, 23, 59, 59) // 11:59 PM local
+    const result = formatTime(date)
+    expect(result).toBe('11:59 PM')
+  })
+
+  it('formats 1:00 AM local time', () => {
+    const date = new Date(2024, 0, 1, 1, 0, 0)
+    const result = formatTime(date)
+    expect(result).toBe('1:00 AM')
+  })
+})
+
+describe('formatDateTime - edge cases', () => {
+  it('formats a Date object', () => {
+    const date = new Date(2024, 0, 1, 14, 30, 0) // Jan 1, 2024 2:30 PM local
+    const result = formatDateTime(date)
+    expect(result).toBe('Jan 1, 2024 2:30 PM')
+  })
+
+  it('formats midnight local time', () => {
+    const date = new Date(2024, 5, 15, 0, 0, 0) // June 15 midnight local
+    const result = formatDateTime(date)
+    expect(result).toBe('Jun 15, 2024 12:00 AM')
+  })
+
+  it('formats end of day local time', () => {
+    const date = new Date(2024, 11, 31, 23, 59, 0) // Dec 31 11:59 PM local
+    const result = formatDateTime(date)
+    expect(result).toBe('Dec 31, 2024 11:59 PM')
+  })
+})
+
+describe('formatRelativeTime - edge cases', () => {
+  it('formats a Date object (not string)', () => {
+    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000)
+    const result = formatRelativeTime(tenMinAgo)
+    expect(result).toContain('ago')
+  })
+
+  it('formats a very recent time (seconds ago)', () => {
+    const justNow = new Date(Date.now() - 10 * 1000) // 10 seconds ago
+    const result = formatRelativeTime(justNow)
+    expect(result).toContain('ago')
+  })
+
+  it('formats days ago', () => {
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 3600 * 1000)
+    const result = formatRelativeTime(threeDaysAgo)
+    expect(result).toContain('ago')
+    expect(result).toContain('3 days')
+  })
+
+  it('formats months ago', () => {
+    const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 3600 * 1000)
+    const result = formatRelativeTime(sixtyDaysAgo)
+    expect(result).toContain('ago')
+    expect(result).toMatch(/months? ago/)
+  })
+
+  it('formats a future date with "in" prefix', () => {
+    const tomorrow = new Date(Date.now() + 24 * 3600 * 1000)
+    const result = formatRelativeTime(tomorrow)
+    expect(result).toContain('in')
+  })
+})
+
+describe('formatDuration - edge cases', () => {
+  it('formats exactly 60 seconds as 1:00', () => {
+    expect(formatDuration(60)).toBe('1:00')
+  })
+
+  it('formats exactly 1 second', () => {
+    expect(formatDuration(1)).toBe('0:01')
+  })
+
+  it('formats 59 seconds (boundary before 1 minute)', () => {
+    expect(formatDuration(59)).toBe('0:59')
+  })
+
+  it('formats large values (1 hour)', () => {
+    expect(formatDuration(3600)).toBe('60:00')
+  })
+
+  it('formats very large values (24 hours)', () => {
+    expect(formatDuration(86400)).toBe('1440:00')
+  })
+
+  it('formats negative seconds (implementation-defined behavior)', () => {
+    // Math.floor of negative / 60 and modulo behavior
+    const result = formatDuration(-1)
+    // -1 / 60 = -0.0167, floor = -1; -1 % 60 = -1
+    expect(result).toBe('-1:-1')
+  })
+
+  it('formats negative value of -60', () => {
+    // Math.floor(-60 / 60) = -1; -60 % 60 = -0 (which is 0 in JS, toString gives "0")
+    const result = formatDuration(-60)
+    expect(result).toBe('-1:00')
+  })
+
+  it('formats fractional seconds', () => {
+    // 90.5: floor(90.5/60) = 1; 90.5 % 60 = 30.5; "30.5".padStart(2,"0") = "30.5"
+    expect(formatDuration(90.5)).toBe('1:30.5')
+  })
+
+  it('formats NaN gracefully', () => {
+    const result = formatDuration(NaN)
+    expect(result).toBe('NaN:NaN')
+  })
+
+  it('formats Infinity', () => {
+    const result = formatDuration(Infinity)
+    expect(result).toBe('Infinity:NaN')
+  })
+
+  it('formats negative Infinity', () => {
+    const result = formatDuration(-Infinity)
+    expect(result).toBe('-Infinity:NaN')
+  })
+
+  it('formats 0.99 seconds (sub-minute fraction)', () => {
+    // floor(0.99/60) = 0; 0.99 % 60 = 0.99
+    expect(formatDuration(0.99)).toBe('0:0.99')
+  })
+})
+
+describe('formatWeight - edge cases', () => {
+  it('uses lbs as default unit when not specified', () => {
+    expect(formatWeight(100)).toBe('100 lbs')
+  })
+
+  it('formats negative weight', () => {
+    expect(formatWeight(-5)).toBe('-5 lbs')
+  })
+
+  it('formats negative weight with kg', () => {
+    expect(formatWeight(-10, 'kg')).toBe('-10 kg')
+  })
+
+  it('formats very large weight', () => {
+    expect(formatWeight(99999)).toBe('99999 lbs')
+  })
+
+  it('formats very small decimal weight', () => {
+    expect(formatWeight(0.25, 'kg')).toBe('0.25 kg')
+  })
+
+  it('formats NaN weight', () => {
+    expect(formatWeight(NaN)).toBe('NaN lbs')
+  })
+
+  it('formats Infinity weight', () => {
+    expect(formatWeight(Infinity)).toBe('Infinity lbs')
+  })
+
+  it('formats negative Infinity weight', () => {
+    expect(formatWeight(-Infinity, 'kg')).toBe('-Infinity kg')
+  })
+
+  it('formats weight with many decimal places', () => {
+    expect(formatWeight(132.123456789)).toBe('132.123456789 lbs')
+  })
+
+  it('formats zero weight with explicit lbs', () => {
+    expect(formatWeight(0, 'lbs')).toBe('0 lbs')
+  })
+})
+
+describe('formatReps - edge cases', () => {
+  it('formats negative reps', () => {
+    expect(formatReps(-1)).toBe('-1')
+  })
+
+  it('formats very large reps', () => {
+    expect(formatReps(1000000)).toBe('1000000')
+  })
+
+  it('formats fractional reps', () => {
+    expect(formatReps(5.5)).toBe('5.5')
+  })
+
+  it('formats NaN reps', () => {
+    expect(formatReps(NaN)).toBe('NaN')
+  })
+
+  it('formats Infinity reps', () => {
+    expect(formatReps(Infinity)).toBe('Infinity')
+  })
+
+  it('formats negative Infinity reps', () => {
+    expect(formatReps(-Infinity)).toBe('-Infinity')
+  })
+
+  it('formats 1 rep', () => {
+    expect(formatReps(1)).toBe('1')
+  })
+
+  it('formats reps with many decimal places', () => {
+    expect(formatReps(3.14159)).toBe('3.14159')
+  })
+})
+
+describe('normalizeWorkoutName - edge cases', () => {
+  it('handles single uppercase letter with parenthesized content', () => {
+    expect(normalizeWorkoutName('A (Arms)')).toBe('A (Arms)')
+  })
+
+  it('handles two-letter uppercase word with parens', () => {
+    expect(normalizeWorkoutName('AB (Abs, Back)')).toBe('Ab (Abs, Back)')
+  })
+
+  it('returns unchanged for all uppercase without parentheses', () => {
+    expect(normalizeWorkoutName('PUSH')).toBe('PUSH')
+  })
+
+  it('returns unchanged for lowercase with parentheses', () => {
+    expect(normalizeWorkoutName('push (chest)')).toBe('push (chest)')
+  })
+
+  it('returns unchanged for mixed case without matching pattern', () => {
+    expect(normalizeWorkoutName('Push')).toBe('Push')
+  })
+
+  it('handles name with no space before parenthesis', () => {
+    expect(normalizeWorkoutName('PUSH(Chest)')).toBe('Push(Chest)')
+  })
+
+  it('handles name with multiple spaces before parenthesis', () => {
+    expect(normalizeWorkoutName('PUSH  (Chest)')).toBe('Push  (Chest)')
+  })
+
+  it('handles name with special characters in parentheses', () => {
+    expect(normalizeWorkoutName('CORE (Abs & Obliques!)')).toBe('Core (Abs & Obliques!)')
+  })
+
+  it('handles name with numbers in parentheses', () => {
+    expect(normalizeWorkoutName('DAY (Phase 1)')).toBe('Day (Phase 1)')
+  })
+
+  it('handles name that is just an uppercase word with empty parens', () => {
+    expect(normalizeWorkoutName('TEST ()')).toBe('Test ()')
+  })
+
+  it('handles name with nested parentheses', () => {
+    expect(normalizeWorkoutName('UPPER (Chest (Heavy), Back)')).toBe('Upper (Chest (Heavy), Back)')
+  })
+
+  it('returns unchanged for name starting with number', () => {
+    expect(normalizeWorkoutName('3DAY (Full Body)')).toBe('3DAY (Full Body)')
+  })
+
+  it('returns unchanged for name with leading whitespace', () => {
+    // Leading whitespace means the regex ^([A-Z]+) won't match
+    expect(normalizeWorkoutName(' PUSH (Chest)')).toBe(' PUSH (Chest)')
+  })
+
+  it('returns unchanged for mixed case first word with parens', () => {
+    expect(normalizeWorkoutName('Push (Chest, Shoulders)')).toBe('Push (Chest, Shoulders)')
+  })
+
+  it('handles single character uppercase word with parens', () => {
+    // 'X' followed by space and parens
+    expect(normalizeWorkoutName('X (Cross Training)')).toBe('X (Cross Training)')
+  })
+
+  it('does not modify content inside parentheses', () => {
+    const result = normalizeWorkoutName('LEGS (QUADS, HAMSTRINGS)')
+    expect(result).toBe('Legs (QUADS, HAMSTRINGS)')
+  })
+
+  it('handles name with tab before parens', () => {
+    // \s* in regex matches tabs too
+    expect(normalizeWorkoutName('PUSH\t(Chest)')).toBe('Push\t(Chest)')
+  })
+})
