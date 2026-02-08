@@ -84,9 +84,9 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
 
       {/* Workout icon circle */}
       {hasIcon && Icon ? (
-        <div className="relative">
+        <div className="relative mt-0.5">
           <div
-            className="w-7 h-7 rounded-full flex items-center justify-center mt-0.5"
+            className="w-7 h-7 rounded-full flex items-center justify-center"
             style={{
               backgroundColor: bgCircleColor,
               opacity: iconOpacity
@@ -97,6 +97,14 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
               style={{ color: iconColor }}
             />
           </div>
+          {/* Today pulse ring — inside relative container so it aligns with icon */}
+          {isToday && showProjectedIcon && !hasCompletedSession && isCurrentMonth && !prefersReduced && (
+            <motion.div
+              className="absolute inset-0 w-7 h-7 rounded-full border-2 border-[var(--color-primary)]"
+              animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          )}
         </div>
       ) : isRest && isCurrentMonth ? (
         <div className="w-7 h-7 rounded-full flex items-center justify-center mt-0.5 opacity-40">
@@ -104,15 +112,6 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
         </div>
       ) : (
         <div className="w-7 h-7 mt-0.5" />
-      )}
-
-      {/* Today pulse ring — only when there's a scheduled workout not yet done */}
-      {isToday && showProjectedIcon && !hasCompletedSession && isCurrentMonth && !prefersReduced && (
-        <motion.div
-          className="absolute top-[14px] w-7 h-7 rounded-full border-2 border-[var(--color-primary)]"
-          animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        />
       )}
 
       {/* Green completion dot */}
