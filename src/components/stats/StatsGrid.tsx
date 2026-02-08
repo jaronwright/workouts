@@ -198,7 +198,7 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
       longestHours,
       longestMins,
     }
-  }, [calendarDays])
+  }, [calendarDays, allSessions])
 
   const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
@@ -272,7 +272,7 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
       </StatWidget>
 
       {/* Row 2: Weekly Frequency (2×1) | Total Time (1×1) */}
-      <StatWidget info="Sessions per day of the week" className="col-span-2">
+      <StatWidget info="Avg workouts per day, all history" className="col-span-2">
         <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent" />
         <div className="relative">
           <div className="flex items-center gap-1.5 mb-2">
@@ -280,13 +280,13 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
             <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Weekly Frequency</span>
           </div>
           <div className="flex items-end gap-1" style={{ height: 40 }}>
-            {stats.dayOfWeekCounts.map((count, i) => (
+            {stats.dayOfWeekAvg.map((avg, i) => (
               <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
                 <motion.div
                   className="w-full rounded-sm bg-violet-500"
-                  style={{ opacity: count > 0 ? 1 : 0.2 }}
+                  style={{ opacity: avg > 0 ? 1 : 0.2 }}
                   initial={prefersReduced ? false : { height: 0 }}
-                  animate={{ height: count > 0 ? Math.max((count / stats.maxDayCount) * 32, 4) : 2 }}
+                  animate={{ height: avg > 0 ? Math.max((avg / stats.maxDayAvg) * 32, 4) : 2 }}
                   transition={{ type: 'spring', stiffness: 200, damping: 20, delay: i * 0.05 }}
                 />
               </div>
