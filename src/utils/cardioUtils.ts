@@ -29,6 +29,9 @@ export const CARDIO_INPUT_CONFIG: Record<string, CardioInputMode[]> = {
   ],
   rower: [
     { mode: 'time', label: 'Time', unit: 'min' }
+  ],
+  boxing: [
+    { mode: 'time', label: 'Time', unit: 'min' }
   ]
 }
 

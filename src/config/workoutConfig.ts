@@ -12,6 +12,7 @@ import {
   Wind,
   ArrowUp,
   ArrowDownUp,
+  Swords,
   type LucideIcon
 } from 'lucide-react'
 
@@ -87,6 +88,12 @@ export const CARDIO_CONFIG: Record<string, WorkoutStyle> = {
     bgColor: 'rgba(59, 130, 246, 0.15)',
     gradient: 'from-blue-500 to-blue-400',
     icon: Waves
+  },
+  boxing: {
+    color: '#DC2626',
+    bgColor: 'rgba(220, 38, 38, 0.15)',
+    gradient: 'from-red-600 to-red-500',
+    icon: Swords
   }
 }
 
@@ -166,6 +173,7 @@ export const WORKOUT_DISPLAY_NAMES: Record<string, string> = {
   'stair stepper': 'Stair Stepper',
   'swimming': 'Swimming',
   'rower': 'Rower',
+  'boxing': 'Boxing',
 
   // Mobility workouts
   'core stability': 'Core Stability',
