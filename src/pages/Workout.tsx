@@ -156,7 +156,7 @@ export function WorkoutPage() {
                     key={section.id}
                     title={section.name}
                     subtitle={subtitle}
-                    defaultOpen={false}
+                    defaultOpen={true}
                   >
                     {section.exercises.map((exercise) => (
                       <Card key={exercise.id}>
@@ -220,7 +220,7 @@ export function WorkoutPage() {
                 key={section.id}
                 title={section.name}
                 subtitle={subtitle}
-                defaultOpen={false}
+                defaultOpen={true}
               >
                 {section.exercises.map((exercise) => (
                   <ExerciseCard

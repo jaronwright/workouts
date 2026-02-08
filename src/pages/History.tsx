@@ -107,7 +107,7 @@ export function HistoryPage() {
                   className="text-lg font-bold text-[var(--color-text)]"
                 />
                 <span className="text-[9px] text-[var(--color-text-muted)] font-medium">
-                  /{monthlySummary.scheduled}
+                  of {monthlySummary.scheduled}
                 </span>
               </div>
               <div className="flex flex-col items-center p-2 rounded-xl bg-[var(--color-surface)]">

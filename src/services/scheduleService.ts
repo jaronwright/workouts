@@ -1,4 +1,9 @@
 import { supabase } from './supabase'
+import {
+  FULL_BODY_PLAN_ID,
+  BRO_SPLIT_PLAN_ID,
+  ARNOLD_SPLIT_PLAN_ID,
+} from '@/config/planConstants'
 
 export interface WorkoutTemplate {
   id: string
@@ -301,10 +306,43 @@ export async function initializeDefaultSchedule(userId: string, planId?: string)
   const { data: workoutDays, error: workoutError } = await query
   if (workoutError) throw workoutError
 
-  // Build default schedule based on number of workout days
+  // Build default schedule based on plan ID and number of workout days
   let defaultSchedule: Array<{ day_number: number; workout_day_id: string | null; is_rest_day: boolean }>
 
-  if (workoutDays && workoutDays.length === 2) {
+  if (planId === FULL_BODY_PLAN_ID) {
+    // Full Body: 3 on, 4 off — pick days A, B, C
+    defaultSchedule = [
+      { day_number: 1, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
+      { day_number: 2, is_rest_day: true, workout_day_id: null },
+      { day_number: 3, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
+      { day_number: 4, is_rest_day: true, workout_day_id: null },
+      { day_number: 5, workout_day_id: workoutDays?.[2]?.id || null, is_rest_day: false },
+      { day_number: 6, is_rest_day: true, workout_day_id: null },
+      { day_number: 7, is_rest_day: true, workout_day_id: null }
+    ]
+  } else if (planId === BRO_SPLIT_PLAN_ID) {
+    // Bro Split: 5 on, 2 off — Chest, Back, Legs, Shoulders, Arms, Rest, Rest
+    defaultSchedule = [
+      { day_number: 1, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
+      { day_number: 2, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
+      { day_number: 3, workout_day_id: workoutDays?.[2]?.id || null, is_rest_day: false },
+      { day_number: 4, workout_day_id: workoutDays?.[3]?.id || null, is_rest_day: false },
+      { day_number: 5, workout_day_id: workoutDays?.[4]?.id || null, is_rest_day: false },
+      { day_number: 6, is_rest_day: true, workout_day_id: null },
+      { day_number: 7, is_rest_day: true, workout_day_id: null }
+    ]
+  } else if (planId === ARNOLD_SPLIT_PLAN_ID) {
+    // Arnold Split: 3-day cycle x2 + 1 rest
+    defaultSchedule = [
+      { day_number: 1, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
+      { day_number: 2, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
+      { day_number: 3, workout_day_id: workoutDays?.[2]?.id || null, is_rest_day: false },
+      { day_number: 4, workout_day_id: workoutDays?.[0]?.id || null, is_rest_day: false },
+      { day_number: 5, workout_day_id: workoutDays?.[1]?.id || null, is_rest_day: false },
+      { day_number: 6, workout_day_id: workoutDays?.[2]?.id || null, is_rest_day: false },
+      { day_number: 7, is_rest_day: true, workout_day_id: null }
+    ]
+  } else if (workoutDays && workoutDays.length === 2) {
     // Upper/Lower: Upper, Lower, Rest, Upper, Lower, Rest, Rest
     defaultSchedule = [
       { day_number: 1, workout_day_id: workoutDays[0]?.id || null, is_rest_day: false },

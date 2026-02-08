@@ -31,3 +31,4 @@ supabase/.temp/
 
 # Test coverage
 coverage/
+.vercel

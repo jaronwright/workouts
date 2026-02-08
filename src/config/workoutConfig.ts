@@ -54,7 +54,21 @@ export const WEIGHTS_CONFIG: Record<string, WorkoutStyle> = {
     bgColor: 'rgba(139, 92, 246, 0.15)',
     gradient: 'from-violet-500 to-violet-400',
     icon: ArrowDownUp
-  }
+  },
+  // Full Body days
+  'full body a': { color: '#10B981', bgColor: '#10B98120', gradient: 'from-emerald-500 to-emerald-400', icon: Dumbbell },
+  'full body b': { color: '#14B8A6', bgColor: '#14B8A620', gradient: 'from-teal-500 to-teal-400', icon: Dumbbell },
+  'full body c': { color: '#06B6D4', bgColor: '#06B6D420', gradient: 'from-cyan-500 to-cyan-400', icon: Dumbbell },
+  'full body d': { color: '#0EA5E9', bgColor: '#0EA5E920', gradient: 'from-sky-500 to-sky-400', icon: Dumbbell },
+  'full body e': { color: '#3B82F6', bgColor: '#3B82F620', gradient: 'from-blue-500 to-blue-400', icon: Dumbbell },
+  // Bro Split days
+  'chest': { color: '#EF4444', bgColor: '#EF444420', gradient: 'from-red-500 to-red-400', icon: Dumbbell },
+  'back': { color: '#F97316', bgColor: '#F9731620', gradient: 'from-orange-500 to-orange-400', icon: ArrowDown },
+  'shoulders': { color: '#EAB308', bgColor: '#EAB30820', gradient: 'from-yellow-500 to-yellow-400', icon: ArrowUp },
+  'arms': { color: '#A855F7', bgColor: '#A855F720', gradient: 'from-purple-500 to-purple-400', icon: Dumbbell },
+  // Arnold Split days
+  'chest & back': { color: '#F43F5E', bgColor: '#F43F5E20', gradient: 'from-rose-500 to-rose-400', icon: Dumbbell },
+  'shoulders & arms': { color: '#D946EF', bgColor: '#D946EF20', gradient: 'from-fuchsia-500 to-fuchsia-400', icon: ArrowUp }
 }
 
 // CARDIO - Teal/Orange/Blue Theme
@@ -166,6 +180,17 @@ export const WORKOUT_DISPLAY_NAMES: Record<string, string> = {
   'legs': 'Legs',
   'upper': 'Upper',
   'lower': 'Lower',
+  'full body a': 'Full Body A',
+  'full body b': 'Full Body B',
+  'full body c': 'Full Body C',
+  'full body d': 'Full Body D',
+  'full body e': 'Full Body E',
+  'chest': 'Chest',
+  'back': 'Back',
+  'shoulders': 'Shoulders',
+  'arms': 'Arms',
+  'chest & back': 'Chest & Back',
+  'shoulders & arms': 'Shoulders & Arms',
 
   // Cardio workouts
   'cycling': 'Cycling',
@@ -195,18 +220,18 @@ export const WORKOUT_DISPLAY_NAMES: Record<string, string> = {
 export function getWorkoutDisplayName(dbName: string | null | undefined): string {
   if (!dbName) return 'Workout'
 
-  // Extract the first word before any parenthesis or description
-  const firstWord = dbName.split(/[\s(]/)[0].toLowerCase()
-
-  // Check if we have a mapped display name
-  if (WORKOUT_DISPLAY_NAMES[firstWord]) {
-    return WORKOUT_DISPLAY_NAMES[firstWord]
-  }
-
-  // Check full name (lowercase) for exact matches
+  // Check full name (lowercase) first for multi-word matches like "Chest & Back"
   const lowerName = dbName.toLowerCase().trim()
   if (WORKOUT_DISPLAY_NAMES[lowerName]) {
     return WORKOUT_DISPLAY_NAMES[lowerName]
+  }
+
+  // Extract the first word before any parenthesis or description
+  const firstWord = dbName.split(/[\s(]/)[0].toLowerCase()
+
+  // Check if we have a mapped display name for the first word
+  if (WORKOUT_DISPLAY_NAMES[firstWord]) {
+    return WORKOUT_DISPLAY_NAMES[firstWord]
   }
 
   // Fallback: return the first word in Title Case
@@ -220,7 +245,10 @@ export function getCategoryLabel(category: string): string {
 
 // Helper function to get workout style by name (works for any split)
 export function getWeightsStyleByName(dayName: string): WorkoutStyle {
-  const lower = dayName.toLowerCase()
+  const lower = dayName.toLowerCase().trim()
+  // Direct lookup first (handles "Full Body A", "Chest & Back", etc.)
+  if (WEIGHTS_CONFIG[lower]) return WEIGHTS_CONFIG[lower]
+  // Keyword-based fallback for DB names like "PUSH (Chest, Shoulders, Triceps)"
   if (lower.includes('push')) return WEIGHTS_CONFIG.push
   if (lower.includes('pull')) return WEIGHTS_CONFIG.pull
   if (lower.includes('leg')) return WEIGHTS_CONFIG.legs

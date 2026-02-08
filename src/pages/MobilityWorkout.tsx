@@ -1,127 +1,93 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
-import { useTemplate, useStartTemplateWorkout, useCompleteTemplateWorkout } from '@/hooks/useTemplateWorkout'
+import { useTemplate, useQuickLogTemplateWorkout } from '@/hooks/useTemplateWorkout'
+import { useWorkoutDay } from '@/hooks/useWorkoutPlan'
 import { useToast } from '@/hooks/useToast'
-import { Play, Pause, Square, Activity, Check } from 'lucide-react'
+import { getMobilityStyle } from '@/config/workoutConfig'
+import { Check } from 'lucide-react'
+import type { PlanExercise } from '@/types/workout'
 
-const DURATION_OPTIONS = [15, 30, 45, 60]
+function formatExerciseDetail(exercise: PlanExercise): string {
+  const parts: string[] = []
+  if (exercise.sets) {
+    let repsPart = ''
+    if (exercise.reps_min && exercise.reps_max && exercise.reps_min !== exercise.reps_max) {
+      repsPart = `${exercise.reps_min}-${exercise.reps_max}`
+    } else if (exercise.reps_min) {
+      repsPart = `${exercise.reps_min}`
+    } else if (exercise.reps_max) {
+      repsPart = `${exercise.reps_max}`
+    }
+
+    if (repsPart) {
+      const unit = exercise.reps_unit !== 'reps' ? exercise.reps_unit : ''
+      const perSide = exercise.is_per_side ? ' per side' : ''
+      parts.push(`${exercise.sets} × ${repsPart}${unit ? unit : ''}${perSide}`)
+    } else {
+      parts.push(`${exercise.sets} sets`)
+    }
+  }
+  return parts.join(' ')
+}
 
 export function MobilityWorkoutPage() {
   const { templateId } = useParams<{ templateId: string }>()
   const navigate = useNavigate()
-  const { data: template, isLoading } = useTemplate(templateId)
-  const { mutate: startWorkout, isPending: isStarting } = useStartTemplateWorkout()
-  const { mutate: completeWorkout, isPending: isCompleting } = useCompleteTemplateWorkout()
+  const { data: template, isLoading: templateLoading } = useTemplate(templateId)
+  const { data: workoutDay, isLoading: dayLoading } = useWorkoutDay(template?.workout_day_id ?? undefined)
+  const { mutate: quickLog, isPending } = useQuickLogTemplateWorkout()
   const toast = useToast()
 
-  const [sessionId, setSessionId] = useState<string | null>(null)
-  const [selectedDuration, setSelectedDuration] = useState<number>(15)
-  const [isRunning, setIsRunning] = useState(false)
-  const [remainingSeconds, setRemainingSeconds] = useState(0)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [checkedExercises, setCheckedExercises] = useState<Set<string>>(new Set())
 
-  // Initialize duration from template
-  useEffect(() => {
-    if (template?.duration_minutes) {
-      setSelectedDuration(template.duration_minutes)
-    }
-  }, [template])
+  const style = getMobilityStyle(template?.category ?? null)
+  const Icon = style.icon
 
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
+  const allExercises = workoutDay?.sections?.flatMap(s => s.exercises) ?? []
+  const checkedCount = checkedExercises.size
+  const totalCount = allExercises.length
+
+  const toggleExercise = (exerciseId: string) => {
+    setCheckedExercises(prev => {
+      const next = new Set(prev)
+      if (next.has(exerciseId)) {
+        next.delete(exerciseId)
+      } else {
+        next.add(exerciseId)
       }
-    }
-  }, [])
-
-  // Handle timer completion
-  useEffect(() => {
-    if (remainingSeconds === 0 && isRunning) {
-      setIsRunning(false)
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
-      if ('vibrate' in navigator) {
-        navigator.vibrate([200, 100, 200])
-      }
-    }
-  }, [remainingSeconds, isRunning])
-
-  const handleStart = () => {
-    if (!templateId) return
-
-    startWorkout(templateId, {
-      onSuccess: (session) => {
-        setSessionId(session.id)
-        setRemainingSeconds(selectedDuration * 60)
-        setIsRunning(true)
-        intervalRef.current = setInterval(() => {
-          setRemainingSeconds((prev) => Math.max(0, prev - 1))
-        }, 1000)
-      },
-      onError: () => {
-        toast.error('Failed to start workout. Please try again.')
-      }
+      return next
     })
   }
 
-  const handlePause = () => {
-    setIsRunning(false)
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-  }
-
-  const handleResume = () => {
-    if (remainingSeconds === 0) return
-    setIsRunning(true)
-    intervalRef.current = setInterval(() => {
-      setRemainingSeconds((prev) => Math.max(0, prev - 1))
-    }, 1000)
-  }
-
   const handleComplete = () => {
-    if (!sessionId) return
+    if (!templateId) return
 
-    handlePause()
-    const actualDuration = selectedDuration - Math.ceil(remainingSeconds / 60)
-
-    completeWorkout(
-      {
-        sessionId,
-        durationMinutes: Math.max(1, actualDuration)
-      },
+    quickLog(
+      { templateId, durationMinutes: 15 },
       {
         onSuccess: () => {
+          toast.success('Mobility workout complete!')
           navigate('/history')
         },
         onError: () => {
-          toast.error('Failed to complete workout. Please try again.')
+          toast.error('Failed to save workout. Please try again.')
         }
       }
     )
   }
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
-
-  const progress = sessionId
-    ? ((selectedDuration * 60 - remainingSeconds) / (selectedDuration * 60)) * 100
-    : 0
+  const isLoading = templateLoading || dayLoading
 
   if (isLoading) {
     return (
       <AppShell title="Loading..." showBack>
-        <div className="p-4">
-          <div className="h-48 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
+        <div className="p-4 space-y-4">
+          <div className="h-32 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
+          <div className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
+          <div className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
+          <div className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
         </div>
       </AppShell>
     )
@@ -137,120 +103,104 @@ export function MobilityWorkoutPage() {
     )
   }
 
-  // Pre-workout view
-  if (!sessionId) {
-    return (
-      <AppShell title={template.name} showBack>
-        <div className="p-4 space-y-6">
-          <Card>
-            <CardContent className="py-8 text-center">
-              <div className="w-16 h-16 bg-[var(--color-mobility)]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Activity className="w-8 h-8 text-[var(--color-mobility)]" />
-              </div>
-              <h2 className="text-xl font-semibold text-[var(--color-text)] mb-2">
-                {template.name}
-              </h2>
-              {template.description && (
-                <p className="text-[var(--color-text-muted)] mb-4">
-                  {template.description}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Duration Selection */}
-          <Card>
-            <CardContent className="py-4">
-              <label className="block text-sm font-medium text-[var(--color-text)] mb-3">
-                Select Duration
-              </label>
-              <div className="grid grid-cols-4 gap-2">
-                {DURATION_OPTIONS.map((duration) => (
-                  <button
-                    key={duration}
-                    onClick={() => setSelectedDuration(duration)}
-                    className={`py-3 rounded-lg font-medium transition-colors ${
-                      selectedDuration === duration
-                        ? 'bg-[var(--color-primary)] text-[var(--color-text-inverse)]'
-                        : 'bg-[var(--color-surface-hover)] text-[var(--color-text)] hover:bg-[var(--color-border)]'
-                    }`}
-                  >
-                    {duration}m
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Button onClick={handleStart} loading={isStarting} size="lg" className="w-full">
-            Start {selectedDuration} Minute Session
-          </Button>
-        </div>
-      </AppShell>
-    )
-  }
-
-  // Active workout view
   return (
-    <AppShell title={template.name} showBack hideNav>
-      <div className="p-4 space-y-6">
-        {/* Timer Display */}
+    <AppShell title={template.name} showBack>
+      <div className="p-4 space-y-4 pb-28">
+        {/* Header */}
         <Card>
-          <CardContent className="py-8">
-            <div className="text-center">
-              <p className="text-sm text-[var(--color-text-muted)] mb-2">
-                {remainingSeconds === 0 ? 'Complete!' : 'Time Remaining'}
+          <CardContent className="py-6 text-center">
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
+              style={{ backgroundColor: style.bgColor }}
+            >
+              <Icon className="w-7 h-7" style={{ color: style.color }} />
+            </div>
+            <h2 className="text-lg font-semibold text-[var(--color-text)]">
+              {template.name}
+            </h2>
+            {template.description && (
+              <p className="text-sm text-[var(--color-text-muted)] mt-1">
+                {template.description}
               </p>
-              <span className="text-5xl font-bold text-[var(--color-text)] tabular-nums">
-                {formatTime(remainingSeconds)}
-              </span>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="h-2 bg-[var(--color-surface-hover)] rounded-full overflow-hidden mt-6">
-              <div
-                className="h-full bg-[var(--color-mobility)] transition-all duration-1000 ease-linear"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+            )}
+            <p className="text-xs text-[var(--color-text-muted)] mt-2">
+              ~15 min &middot; {totalCount} exercises
+            </p>
           </CardContent>
         </Card>
 
-        {/* Controls */}
-        <div className="flex justify-center gap-4">
-          {remainingSeconds === 0 ? (
-            <div className="w-16 h-16 bg-[var(--color-success)] rounded-full flex items-center justify-center">
-              <Check className="w-8 h-8 text-[var(--color-text-inverse)]" />
-            </div>
-          ) : isRunning ? (
-            <button
-              onClick={handlePause}
-              className="w-16 h-16 bg-[var(--color-warning)] rounded-full flex items-center justify-center text-[var(--color-text-inverse)]"
-            >
-              <Pause className="w-8 h-8" />
-            </button>
-          ) : (
-            <button
-              onClick={handleResume}
-              className="w-16 h-16 bg-[var(--color-success)] rounded-full flex items-center justify-center text-[var(--color-text-inverse)]"
-            >
-              <Play className="w-8 h-8 ml-1" />
-            </button>
-          )}
-        </div>
+        {/* Exercise List */}
+        {allExercises.length > 0 ? (
+          <div className="space-y-2">
+            {allExercises.map((exercise) => {
+              const isChecked = checkedExercises.has(exercise.id)
+              return (
+                <Card key={exercise.id}>
+                  <button
+                    className="w-full text-left"
+                    onClick={() => toggleExercise(exercise.id)}
+                  >
+                    <CardContent className="py-3 flex items-start gap-3">
+                      {/* Check circle */}
+                      <div
+                        className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                          isChecked
+                            ? 'border-transparent'
+                            : 'border-[var(--color-border)]'
+                        }`}
+                        style={isChecked ? { backgroundColor: style.color } : undefined}
+                      >
+                        {isChecked && <Check className="w-3.5 h-3.5 text-white" />}
+                      </div>
 
-        {/* Complete Button */}
-        <div className="pt-4">
-          <Button
-            onClick={handleComplete}
-            loading={isCompleting}
-            className="w-full"
-            size="lg"
-          >
-            <Square className="w-5 h-5 mr-2" />
-            {remainingSeconds === 0 ? 'Finish Session' : 'End Early'}
-          </Button>
-        </div>
+                      {/* Exercise info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span
+                            className={`font-medium text-sm ${
+                              isChecked
+                                ? 'line-through text-[var(--color-text-muted)]'
+                                : 'text-[var(--color-text)]'
+                            }`}
+                          >
+                            {exercise.name}
+                          </span>
+                          <span className="text-xs text-[var(--color-text-muted)] flex-shrink-0">
+                            {formatExerciseDetail(exercise)}
+                          </span>
+                        </div>
+                        {exercise.notes && (
+                          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                            {exercise.notes}
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </button>
+                </Card>
+              )
+            })}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="py-6 text-center text-[var(--color-text-muted)]">
+              No exercises found for this workout.
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Fixed footer */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--color-bg)]/95 backdrop-blur-sm border-t border-[var(--color-border)]">
+        <Button
+          onClick={handleComplete}
+          loading={isPending}
+          disabled={checkedCount === 0}
+          size="lg"
+          className="w-full"
+        >
+          Complete Workout ({checkedCount}/{totalCount})
+        </Button>
       </div>
     </AppShell>
   )

@@ -1,12 +1,20 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { Button } from '@/components/ui'
 import { useWorkoutTemplates, useSaveScheduleDayWorkouts, useClearSchedule } from '@/hooks/useSchedule'
 import { useWorkoutDays, useWorkoutPlans } from '@/hooks/useWorkoutPlan'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useUploadAvatar } from '@/hooks/useAvatar'
 import { OnboardingDayRow, type DaySelection } from './OnboardingDayRow'
-import { X, ChevronDown, ChevronLeft, HelpCircle, RefreshCw, Calendar, Dumbbell, ArrowUp, User, Camera } from 'lucide-react'
+import { X, ChevronDown, ChevronLeft, HelpCircle, RefreshCw, Calendar, Dumbbell, ArrowUp, User, Camera, Sparkles, Sun, Moon, Monitor } from 'lucide-react'
 import { WEIGHTS_CONFIG } from '@/config/workoutConfig'
+import {
+  PPL_PLAN_ID,
+  UPPER_LOWER_PLAN_ID,
+  FULL_BODY_PLAN_ID,
+  BRO_SPLIT_PLAN_ID,
+  ARNOLD_SPLIT_PLAN_ID,
+} from '@/config/planConstants'
+import { useTheme } from '@/hooks/useTheme'
 import type { ScheduleWorkoutItem } from '@/services/scheduleService'
 
 interface OnboardingWizardProps {
@@ -15,9 +23,6 @@ interface OnboardingWizardProps {
   initialStep?: 1 | 2 | 3
   initialPlanId?: string
 }
-
-const PPL_PLAN_ID = '00000000-0000-0000-0000-000000000001'
-const UPPER_LOWER_PLAN_ID = '00000000-0000-0000-0000-000000000002'
 
 const INITIAL_SELECTIONS: Record<number, DaySelection> = {
   1: { type: 'empty' },
@@ -37,6 +42,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   const { mutateAsync: saveWorkouts, isPending } = useSaveScheduleDayWorkouts()
   const { mutateAsync: clearSchedule } = useClearSchedule()
   const { mutateAsync: uploadAvatar } = useUploadAvatar()
+  const { theme, setTheme } = useTheme()
 
   const [step, setStep] = useState<1 | 2 | 3>(initialStep)
   const [selectedPlanId, setSelectedPlanId] = useState<string>(initialPlanId || profile?.selected_plan_id || PPL_PLAN_ID)
@@ -52,6 +58,14 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   const [savingDay, setSavingDay] = useState<number | null>(null)
   const [expandedDay, setExpandedDay] = useState<number | null>(null)
   const [showAbout, setShowAbout] = useState(false)
+  const [expandedSplit, setExpandedSplit] = useState<string | null>(null)
+
+  // Auto-builder state
+  const [showAutoBuilder, setShowAutoBuilder] = useState(false)
+  const [autoFocus, setAutoFocus] = useState<'all-weights' | 'all-cardio' | 'mix'>('mix')
+  const [restDays, setRestDays] = useState<1 | 2 | 3>(2)
+  const [mobilityImportant, setMobilityImportant] = useState(true)
+  const [showMobilityNote, setShowMobilityNote] = useState(false)
 
   // Profile step state
   const [displayName, setDisplayName] = useState('')
@@ -74,6 +88,12 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
       setError(null)
       setExpandedDay(null)
 
+      // Auto-builder defaults
+      setShowAutoBuilder(false)
+      setAutoFocus('mix')
+      setRestDays(2)
+      setMobilityImportant(true)
+
       // Profile step defaults
       setDisplayName(profile?.display_name || '')
       setNameError(null)
@@ -85,8 +105,8 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
 
 
-  const cardioTemplates = templates?.filter(t => t.type === 'cardio') || []
-  const mobilityTemplates = templates?.filter(t => t.type === 'mobility') || []
+  const cardioTemplates = useMemo(() => templates?.filter(t => t.type === 'cardio') || [], [templates])
+  const mobilityTemplates = useMemo(() => templates?.filter(t => t.type === 'mobility') || [], [templates])
 
   const handleSelectPlan = useCallback((planId: string) => {
     setSelectedPlanId(planId)
@@ -207,6 +227,156 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
     }
   }, [avatarPreview])
 
+  const generateSchedule = useCallback(() => {
+    const newSelections: Record<number, DaySelection> = { ...INITIAL_SELECTIONS }
+    const trainingDays = 7 - restDays
+    const days = workoutDays || []
+    const cardio = cardioTemplates
+    const mobility = mobilityTemplates
+
+    // Determine which days are rest days (spread evenly)
+    const restPositions: number[] = []
+    if (restDays === 1) {
+      restPositions.push(7)
+    } else if (restDays === 2) {
+      restPositions.push(4, 7)
+    } else if (restDays === 3) {
+      restPositions.push(3, 5, 7)
+    }
+
+    // Mark rest days
+    for (const pos of restPositions) {
+      newSelections[pos] = { type: 'rest' }
+    }
+
+    // Get training day positions (non-rest)
+    const trainingPositions = [1, 2, 3, 4, 5, 6, 7].filter(d => !restPositions.includes(d))
+
+    if (autoFocus === 'all-weights') {
+      // Fill training days with rotating weight days
+      let weightIdx = 0
+      for (const pos of trainingPositions) {
+        if (days.length > 0) {
+          const day = days[weightIdx % days.length]
+          newSelections[pos] = {
+            type: 'weights',
+            id: day.id,
+            label: day.name,
+            dayNumber: day.day_number
+          }
+          weightIdx++
+        }
+      }
+      // If mobility is important, swap last training day to mobility
+      if (mobilityImportant && mobility.length > 0 && trainingPositions.length > 1) {
+        const lastTraining = trainingPositions[trainingPositions.length - 1]
+        const mob = mobility[0]
+        newSelections[lastTraining] = {
+          type: 'mobility',
+          id: mob.id,
+          label: mob.name,
+          category: mob.category
+        }
+      }
+    } else if (autoFocus === 'all-cardio') {
+      // Fill training days with rotating cardio templates
+      let cardioIdx = 0
+      for (const pos of trainingPositions) {
+        if (cardio.length > 0) {
+          const c = cardio[cardioIdx % cardio.length]
+          newSelections[pos] = {
+            type: 'cardio',
+            id: c.id,
+            label: c.name,
+            category: c.category
+          }
+          cardioIdx++
+        }
+      }
+      // If mobility is important, swap last training day to mobility
+      if (mobilityImportant && mobility.length > 0 && trainingPositions.length > 1) {
+        const lastTraining = trainingPositions[trainingPositions.length - 1]
+        const mob = mobility[0]
+        newSelections[lastTraining] = {
+          type: 'mobility',
+          id: mob.id,
+          label: mob.name,
+          category: mob.category
+        }
+      }
+    } else {
+      // Mix of both: alternate weights and cardio
+      const weightSlots: number[] = []
+      const cardioSlots: number[] = []
+
+      // Assign weights days first (up to the number of plan days), rest to cardio
+      const numWeightDays = Math.min(days.length, Math.ceil(trainingDays / 2))
+      for (let i = 0; i < trainingPositions.length; i++) {
+        if (i < numWeightDays) {
+          weightSlots.push(trainingPositions[i])
+        } else {
+          cardioSlots.push(trainingPositions[i])
+        }
+      }
+
+      // Fill weight slots
+      let weightIdx = 0
+      for (const pos of weightSlots) {
+        if (days.length > 0) {
+          const day = days[weightIdx % days.length]
+          newSelections[pos] = {
+            type: 'weights',
+            id: day.id,
+            label: day.name,
+            dayNumber: day.day_number
+          }
+          weightIdx++
+        }
+      }
+
+      // Fill cardio slots
+      let cardioIdx = 0
+      for (const pos of cardioSlots) {
+        if (cardio.length > 0) {
+          const c = cardio[cardioIdx % cardio.length]
+          newSelections[pos] = {
+            type: 'cardio',
+            id: c.id,
+            label: c.name,
+            category: c.category
+          }
+          cardioIdx++
+        }
+      }
+
+      // If mobility is important, replace last cardio slot with mobility
+      if (mobilityImportant && mobility.length > 0 && cardioSlots.length > 0) {
+        const lastCardio = cardioSlots[cardioSlots.length - 1]
+        const mob = mobility[0]
+        newSelections[lastCardio] = {
+          type: 'mobility',
+          id: mob.id,
+          label: mob.name,
+          category: mob.category
+        }
+      } else if (mobilityImportant && mobility.length > 0 && weightSlots.length > 1) {
+        // No cardio slots to swap — replace last weight slot
+        const lastWeight = weightSlots[weightSlots.length - 1]
+        const mob = mobility[0]
+        newSelections[lastWeight] = {
+          type: 'mobility',
+          id: mob.id,
+          label: mob.name,
+          category: mob.category
+        }
+      }
+    }
+
+    setSelections(newSelections)
+    setShowAutoBuilder(false)
+    setError(null)
+  }, [autoFocus, restDays, mobilityImportant, workoutDays, cardioTemplates, mobilityTemplates])
+
   // Count configured days
   const configuredCount = Object.values(selections).filter(s => s.type !== 'empty').length
 
@@ -214,6 +384,9 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
   const pplPlan = plans?.find(p => p.id === PPL_PLAN_ID)
   const ulPlan = plans?.find(p => p.id === UPPER_LOWER_PLAN_ID)
+  const fbPlan = plans?.find(p => p.id === FULL_BODY_PLAN_ID)
+  const broPlan = plans?.find(p => p.id === BRO_SPLIT_PLAN_ID)
+  const arnoldPlan = plans?.find(p => p.id === ARNOLD_SPLIT_PLAN_ID)
 
   // Back button logic
   const handleBack = () => {
@@ -325,6 +498,67 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                 <p className="mt-1.5 text-sm text-red-500">{nameError}</p>
               )}
             </div>
+
+            {/* Theme Selection */}
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-[var(--color-text)]">Appearance</h3>
+                <p className="text-sm text-[var(--color-text-muted)]">Choose your theme preference</p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTheme('light')}
+                  className={`
+                    flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
+                    ${theme === 'light'
+                      ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
+                      : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
+                    }
+                  `}
+                >
+                  <Sun className={`w-6 h-6 ${theme === 'light' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
+                  <span className={`text-sm font-medium ${theme === 'light' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
+                    Light
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTheme('dark')}
+                  className={`
+                    flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
+                    ${theme === 'dark'
+                      ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
+                      : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
+                    }
+                  `}
+                >
+                  <Moon className={`w-6 h-6 ${theme === 'dark' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
+                  <span className={`text-sm font-medium ${theme === 'dark' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
+                    Dark
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTheme('system')}
+                  className={`
+                    flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
+                    ${theme === 'system'
+                      ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
+                      : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
+                    }
+                  `}
+                >
+                  <Monitor className={`w-6 h-6 ${theme === 'system' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
+                  <span className={`text-sm font-medium ${theme === 'system' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
+                    System
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
         ) : step === 2 ? (
           /* Step 2: Split Selection */
@@ -335,7 +569,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                 Choose Your Training Split
               </h2>
               <p className="text-[var(--color-text-muted)]">
-                Select how to organize your training days
+                Select how you want to organize your muscle groups across training days
               </p>
             </div>
 
@@ -363,8 +597,22 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                       {pplPlan?.name || 'Push / Pull / Legs'}
                     </h3>
                     <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                      Great for focused muscle group training.
+                      Best for focused muscle group training, 5-6 days/week.{' '}
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); setExpandedSplit(expandedSplit === 'ppl' ? null : 'ppl') }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setExpandedSplit(expandedSplit === 'ppl' ? null : 'ppl') } }}
+                        className="text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
+                      >
+                        {expandedSplit === 'ppl' ? 'Less' : 'See more'}
+                      </span>
                     </p>
+                    {expandedSplit === 'ppl' && (
+                      <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mt-1">
+                        Separates pushing movements (chest, shoulders, triceps), pulling movements (back, biceps), and legs into dedicated days. This lets you hit each muscle group with higher volume while giving them plenty of time to recover before the next session.
+                      </p>
+                    )}
                     <div className="flex gap-2 mt-3">
                       <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG.push.bgColor, color: WEIGHTS_CONFIG.push.color }}>Push</span>
                       <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG.pull.bgColor, color: WEIGHTS_CONFIG.pull.color }}>Pull</span>
@@ -403,14 +651,196 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                       {ulPlan?.name || 'Upper / Lower'}
                     </h3>
                     <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                      Simple and effective full-body coverage.
+                      Simple and balanced, great for beginners or 3-4 days/week.{' '}
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); setExpandedSplit(expandedSplit === 'ul' ? null : 'ul') }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setExpandedSplit(expandedSplit === 'ul' ? null : 'ul') } }}
+                        className="text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
+                      >
+                        {expandedSplit === 'ul' ? 'Less' : 'See more'}
+                      </span>
                     </p>
+                    {expandedSplit === 'ul' && (
+                      <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mt-1">
+                        Alternates between upper body and lower body sessions, so you train your full body every two workouts. It's straightforward to follow and gives each half of your body a full day to recover between sessions.
+                      </p>
+                    )}
                     <div className="flex gap-2 mt-3">
                       <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG.upper.bgColor, color: WEIGHTS_CONFIG.upper.color }}>Upper</span>
                       <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG.lower.bgColor, color: WEIGHTS_CONFIG.lower.color }}>Lower</span>
                     </div>
                   </div>
                   {selectedPlanId === UPPER_LOWER_PLAN_ID && (
+                    <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </button>
+
+              {/* Full Body Card */}
+              <button
+                type="button"
+                onClick={() => handleSelectPlan(FULL_BODY_PLAN_ID)}
+                className={`
+                  w-full rounded-2xl p-5 text-left transition-all duration-200
+                  border-2 bg-[var(--color-surface)]
+                  ${selectedPlanId === FULL_BODY_PLAN_ID
+                    ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/30'
+                    : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]'
+                  }
+                `}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center flex-shrink-0">
+                    <Dumbbell className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-[var(--color-text)]">
+                      {fbPlan?.name || 'Full Body'}
+                    </h3>
+                    <p className="text-sm text-[var(--color-text-muted)] mt-1">
+                      5 unique full-body workouts — pick any 3 per week.{' '}
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); setExpandedSplit(expandedSplit === 'fb' ? null : 'fb') }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setExpandedSplit(expandedSplit === 'fb' ? null : 'fb') } }}
+                        className="text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
+                      >
+                        {expandedSplit === 'fb' ? 'Less' : 'See more'}
+                      </span>
+                    </p>
+                    {expandedSplit === 'fb' && (
+                      <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mt-1">
+                        Each session trains every major muscle group with different exercises and rep ranges. Pick any 3 of the 5 workouts per week. Great for balanced development and flexible scheduling.
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {['full body a', 'full body b', 'full body c', 'full body d', 'full body e'].map(key => (
+                        <span key={key} className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG[key].bgColor, color: WEIGHTS_CONFIG[key].color }}>
+                          {key.replace('full body ', 'FB ').toUpperCase()}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  {selectedPlanId === FULL_BODY_PLAN_ID && (
+                    <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </button>
+
+              {/* Bro Split Card */}
+              <button
+                type="button"
+                onClick={() => handleSelectPlan(BRO_SPLIT_PLAN_ID)}
+                className={`
+                  w-full rounded-2xl p-5 text-left transition-all duration-200
+                  border-2 bg-[var(--color-surface)]
+                  ${selectedPlanId === BRO_SPLIT_PLAN_ID
+                    ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/30'
+                    : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]'
+                  }
+                `}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                    <Dumbbell className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-[var(--color-text)]">
+                      {broPlan?.name || 'Bro Split'}
+                    </h3>
+                    <p className="text-sm text-[var(--color-text-muted)] mt-1">
+                      Chest · Back · Legs · Shoulders · Arms — 5 days per week.{' '}
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); setExpandedSplit(expandedSplit === 'bro' ? null : 'bro') }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setExpandedSplit(expandedSplit === 'bro' ? null : 'bro') } }}
+                        className="text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
+                      >
+                        {expandedSplit === 'bro' ? 'Less' : 'See more'}
+                      </span>
+                    </p>
+                    {expandedSplit === 'bro' && (
+                      <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mt-1">
+                        Each day focuses on one muscle group with high volume. This classic bodybuilding approach lets you fully fatigue each body part before giving it a full week to recover.
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {(['chest', 'back', 'legs', 'shoulders', 'arms'] as const).map(key => (
+                        <span key={key} className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG[key].bgColor, color: WEIGHTS_CONFIG[key].color }}>
+                          {key.charAt(0).toUpperCase() + key.slice(1)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  {selectedPlanId === BRO_SPLIT_PLAN_ID && (
+                    <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </button>
+
+              {/* Arnold Split Card */}
+              <button
+                type="button"
+                onClick={() => handleSelectPlan(ARNOLD_SPLIT_PLAN_ID)}
+                className={`
+                  w-full rounded-2xl p-5 text-left transition-all duration-200
+                  border-2 bg-[var(--color-surface)]
+                  ${selectedPlanId === ARNOLD_SPLIT_PLAN_ID
+                    ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/30'
+                    : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]'
+                  }
+                `}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
+                    <Dumbbell className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-[var(--color-text)]">
+                      {arnoldPlan?.name || 'Arnold Split'}
+                    </h3>
+                    <p className="text-sm text-[var(--color-text-muted)] mt-1">
+                      Chest & Back · Shoulders & Arms · Legs — 6-day cycle.{' '}
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); setExpandedSplit(expandedSplit === 'arnold' ? null : 'arnold') }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setExpandedSplit(expandedSplit === 'arnold' ? null : 'arnold') } }}
+                        className="text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
+                      >
+                        {expandedSplit === 'arnold' ? 'Less' : 'See more'}
+                      </span>
+                    </p>
+                    {expandedSplit === 'arnold' && (
+                      <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mt-1">
+                        Inspired by Arnold Schwarzenegger's training philosophy. Pairs opposing muscle groups (chest with back, shoulders with arms) for high-volume supersets. The 3-day cycle repeats twice per week with one rest day.
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {(['chest & back', 'shoulders & arms', 'legs'] as const).map(key => (
+                        <span key={key} className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG[key].bgColor, color: WEIGHTS_CONFIG[key].color }}>
+                          {key.split(' ').map(w => w === '&' ? '&' : w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  {selectedPlanId === ARNOLD_SPLIT_PLAN_ID && (
                     <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
                       <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -509,6 +939,118 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                       If you start on a Wednesday with Day 1 = Push, then Thursday becomes Day 2, and so on. The following Tuesday would be Day 7, and Wednesday starts again at Day 1.
                     </p>
                   </div>
+                </div>
+              )}
+            </div>
+
+            {/* Auto-Builder Section */}
+            <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowAutoBuilder(!showAutoBuilder)}
+                className="w-full flex items-center gap-3 p-4 hover:bg-[var(--color-surface-hover)] transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-amber-500" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-medium text-[var(--color-text)]">Build a program for me</p>
+                  <p className="text-sm text-[var(--color-text-muted)]">Let us fill in your schedule</p>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-[var(--color-text-muted)] transition-transform duration-200 ${showAutoBuilder ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showAutoBuilder && (
+                <div className="border-t border-[var(--color-border)] p-4 space-y-5 bg-[var(--color-background)]">
+                  {/* Q1: Workout Focus */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-[var(--color-text)]">What's your workout focus?</p>
+                    <div className="flex gap-2">
+                      {([['all-weights', 'All Weights'], ['all-cardio', 'All Cardio'], ['mix', 'Mix of Both']] as const).map(([value, label]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setAutoFocus(value)}
+                          className={`flex-1 py-2 px-3 rounded-full text-sm font-medium transition-all ${
+                            autoFocus === value
+                              ? 'bg-[var(--color-primary)] text-white'
+                              : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Q2: Rest Days */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-[var(--color-text)]">How many rest days per week?</p>
+                    <div className="flex gap-2">
+                      {([1, 2, 3] as const).map(value => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setRestDays(value)}
+                          className={`flex-1 py-2 px-3 rounded-full text-sm font-medium transition-all ${
+                            restDays === value
+                              ? 'bg-[var(--color-primary)] text-white'
+                              : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                          }`}
+                        >
+                          {value} day{value > 1 ? 's' : ''}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Q3: Mobility */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-[var(--color-text)]">Include mobility work?</p>
+                    <div className="flex gap-2">
+                      {([true, false] as const).map(value => (
+                        <button
+                          key={String(value)}
+                          type="button"
+                          onClick={() => setMobilityImportant(value)}
+                          className={`flex-1 py-2 px-3 rounded-full text-sm font-medium transition-all ${
+                            mobilityImportant === value
+                              ? 'bg-[var(--color-primary)] text-white'
+                              : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                          }`}
+                        >
+                          {value ? 'Yes' : 'No'}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-[var(--color-text-muted)] italic leading-relaxed pt-1">
+                      I highly recommend including mobility work — it changed everything for me after an injury.{' '}
+                      <button
+                        type="button"
+                        onClick={() => setShowMobilityNote(!showMobilityNote)}
+                        className="text-[var(--color-primary)] hover:underline not-italic font-medium"
+                      >
+                        {showMobilityNote ? 'Less' : 'My story'}
+                      </button>
+                    </p>
+                    {showMobilityNote && (
+                      <div className="text-xs text-[var(--color-text-muted)] leading-relaxed bg-[var(--color-surface-hover)] rounded-lg p-3">
+                        <p>
+                          A knee injury led to chronic low back pain that stopped me from doing the things I loved every day — it really affected my mood and who I was. I ended up spending a month in Bali training at Nirvana Strength, where I rebuilt my body through daily mobility work. That experience is what inspired this app, and where I first started building it with Claude Code. I now practice mobility every single day and I genuinely believe it belongs in every training program. — Jaron
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Build Button */}
+                  <button
+                    type="button"
+                    onClick={generateSchedule}
+                    className="w-full py-3 rounded-xl bg-[var(--color-primary)] text-white font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Build My Program
+                  </button>
                 </div>
               )}
             </div>
