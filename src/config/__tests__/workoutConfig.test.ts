@@ -11,9 +11,7 @@ import {
   getMobilityStyle,
   getCategoryLabel,
   CARDIO_CONFIG,
-  MOBILITY_CONFIG,
-  CATEGORY_LABELS,
-  type WorkoutStyle
+  MOBILITY_CONFIG
 } from '../workoutConfig'
 
 describe('workoutConfig', () => {

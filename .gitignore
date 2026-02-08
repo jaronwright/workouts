@@ -28,3 +28,6 @@ dist-ssr
 
 # Supabase temp files
 supabase/.temp/
+
+# Test coverage
+coverage/

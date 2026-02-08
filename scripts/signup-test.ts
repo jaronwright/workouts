@@ -118,7 +118,7 @@ async function testSignUp(users: TestUser[]): Promise<void> {
 
   console.log('\n  📧 Check confirmation emails at: http://127.0.0.1:54324')
 
-  return users.filter(u => u.id) as any
+  return
 }
 
 async function checkEmailsInMailpit(): Promise<void> {
@@ -128,7 +128,7 @@ async function checkEmailsInMailpit(): Promise<void> {
     const response = await fetch('http://127.0.0.1:54324/api/v1/messages')
     const data = await response.json()
 
-    const confirmEmails = data.messages.filter((m: any) =>
+    const confirmEmails = data.messages.filter((m: { Subject: string }) =>
       m.Subject.includes('Confirm') || m.Subject.includes('Verify')
     )
 
@@ -136,14 +136,14 @@ async function checkEmailsInMailpit(): Promise<void> {
 
     if (confirmEmails.length > 0) {
       console.log('\n  Recent confirmation emails:')
-      confirmEmails.slice(0, 5).forEach((email: any) => {
+      confirmEmails.slice(0, 5).forEach((email: { To: { Address: string }[]; Subject: string; Snippet: string }) => {
         console.log(`    - To: ${email.To[0].Address}`)
         console.log(`      Subject: ${email.Subject}`)
         console.log(`      Snippet: ${email.Snippet.substring(0, 80)}...`)
         console.log('')
       })
     }
-  } catch (err) {
+  } catch {
     console.log('  Could not fetch emails from Mailpit')
   }
 }

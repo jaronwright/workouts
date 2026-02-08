@@ -25,7 +25,13 @@ import {
   getCategoryLabel
 } from '@/config/workoutConfig'
 import type { SessionWithDay } from '@/services/workoutService'
+import type { TemplateWorkoutSession } from '@/services/templateWorkoutService'
 import type { WorkoutTemplate } from '@/services/scheduleService'
+
+// Unified session type for stats and recent activity
+type RecentSession =
+  | { kind: 'weights'; session: SessionWithDay }
+  | { kind: 'template'; session: TemplateWorkoutSession }
 
 // Get greeting based on time of day
 function getGreeting(): string {
@@ -46,7 +52,7 @@ function getMotivationalMessage(streak: number, thisWeek: number, hasActiveSessi
 }
 
 // Calculate streak from sessions
-function calculateStreak(sessions: SessionWithDay[]): number {
+function calculateStreak(sessions: { completed_at: string | null }[]): number {
   if (!sessions.length) return 0
 
   const today = new Date()
@@ -82,7 +88,7 @@ function calculateStreak(sessions: SessionWithDay[]): number {
 }
 
 // Count workouts this week
-function getWeeklyCount(sessions: SessionWithDay[]): number {
+function getWeeklyCount(sessions: { completed_at: string | null }[]): number {
   const now = new Date()
   const startOfWeek = new Date(now)
   startOfWeek.setDate(now.getDate() - now.getDay())
@@ -212,7 +218,7 @@ export function HomePage() {
   const { data: activeSession } = useActiveSession()
   const deleteSession = useDeleteSession()
   const { data: sessions, isLoading: sessionsLoading } = useUserSessions()
-  const { data: profile } = useProfile()
+  const { data: profile, isLoading: profileLoading } = useProfile()
   const currentCycleDay = useCycleDay()
   const { data: days, isLoading: daysLoading } = useSelectedPlanDays()
   const { data: cardioTemplates, isLoading: cardioLoading } = useWorkoutTemplatesByType('cardio')
@@ -236,13 +242,28 @@ export function HomePage() {
     }
   }, [schedule, scheduleLoading])
 
-  const allSessions = (sessions || []) as SessionWithDay[]
-  const recentSessions = allSessions.slice(0, 3)
+  const weightsSessions = (sessions || []) as SessionWithDay[]
+  const templateSessions = (templateWorkoutSessions || []) as TemplateWorkoutSession[]
+
+  // Merge all session types for stats
+  const allCompleted: { completed_at: string | null }[] = [
+    ...weightsSessions,
+    ...templateSessions
+  ]
+
+  // Merge recent activity from both session types, sorted by most recent
+  const recentActivity: RecentSession[] = [
+    ...weightsSessions.map(s => ({ kind: 'weights' as const, session: s })),
+    ...templateSessions.map(s => ({ kind: 'template' as const, session: s }))
+  ]
+    .filter(r => r.session.completed_at)
+    .sort((a, b) => new Date(b.session.completed_at!).getTime() - new Date(a.session.completed_at!).getTime())
+    .slice(0, 3)
 
   // Stats
-  const streak = calculateStreak(allSessions)
-  const thisWeek = getWeeklyCount(allSessions)
-  const totalWorkouts = allSessions.filter(s => s.completed_at).length
+  const streak = calculateStreak(allCompleted)
+  const thisWeek = getWeeklyCount(allCompleted)
+  const totalWorkouts = allCompleted.filter(s => s.completed_at).length
   const statsLoading = sessionsLoading
 
   // Greeting
@@ -254,11 +275,7 @@ export function HomePage() {
   // Handlers
   const handleStartWorkout = (dayId: string) => navigate(`/workout/${dayId}`)
   const handleStartMobility = (template: WorkoutTemplate) => {
-    if (template.workout_day_id) {
-      navigate(`/workout/${template.workout_day_id}`)
-    } else {
-      navigate(`/mobility/${template.id}`)
-    }
+    navigate(`/mobility/${template.id}`)
   }
   const handleContinueWorkout = () => {
     if (activeSession) {
@@ -278,9 +295,13 @@ export function HomePage() {
         <div className="flex items-center gap-3">
           <Avatar src={avatarUrl} size="md" alt="Profile" />
           <div>
-            <h2 className="text-xl font-bold text-[var(--color-text)]">
-              {greeting}, {displayName}!
-            </h2>
+            {profileLoading ? (
+              <div className="h-7 w-48 rounded bg-[var(--color-surface-hover)] animate-pulse" />
+            ) : (
+              <h2 className="text-xl font-bold text-[var(--color-text)]">
+                {greeting}, {displayName}!
+              </h2>
+            )}
             <p className="text-sm text-[var(--color-text-muted)] mt-0.5 flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5 text-yellow-500" />
               {motivation}
@@ -471,7 +492,7 @@ export function HomePage() {
         </CollapsibleSection>
 
         {/* Recent Activity */}
-        {recentSessions.length > 0 && (
+        {recentActivity.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-base font-bold text-[var(--color-text)]">Recent Activity</h2>
@@ -484,32 +505,47 @@ export function HomePage() {
               </button>
             </div>
             <div className="space-y-2">
-              {recentSessions.map((session) => (
-                <Card
-                  key={session.id}
-                  interactive
-                  onClick={() => navigate(`/history/${session.id}`)}
-                >
-                  <CardContent className="py-3 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
-                      <TrendingUp className="w-4 h-4 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-[var(--color-text)] text-sm truncate">
-                        {getWorkoutDisplayName(session.workout_day?.name)}
-                      </p>
-                      <p className="text-xs text-[var(--color-text-muted)]">
-                        {formatRelativeTime(session.started_at)}
-                      </p>
-                    </div>
-                    {session.completed_at && (
-                      <span className="text-[10px] font-bold uppercase tracking-wide bg-[var(--color-success)]/15 text-[var(--color-success)] px-2 py-1 rounded-full">
-                        Done
-                      </span>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+              {recentActivity.map((item) => {
+                const isWeights = item.kind === 'weights'
+                const session = item.session
+                const name = isWeights
+                  ? getWorkoutDisplayName((session as SessionWithDay).workout_day?.name)
+                  : (session as TemplateWorkoutSession).template?.name || 'Workout'
+                const historyPath = isWeights
+                  ? `/history/${session.id}`
+                  : `/history/cardio/${session.id}`
+                const IconComp = isWeights ? TrendingUp : Heart
+                const gradient = isWeights
+                  ? 'from-emerald-400 to-green-500'
+                  : 'from-rose-400 to-pink-500'
+
+                return (
+                  <Card
+                    key={session.id}
+                    interactive
+                    onClick={() => navigate(historyPath)}
+                  >
+                    <CardContent className="py-3 flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+                        <IconComp className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-[var(--color-text)] text-sm truncate">
+                          {name}
+                        </p>
+                        <p className="text-xs text-[var(--color-text-muted)]">
+                          {formatRelativeTime(session.started_at)}
+                        </p>
+                      </div>
+                      {session.completed_at && (
+                        <span className="text-[10px] font-bold uppercase tracking-wide bg-[var(--color-success)]/15 text-[var(--color-success)] px-2 py-1 rounded-full">
+                          Done
+                        </span>
+                      )}
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           </section>
         )}

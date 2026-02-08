@@ -115,7 +115,7 @@ export function RestDayPage() {
         {completed.size > 0 && (
           <div className="text-center py-4">
             <p className="text-[var(--color-success)] font-medium">
-              Great job! You&apos;ve completed {completed.size} recovery activities today.
+              Great job! You&apos;ve completed {completed.size} recovery {completed.size === 1 ? 'activity' : 'activities'} today.
             </p>
           </div>
         )}

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { User, Session } from '@supabase/supabase-js'
 
 // Mock Supabase auth before importing the store
 vi.mock('@/services/supabase', () => ({
@@ -54,13 +55,13 @@ describe('authStore', () => {
   describe('state setters', () => {
     it('can set user directly', () => {
       const mockUser = { id: 'user-123', email: 'test@example.com' }
-      useAuthStore.setState({ user: mockUser as any })
+      useAuthStore.setState({ user: mockUser as User })
       expect(useAuthStore.getState().user).toEqual(mockUser)
     })
 
     it('can set session directly', () => {
       const mockSession = { access_token: 'token-123' }
-      useAuthStore.setState({ session: mockSession as any })
+      useAuthStore.setState({ session: mockSession as Session })
       expect(useAuthStore.getState().session).toEqual(mockSession)
     })
 

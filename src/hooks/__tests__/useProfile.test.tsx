@@ -55,7 +55,7 @@ describe('useProfile hooks', () => {
     vi.mocked(useAuthStore).mockImplementation((selector) => {
       const state = { user: mockUser }
       if (typeof selector === 'function') {
-        return selector(state as any)
+        return selector(state as Parameters<typeof selector>[0])
       }
       return state
     })
@@ -79,7 +79,7 @@ describe('useProfile hooks', () => {
       vi.mocked(useAuthStore).mockImplementation((selector) => {
         const state = { user: null }
         if (typeof selector === 'function') {
-          return selector(state as any)
+          return selector(state as Parameters<typeof selector>[0])
         }
         return state
       })

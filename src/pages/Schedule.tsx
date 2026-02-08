@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { AppShell } from '@/components/layout'
 import { ScheduleDayEditor } from '@/components/schedule'
 import { useUserSchedule } from '@/hooks/useSchedule'
@@ -63,7 +63,6 @@ export function SchedulePage() {
   const currentCycleDay = useCycleDay()
 
   const [editingDay, setEditingDay] = useState<number | null>(null)
-  const dateInputRef = useRef<HTMLInputElement>(null)
 
   // Group schedules by day number (supports multiple workouts per day)
   const schedulesByDay = new Map<number, ScheduleDay[]>()
@@ -89,36 +88,46 @@ export function SchedulePage() {
     <AppShell title="Schedule">
       <div className="p-4 space-y-3">
         {/* Current Day Indicator */}
-        <div className="flex flex-col items-center gap-1 py-3 mb-2">
+        <div className="flex flex-col items-center gap-2 py-3 mb-2">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
             <span className="text-sm font-medium text-[var(--color-text-muted)]">
               Currently on <span className="text-[var(--color-primary)] font-semibold">Day {currentCycleDay}</span>
             </span>
           </div>
-          <div className="relative flex items-center justify-center gap-2 mt-1">
-            <span className="text-xs text-[var(--color-text-muted)]">
-              Cycle started {formatCycleStartDate(profile?.cycle_start_date)}
-            </span>
-            <button
-              type="button"
-              className="text-xs font-semibold text-[var(--color-primary)] cursor-pointer"
-              onClick={() => dateInputRef.current?.showPicker()}
-            >
-              Change
-            </button>
-            <input
-              ref={dateInputRef}
-              type="date"
-              className="absolute opacity-0 pointer-events-none"
-              value={profile?.cycle_start_date || ''}
-              onChange={(e) => {
-                if (e.target.value) {
-                  updateProfile({ cycle_start_date: e.target.value })
-                }
-              }}
-            />
+          <div className="flex justify-between w-full max-w-xs gap-2">
+            {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+              <button
+                key={day}
+                type="button"
+                onClick={() => {
+                  const today = new Date()
+                  const startDate = new Date(today)
+                  startDate.setDate(today.getDate() - (day - 1))
+                  const y = startDate.getFullYear()
+                  const m = String(startDate.getMonth() + 1).padStart(2, '0')
+                  const d = String(startDate.getDate()).padStart(2, '0')
+                  updateProfile({ cycle_start_date: `${y}-${m}-${d}` })
+                }}
+                className={`
+                  w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold
+                  transition-all duration-150 active:scale-90 cursor-pointer
+                  ${currentCycleDay === day
+                    ? 'bg-[var(--color-primary)] text-white'
+                    : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]'
+                  }
+                `}
+              >
+                {day}
+              </button>
+            ))}
           </div>
+          <span className="text-xs text-[var(--color-text-muted)] opacity-60">
+            Tap a day to set where you are in your cycle
+          </span>
+          <span className="text-xs text-[var(--color-text-muted)]">
+            Cycle started {formatCycleStartDate(profile?.cycle_start_date)}
+          </span>
         </div>
 
         {/* Schedule List */}

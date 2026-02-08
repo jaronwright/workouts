@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useSettingsStore, convertWeight, formatWeightWithUnit, WeightUnit } from '../settingsStore'
+import { useSettingsStore, convertWeight, formatWeightWithUnit } from '../settingsStore'
 
 describe('useSettingsStore', () => {
   beforeEach(() => {

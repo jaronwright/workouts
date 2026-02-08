@@ -1,106 +1,10 @@
 import { useNavigate } from 'react-router-dom'
-import { Moon, Dumbbell, ChevronRight, Calendar } from 'lucide-react'
+import { ChevronRight, Calendar } from 'lucide-react'
 import { Card, CardContent, Button } from '@/components/ui'
 import { useUserSchedule } from '@/hooks/useSchedule'
 import { useCycleDay } from '@/hooks/useCycleDay'
-import {
-  getWeightsStyleByName,
-  getCardioStyle,
-  getMobilityStyle,
-  getWorkoutDisplayName
-} from '@/config/workoutConfig'
+import { getDayInfo, type DayInfo } from '@/utils/scheduleUtils'
 import type { ScheduleDay } from '@/services/scheduleService'
-
-interface DayInfo {
-  dayNumber: number
-  icon: typeof Dumbbell
-  color: string
-  bgColor: string
-  name: string
-  isRest: boolean
-  workoutDayId?: string
-  templateId?: string
-  templateType?: string
-}
-
-function getDayInfo(schedule: ScheduleDay | undefined, dayNumber: number): DayInfo {
-  if (!schedule) {
-    return {
-      dayNumber,
-      icon: Calendar,
-      color: 'var(--color-text-muted)',
-      bgColor: 'var(--color-surface-hover)',
-      name: 'Not set',
-      isRest: false
-    }
-  }
-
-  if (schedule.is_rest_day) {
-    return {
-      dayNumber,
-      icon: Moon,
-      color: '#6B7280',
-      bgColor: 'rgba(107, 114, 128, 0.15)',
-      name: 'Rest',
-      isRest: true
-    }
-  }
-
-  if (schedule.workout_day) {
-    const style = getWeightsStyleByName(schedule.workout_day.name)
-    return {
-      dayNumber,
-      icon: style.icon,
-      color: style.color,
-      bgColor: `${style.color}20`,
-      name: getWorkoutDisplayName(schedule.workout_day.name) || schedule.workout_day.name,
-      isRest: false,
-      workoutDayId: schedule.workout_day_id || undefined
-    }
-  }
-
-  if (schedule.template) {
-    const template = schedule.template
-    let style
-    if (template.type === 'cardio') {
-      style = getCardioStyle(template.category)
-      return {
-        dayNumber,
-        icon: style.icon,
-        color: style.color,
-        bgColor: `${style.color}20`,
-        name: template.name,
-        isRest: false,
-        templateId: schedule.template_id || undefined,
-        templateType: template.type
-      }
-    }
-    if (template.type === 'mobility') {
-      style = getMobilityStyle(template.category)
-      const mobilityDayId = (template as any).workout_day_id as string | null
-      return {
-        dayNumber,
-        icon: style.icon,
-        color: style.color,
-        bgColor: `${style.color}20`,
-        name: template.name,
-        isRest: false,
-        workoutDayId: mobilityDayId || undefined,
-        templateId: mobilityDayId ? undefined : (schedule.template_id || undefined),
-        templateType: mobilityDayId ? undefined : template.type
-      }
-    }
-  }
-
-  return {
-    dayNumber,
-    icon: Calendar,
-    color: 'var(--color-text-muted)',
-    bgColor: 'var(--color-surface-hover)',
-    name: 'Not set',
-    isRest: false
-  }
-}
 
 interface ScheduleWidgetProps {
   onSetupSchedule?: () => void

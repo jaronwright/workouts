@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui'
 import { useWorkoutTemplates, useSaveScheduleDayWorkouts, useClearSchedule } from '@/hooks/useSchedule'
@@ -44,7 +43,10 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   const { data: workoutDays } = useWorkoutDays(selectedPlanId)
 
   const [selections, setSelections] = useState<Record<number, DaySelection>>(INITIAL_SELECTIONS)
-  const [cycleStartDate, setCycleStartDate] = useState(new Date().toISOString().split('T')[0])
+  const [cycleStartDate, setCycleStartDate] = useState(() => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })
   const [error, setError] = useState<string | null>(null)
   const [savingDay, setSavingDay] = useState<number | null>(null)
   const [expandedDay, setExpandedDay] = useState<number | null>(null)
@@ -65,7 +67,8 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
       setStep(initialStep)
       setSelectedPlanId(initialPlanId || profile?.selected_plan_id || PPL_PLAN_ID)
       setSelections(INITIAL_SELECTIONS)
-      setCycleStartDate(new Date().toISOString().split('T')[0])
+      const d = new Date()
+      setCycleStartDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)
       setError(null)
       setExpandedDay(null)
 

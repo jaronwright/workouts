@@ -2,8 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   validatePassword,
   getStrengthColor,
-  getStrengthLabel,
-  PasswordValidationResult
+  getStrengthLabel
 } from '../validation'
 
 describe('validatePassword', () => {

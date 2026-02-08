@@ -87,12 +87,55 @@ describe('getCurrentCycleDay', () => {
   })
 
   it('getCurrentCycleDay returns correct day for known offset', () => {
-    // 3 days ago
+    // 3 days ago — use en-CA format in the same timezone to match getTodayInTimezone
     const threeDaysAgo = new Date()
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
-    const startStr = threeDaysAgo.toISOString().split('T')[0]
+    const startStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(threeDaysAgo)
     const result = getCurrentCycleDay(startStr, TIMEZONE)
     expect(result).toBe(4)
+  })
+
+  it('getCurrentCycleDay handles custom totalDays', () => {
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(new Date())
+    // With totalDays=5, start=today → day 1
+    expect(getCurrentCycleDay(today, TIMEZONE, 5)).toBe(1)
+  })
+
+  it('getCurrentCycleDay wraps correctly with non-7 totalDays', () => {
+    const fiveDaysAgo = new Date()
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5)
+    const startStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(fiveDaysAgo)
+    // 5 days ago with totalDays=5 → wraps to day 1
+    expect(getCurrentCycleDay(startStr, TIMEZONE, 5)).toBe(1)
+  })
+
+  it('getCurrentCycleDay with timezone-consistent date format', () => {
+    // Ensure using timezone-aware date format produces consistent results
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const startStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(yesterday)
+    const result = getCurrentCycleDay(startStr, TIMEZONE)
+    expect(result).toBe(2)
   })
 })
 

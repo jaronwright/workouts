@@ -108,7 +108,7 @@ function getCachedExercise(key: string): ExerciseDbExercise | null | undefined {
 
 function normalizeSearchName(name: string): string {
   // Convert exercise name to a search-friendly format
-  let normalized = name
+  const normalized = name
     .toLowerCase()
     .replace(/\s*\([^)]*\)/g, '') // Remove parenthetical notes like "(each side)"
     .replace(/db\b/gi, 'dumbbell')
