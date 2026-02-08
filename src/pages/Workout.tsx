@@ -1,5 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'motion/react'
+import { ArrowRight } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
 import { CollapsibleSection, ExerciseCard, RestTimer } from '@/components/workout'
@@ -9,6 +11,29 @@ import { useWorkoutStore } from '@/stores/workoutStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useToast } from '@/hooks/useToast'
 import { getWorkoutDisplayName } from '@/config/workoutConfig'
+
+const MOTIVATIONAL_QUOTES = [
+  "You got this.",
+  "Today you prove yourself.",
+  "One rep at a time.",
+  "Make it count.",
+  "No excuses. Just results.",
+  "Stronger than yesterday.",
+  "Your only limit is you.",
+  "Time to go to work.",
+  "Earn it.",
+  "Be the hardest worker in the room.",
+  "This is your moment.",
+  "Pain is temporary. Pride is forever.",
+  "Show up. Lift heavy. Repeat.",
+  "The iron never lies.",
+  "Discipline beats motivation.",
+  "You didn't come this far to only come this far.",
+  "Trust the process.",
+  "Leave nothing in the tank.",
+  "Champions train. Losers complain.",
+  "Let's get after it.",
+]
 
 // Check if a section is a warm-up section (should be collapsible, default closed)
 function isWarmupSection(sectionName: string): boolean {
@@ -54,17 +79,27 @@ export function WorkoutPage() {
     }
   }, [sessionSets])
 
-  const handleStart = () => {
+  const [showSplash, setShowSplash] = useState(false)
+  const [splashQuote] = useState(() => MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)])
+
+  const handleStart = useCallback(() => {
     if (!dayId || !user) return
-    startWorkout(dayId, {
-      onSuccess: (session) => {
-        setActiveSession(session)
-      },
-      onError: () => {
-        toast.error('Failed to start workout. Please try again.')
-      }
-    })
-  }
+    setShowSplash(true)
+
+    // After splash animation, actually start the workout
+    setTimeout(() => {
+      startWorkout(dayId, {
+        onSuccess: (session) => {
+          setActiveSession(session)
+          setShowSplash(false)
+        },
+        onError: () => {
+          toast.error('Failed to start workout. Please try again.')
+          setShowSplash(false)
+        }
+      })
+    }, 2000)
+  }, [dayId, user, startWorkout, setActiveSession, toast])
 
   const handleComplete = () => {
     if (!activeSession) return
@@ -195,10 +230,72 @@ export function WorkoutPage() {
 
         {/* Floating Start Workout button */}
         <div className="fixed bottom-0 left-0 right-0 p-4 pb-safe bg-[var(--color-bg)]/95 backdrop-blur-sm border-t border-[var(--color-border)]">
-          <Button onClick={handleStart} loading={isStarting} size="lg" className="w-full">
+          <motion.button
+            onClick={handleStart}
+            disabled={isStarting || showSplash}
+            whileTap={{ scale: 0.97 }}
+            className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-white font-semibold text-lg shadow-lg shadow-emerald-500/25 transition-colors disabled:opacity-70"
+          >
             Start Workout
-          </Button>
+            <motion.span
+              animate={{ x: [0, 4, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <ArrowRight className="w-5 h-5" />
+            </motion.span>
+          </motion.button>
         </div>
+
+        {/* Motivational Splash Screen */}
+        <AnimatePresence>
+          {showSplash && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-emerald-500"
+            >
+              {/* Expanding ring */}
+              <motion.div
+                initial={{ scale: 0, opacity: 0.6 }}
+                animate={{ scale: 4, opacity: 0 }}
+                transition={{ duration: 1.5, ease: 'easeOut' }}
+                className="absolute w-32 h-32 rounded-full border-4 border-white/30"
+              />
+              <motion.div
+                initial={{ scale: 0, opacity: 0.4 }}
+                animate={{ scale: 3, opacity: 0 }}
+                transition={{ duration: 1.5, ease: 'easeOut', delay: 0.2 }}
+                className="absolute w-32 h-32 rounded-full border-4 border-white/20"
+              />
+
+              {/* Quote text */}
+              <motion.p
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.3, ease: 'easeOut' }}
+                className="text-white text-3xl font-bold text-center px-8 leading-snug"
+              >
+                {splashQuote}
+              </motion.p>
+
+              {/* Subtle loading indicator */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+                className="absolute bottom-16"
+              >
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full"
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </AppShell>
     )
   }

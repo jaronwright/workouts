@@ -15,7 +15,7 @@ import { PasswordStrengthIndicator } from '@/components/auth/PasswordStrengthInd
 import { validatePassword } from '@/utils/validation'
 import { deleteUserAccount } from '@/services/profileService'
 import { staggerContainer, staggerChild } from '@/config/animationConfig'
-import { Calendar, Shield, Mail, ChevronDown, ChevronUp, LogOut, Sun, Moon as MoonIcon, Monitor, Dumbbell, Trophy, Flame, Star } from 'lucide-react'
+import { Calendar, Shield, Mail, ChevronDown, ChevronUp, LogOut, Sun, Moon as MoonIcon, Monitor, Dumbbell, Trophy, Flame, Star, ArrowLeftRight, ArrowUpDown } from 'lucide-react'
 import { AvatarUpload } from '@/components/profile/AvatarUpload'
 import { OnboardingWizard } from '@/components/onboarding'
 import { useTheme } from '@/hooks/useTheme'
@@ -389,12 +389,12 @@ export function ProfilePage() {
 
               <div className="grid grid-cols-2 gap-2">
                 {([
-                  [PPL_PLAN_ID, 'Push/Pull/Legs'],
-                  [UPPER_LOWER_PLAN_ID, 'Upper/Lower'],
-                  [FULL_BODY_PLAN_ID, 'Full Body'],
-                  [BRO_SPLIT_PLAN_ID, 'Bro Split'],
-                  [ARNOLD_SPLIT_PLAN_ID, 'Arnold Split'],
-                ] as const).map(([planId, label]) => (
+                  [PPL_PLAN_ID, 'Push/Pull/Legs', ArrowLeftRight],
+                  [UPPER_LOWER_PLAN_ID, 'Upper/Lower', ArrowUpDown],
+                  [FULL_BODY_PLAN_ID, 'Full Body', Dumbbell],
+                  [BRO_SPLIT_PLAN_ID, 'Bro Split', Flame],
+                  [ARNOLD_SPLIT_PLAN_ID, 'Arnold Split', Trophy],
+                ] as const).map(([planId, label, Icon]) => (
                   <button
                     key={planId}
                     onClick={() => handleSplitChange(planId)}
@@ -406,7 +406,7 @@ export function ProfilePage() {
                       }
                     `}
                   >
-                    <Dumbbell className={`w-6 h-6 ${currentSplitId === planId ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
+                    <Icon className={`w-6 h-6 ${currentSplitId === planId ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
                     <span className={`text-sm font-medium text-center ${currentSplitId === planId ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
                       {label}
                     </span>
