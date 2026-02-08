@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { motion } from 'motion/react'
-import { startOfWeek, endOfWeek, isWithinInterval, getDay, differenceInMinutes, parseISO } from 'date-fns'
+import { startOfWeek, endOfWeek, isWithinInterval, differenceInMinutes, parseISO } from 'date-fns'
 import { AnimatedCounter } from '@/components/ui'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { staggerContainer, staggerChild } from '@/config/animationConfig'

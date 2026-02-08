@@ -114,7 +114,7 @@ export function ProfilePage() {
 
   const [displayName, setDisplayName] = useState('')
   const [isEditingName, setIsEditingName] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [, setSaved] = useState(false)
 
   // Security section state
   const [securityExpanded, setSecurityExpanded] = useState(false)
