@@ -11,6 +11,7 @@ import {
   useCompleteTemplateWorkout
 } from '@/hooks/useTemplateWorkout'
 import { useToast } from '@/hooks/useToast'
+import { useWakeLock } from '@/hooks/useWakeLock'
 import { getCardioStyle } from '@/config/workoutConfig'
 import {
   CARDIO_INPUT_CONFIG,
@@ -43,6 +44,8 @@ export function CardioWorkoutPage() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const startTimeRef = useRef<number | null>(null)
   const accumulatedSecondsRef = useRef(0)
+
+  useWakeLock(!!sessionId)
 
   // Derived
   const category = template?.category || ''

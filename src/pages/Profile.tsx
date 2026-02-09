@@ -19,6 +19,7 @@ import { staggerContainer, staggerChild } from '@/config/animationConfig'
 import { Calendar, Shield, Mail, ChevronDown, ChevronUp, LogOut, Sun, Moon as MoonIcon, Monitor, Dumbbell, Trophy, Flame, Star, ArrowLeftRight, ArrowUpDown, Heart, MessageSquarePlus, Bug, Lightbulb, Pencil, Check, X } from 'lucide-react'
 import { AvatarUpload } from '@/components/profile/AvatarUpload'
 import { OnboardingWizard } from '@/components/onboarding'
+import { NotificationSettings } from '@/components/profile/NotificationSettings'
 import { useTheme } from '@/hooks/useTheme'
 import { useSubmitFeedback, useUserFeedback } from '@/hooks/useFeedback'
 import { getWorkoutDisplayName } from '@/config/workoutConfig'
@@ -536,6 +537,11 @@ export function ProfilePage() {
               </div>
             </CardContent>
           </Card>
+        </motion.div>
+
+        {/* Notification Settings */}
+        <motion.div variants={staggerChild}>
+          <NotificationSettings />
         </motion.div>
 
         {/* Security Section */}

@@ -5,6 +5,7 @@ import { Button, Card, CardContent } from '@/components/ui'
 import { useTemplate, useQuickLogTemplateWorkout } from '@/hooks/useTemplateWorkout'
 import { useWorkoutDay } from '@/hooks/useWorkoutPlan'
 import { useToast } from '@/hooks/useToast'
+import { useWakeLock } from '@/hooks/useWakeLock'
 import { getMobilityStyle } from '@/config/workoutConfig'
 import { Check } from 'lucide-react'
 import type { PlanExercise } from '@/types/workout'
@@ -46,6 +47,7 @@ export function MobilityWorkoutPage() {
   const Icon = style.icon
 
   const allExercises = workoutDay?.sections?.flatMap(s => s.exercises) ?? []
+  useWakeLock(allExercises.length > 0)
   const checkedCount = checkedExercises.size
   const totalCount = allExercises.length
 

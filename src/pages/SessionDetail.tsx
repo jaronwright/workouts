@@ -8,8 +8,10 @@ import { useDeleteSession, useUpdateSession, useUpdateSet, useDeleteSet } from '
 import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
 import { getWorkoutDisplayName } from '@/config/workoutConfig'
 import {
-  Calendar, Clock, CheckCircle, Dumbbell, Trash2, Edit2, X, Save, MoreVertical
+  Calendar, Clock, CheckCircle, Dumbbell, Trash2, Edit2, X, Save, MoreVertical, Share2
 } from 'lucide-react'
+import { useShare } from '@/hooks/useShare'
+import { formatSessionShareText } from '@/utils/shareFormatters'
 import { supabase } from '@/services/supabase'
 
 interface SetWithExercise {
@@ -217,6 +219,8 @@ export function SessionDetailPage() {
   const { mutate: updateSet, isPending: isUpdatingSet } = useUpdateSet()
   const { mutate: deleteSet, isPending: isDeletingSet } = useDeleteSet()
 
+  const { share } = useShare()
+
   // State
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isEditingNotes, setIsEditingNotes] = useState(false)
@@ -339,6 +343,26 @@ export function SessionDetailPage() {
                   onClick={() => setShowActionsMenu(false)}
                 />
                 <div className="absolute right-0 top-full mt-1 w-48 bg-[var(--color-surface)] rounded-lg shadow-lg border border-[var(--color-border)] z-50 overflow-hidden">
+                  <button
+                    onClick={() => {
+                      setShowActionsMenu(false)
+                      if (data) {
+                        share({
+                          title: getWorkoutDisplayName(data.session.workout_day?.name) || 'Workout',
+                          text: formatSessionShareText({
+                            workoutName: getWorkoutDisplayName(data.session.workout_day?.name) || 'Workout',
+                            date: data.session.started_at,
+                            duration: getDuration(),
+                            exerciseCount: sortedExercises.length
+                          })
+                        })
+                      }
+                    }}
+                    className="w-full px-4 py-3 text-left text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] flex items-center gap-2"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Share Workout
+                  </button>
                   <button
                     onClick={handleStartEditNotes}
                     className="w-full px-4 py-3 text-left text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] flex items-center gap-2"

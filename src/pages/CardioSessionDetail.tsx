@@ -4,7 +4,9 @@ import { AppShell } from '@/components/layout'
 import { Card, CardContent } from '@/components/ui'
 import { supabase } from '@/services/supabase'
 import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
-import { Calendar, Clock, MapPin, Timer, CheckCircle, Circle, Trash2 } from 'lucide-react'
+import { Calendar, Clock, MapPin, Timer, CheckCircle, Circle, Trash2, Share2 } from 'lucide-react'
+import { useShare } from '@/hooks/useShare'
+import { formatCardioShareText } from '@/utils/shareFormatters'
 import type { TemplateWorkoutSession } from '@/services/templateWorkoutService'
 
 async function getTemplateSession(sessionId: string): Promise<TemplateWorkoutSession | null> {
@@ -43,6 +45,8 @@ export function CardioSessionDetailPage() {
     queryFn: () => getTemplateSession(sessionId!),
     enabled: !!sessionId
   })
+
+  const { share } = useShare()
 
   const { mutate: deleteSession, isPending: isDeleting } = useMutation({
     mutationFn: () => deleteTemplateSession(sessionId!),
@@ -151,6 +155,26 @@ export function CardioSessionDetailPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Share Button */}
+        <button
+          onClick={() =>
+            share({
+              title: session.template?.name || 'Workout',
+              text: formatCardioShareText({
+                workoutName: session.template?.name || 'Workout',
+                date: session.started_at,
+                durationMinutes: durationMinutes,
+                distanceValue: session.distance_value,
+                distanceUnit: session.distance_unit
+              })
+            })
+          }
+          className="w-full flex items-center justify-center gap-2 py-3 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-xl transition-colors"
+        >
+          <Share2 className="w-5 h-5" />
+          Share Workout
+        </button>
 
         {/* Delete Button */}
         <button

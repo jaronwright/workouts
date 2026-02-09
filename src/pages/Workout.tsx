@@ -10,6 +10,7 @@ import { useStartWorkout, useCompleteWorkout, useLogSet, useDeleteSet, useSessio
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useToast } from '@/hooks/useToast'
+import { useWakeLock } from '@/hooks/useWakeLock'
 import { getWorkoutDisplayName } from '@/config/workoutConfig'
 
 const MOTIVATIONAL_QUOTES = [
@@ -61,6 +62,8 @@ export function WorkoutPage() {
   } = useWorkoutStore()
 
   const { data: sessionSets } = useSessionSets(activeSession?.id)
+
+  useWakeLock(!!activeSession)
 
   useEffect(() => {
     if (workoutDay) {

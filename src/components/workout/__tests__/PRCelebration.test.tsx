@@ -3,6 +3,14 @@ import { render, screen, fireEvent, act } from '@/test/utils'
 import { PRCelebration } from '../PRCelebration'
 import type { PRCheckResult } from '@/services/prService'
 
+vi.mock('@/hooks/useShare', () => ({
+  useShare: () => ({ share: vi.fn() }),
+}))
+
+vi.mock('@/utils/shareFormatters', () => ({
+  formatPRShareText: vi.fn(() => 'mock share text'),
+}))
+
 describe('PRCelebration', () => {
   const createMockResult = (overrides: Partial<PRCheckResult> = {}): PRCheckResult => ({
     isNewPR: true,
@@ -88,13 +96,13 @@ describe('PRCelebration', () => {
   })
 
   describe('auto-dismiss', () => {
-    it('auto-dismisses after 3 seconds', () => {
+    it('auto-dismisses after 5 seconds', () => {
       render(<PRCelebration {...defaultProps} />)
       expect(screen.getByText('New PR!')).toBeInTheDocument()
 
-      // Advance past the 3 second timeout
+      // Advance past the 5 second timeout
       act(() => {
-        vi.advanceTimersByTime(3000)
+        vi.advanceTimersByTime(5000)
       })
 
       // The component sets visible to false, then calls onComplete after 300ms
@@ -105,9 +113,9 @@ describe('PRCelebration', () => {
       const onComplete = vi.fn()
       render(<PRCelebration {...defaultProps} onComplete={onComplete} />)
 
-      // After 3 seconds, visible becomes false and a 300ms timeout is set
+      // After 5 seconds, visible becomes false and a 300ms timeout is set
       act(() => {
-        vi.advanceTimersByTime(3000)
+        vi.advanceTimersByTime(5000)
       })
       expect(onComplete).not.toHaveBeenCalled()
 

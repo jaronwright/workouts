@@ -1,6 +1,8 @@
 /* eslint-disable react-hooks/purity */
 import { useEffect, useState, useMemo } from 'react'
-import { Trophy } from 'lucide-react'
+import { Trophy, Share2 } from 'lucide-react'
+import { useShare } from '@/hooks/useShare'
+import { formatPRShareText } from '@/utils/shareFormatters'
 import type { PRCheckResult } from '@/services/prService'
 
 interface PRCelebrationProps {
@@ -10,6 +12,7 @@ interface PRCelebrationProps {
 
 export function PRCelebration({ result, onComplete }: PRCelebrationProps) {
   const [visible, setVisible] = useState(true)
+  const { share } = useShare()
 
   // Generate confetti particles once on mount
   const confetti = useMemo(() =>
@@ -27,11 +30,11 @@ export function PRCelebration({ result, onComplete }: PRCelebrationProps) {
       navigator.vibrate([100, 50, 100, 50, 200])
     }
 
-    // Auto-dismiss after 3 seconds
+    // Auto-dismiss after 5 seconds
     const timer = setTimeout(() => {
       setVisible(false)
       setTimeout(onComplete, 300)
-    }, 3000)
+    }, 5000)
 
     return () => clearTimeout(timer)
   }, [onComplete])
@@ -85,7 +88,25 @@ export function PRCelebration({ result, onComplete }: PRCelebrationProps) {
             </p>
           )}
 
-          <p className="text-sm text-[var(--color-text-muted)] mt-4">
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              share({
+                title: 'New PR!',
+                text: formatPRShareText({
+                  exerciseName: result.exerciseName,
+                  newWeight: result.newWeight,
+                  improvement: result.improvement
+                })
+              })
+            }}
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium"
+          >
+            <Share2 className="w-4 h-4" />
+            Share
+          </button>
+
+          <p className="text-sm text-[var(--color-text-muted)] mt-3">
             Tap to dismiss
           </p>
         </div>
