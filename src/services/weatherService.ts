@@ -17,6 +17,9 @@ export interface CurrentWeather {
   weatherCode: number
   description: string
   emoji: string
+  windSpeed: number
+  humidity: number
+  uvIndex: number
 }
 
 export interface DailyForecast {
@@ -26,6 +29,9 @@ export interface DailyForecast {
   emoji: string
   tempHigh: number
   tempLow: number
+  precipitationProbability: number
+  sunrise: string
+  sunset: string
 }
 
 export interface WeatherData {
@@ -146,6 +152,28 @@ export function celsiusToFahrenheit(c: number): number {
   return Math.round(c * 9 / 5 + 32)
 }
 
+export function kmhToMph(kmh: number): number {
+  return Math.round(kmh * 0.621371)
+}
+
+export function getUvLabel(uvIndex: number): string {
+  if (uvIndex < 3) return 'Low'
+  if (uvIndex < 6) return 'Moderate'
+  if (uvIndex < 8) return 'High'
+  if (uvIndex < 11) return 'Very High'
+  return 'Extreme'
+}
+
+export function formatSunTime(isoString: string): string {
+  const date = new Date(isoString)
+  const hours = date.getHours()
+  const minutes = date.getMinutes()
+  const ampm = hours >= 12 ? 'PM' : 'AM'
+  const h = hours % 12 || 12
+  const m = minutes.toString().padStart(2, '0')
+  return `${h}:${m} ${ampm}`
+}
+
 export function getCurrentPosition(): Promise<GeoLocation> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -196,9 +224,10 @@ export async function fetchWeather(location: GeoLocation): Promise<WeatherData> 
   const params = new URLSearchParams({
     latitude: latitude.toString(),
     longitude: longitude.toString(),
-    current: 'temperature_2m,apparent_temperature,weather_code',
-    daily: 'weather_code,temperature_2m_max,temperature_2m_min',
+    current: 'temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m,uv_index',
+    daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset',
     temperature_unit: 'celsius',
+    wind_speed_unit: 'kmh',
     timezone: 'auto',
     forecast_days: '7',
   })
@@ -221,6 +250,9 @@ export async function fetchWeather(location: GeoLocation): Promise<WeatherData> 
       emoji: getWeatherEmoji(code),
       tempHigh: Math.round(data.daily.temperature_2m_max[i]),
       tempLow: Math.round(data.daily.temperature_2m_min[i]),
+      precipitationProbability: data.daily.precipitation_probability_max?.[i] ?? 0,
+      sunrise: data.daily.sunrise?.[i] ?? '',
+      sunset: data.daily.sunset?.[i] ?? '',
     }
   })
 
@@ -233,6 +265,9 @@ export async function fetchWeather(location: GeoLocation): Promise<WeatherData> 
       weatherCode: currentCode,
       description: getWeatherDescription(currentCode),
       emoji: getWeatherEmoji(currentCode),
+      windSpeed: Math.round(data.current.wind_speed_10m ?? 0),
+      humidity: Math.round(data.current.relative_humidity_2m ?? 0),
+      uvIndex: Math.round(data.current.uv_index ?? 0),
     },
     daily,
     location: {

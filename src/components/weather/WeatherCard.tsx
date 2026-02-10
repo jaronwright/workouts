@@ -1,5 +1,6 @@
-import { motion } from 'motion/react'
-import { MapPin, RefreshCw } from 'lucide-react'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
+import { MapPin, RefreshCw, ChevronDown, Wind, Droplets, Sun, CloudRain, Sunrise, Sunset } from 'lucide-react'
 import { Card, CardContent, Button } from '@/components/ui'
 import { useWeather } from '@/hooks/useWeather'
 import { useWeatherStore } from '@/stores/weatherStore'
@@ -7,10 +8,25 @@ import { useReducedMotion } from '@/hooks/useReducedMotion'
 import {
   celsiusToFahrenheit,
   getWeatherGradient,
+  kmhToMph,
+  getUvLabel,
+  formatSunTime,
 } from '@/services/weatherService'
 
 function formatTemp(tempC: number, unit: 'C' | 'F'): string {
   return unit === 'C' ? `${tempC}°` : `${celsiusToFahrenheit(tempC)}°`
+}
+
+function WeatherDetailItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="text-[var(--color-text-muted)]">{icon}</div>
+      <div className="min-w-0">
+        <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">{label}</p>
+        <p className="text-xs font-medium text-[var(--color-text)]">{value}</p>
+      </div>
+    </div>
+  )
 }
 
 function WeatherSkeleton() {
@@ -112,9 +128,16 @@ export function WeatherCard() {
   // No data and no cache — return nothing (fresh install, no permission prompt yet)
   if (!weather) return null
 
+  const [isExpanded, setIsExpanded] = useState(false)
+
   const { current, daily, location } = weather
   const gradient = getWeatherGradient(current.weatherCode)
   const displayCity = location.cityName !== 'Unknown' ? location.cityName : cachedCityName || ''
+  const today = daily[0]
+  const windDisplay = temperatureUnit === 'F'
+    ? `${kmhToMph(current.windSpeed)} mph`
+    : `${current.windSpeed} km/h`
+  const reducedTransition = prefersReduced ? { duration: 0 } : undefined
 
   return (
     <motion.div
@@ -122,7 +145,7 @@ export function WeatherCard() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
     >
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden cursor-pointer" onClick={() => setIsExpanded(prev => !prev)}>
         {/* Gradient overlay */}
         <div className={`absolute inset-0 bg-gradient-to-br ${gradient} pointer-events-none`} />
 
@@ -132,7 +155,7 @@ export function WeatherCard() {
             <div className="text-4xl leading-none">{current.emoji}</div>
             <div className="flex-1 min-w-0">
               <button
-                onClick={toggleTemperatureUnit}
+                onClick={(e) => { e.stopPropagation(); toggleTemperatureUnit() }}
                 className="text-2xl font-bold text-[var(--color-text)] leading-tight active:opacity-70 transition-opacity"
                 title={`Switch to °${temperatureUnit === 'C' ? 'F' : 'C'}`}
               >
@@ -174,6 +197,62 @@ export function WeatherCard() {
               ))}
             </div>
           </div>
+
+          {/* Expand indicator */}
+          <div className="flex justify-center mt-2">
+            <motion.div
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={reducedTransition ?? { type: 'spring', stiffness: 300, damping: 25 }}
+            >
+              <ChevronDown className="w-4 h-4 text-[var(--color-text-muted)]" />
+            </motion.div>
+          </div>
+
+          {/* Expandable details */}
+          <AnimatePresence initial={false}>
+            {isExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={reducedTransition ?? { type: 'spring', stiffness: 300, damping: 30 }}
+                className="overflow-hidden"
+              >
+                <div className="border-t border-[var(--color-border)] mt-2 pt-3 grid grid-cols-2 gap-3">
+                  <WeatherDetailItem
+                    icon={<Wind className="w-4 h-4" />}
+                    label="Wind"
+                    value={windDisplay}
+                  />
+                  <WeatherDetailItem
+                    icon={<Droplets className="w-4 h-4" />}
+                    label="Humidity"
+                    value={`${current.humidity}%`}
+                  />
+                  <WeatherDetailItem
+                    icon={<Sun className="w-4 h-4" />}
+                    label="UV Index"
+                    value={`${current.uvIndex} · ${getUvLabel(current.uvIndex)}`}
+                  />
+                  <WeatherDetailItem
+                    icon={<CloudRain className="w-4 h-4" />}
+                    label="Rain Chance"
+                    value={`${today?.precipitationProbability ?? 0}%`}
+                  />
+                  <WeatherDetailItem
+                    icon={<Sunrise className="w-4 h-4" />}
+                    label="Sunrise"
+                    value={today?.sunrise ? formatSunTime(today.sunrise) : '--'}
+                  />
+                  <WeatherDetailItem
+                    icon={<Sunset className="w-4 h-4" />}
+                    label="Sunset"
+                    value={today?.sunset ? formatSunTime(today.sunset) : '--'}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </CardContent>
       </Card>
     </motion.div>

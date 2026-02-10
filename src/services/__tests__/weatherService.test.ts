@@ -4,6 +4,9 @@ import {
   getWeatherEmoji,
   getWeatherGradient,
   celsiusToFahrenheit,
+  kmhToMph,
+  getUvLabel,
+  formatSunTime,
   getCurrentPosition,
   reverseGeocode,
   fetchWeather,
@@ -244,6 +247,101 @@ describe('weatherService', () => {
   })
 
   // ────────────────────────────────────────────────────────
+  // kmhToMph
+  // ────────────────────────────────────────────────────────
+
+  describe('kmhToMph', () => {
+    it('converts 0 km/h to 0 mph', () => {
+      expect(kmhToMph(0)).toBe(0)
+    })
+
+    it('converts 10 km/h to 6 mph', () => {
+      expect(kmhToMph(10)).toBe(6)
+    })
+
+    it('converts 100 km/h to 62 mph', () => {
+      expect(kmhToMph(100)).toBe(62)
+    })
+
+    it('rounds the result', () => {
+      // 15 * 0.621371 = 9.320565 → 9
+      expect(kmhToMph(15)).toBe(9)
+    })
+  })
+
+  // ────────────────────────────────────────────────────────
+  // getUvLabel
+  // ────────────────────────────────────────────────────────
+
+  describe('getUvLabel', () => {
+    it('returns "Low" for UV index 0', () => {
+      expect(getUvLabel(0)).toBe('Low')
+    })
+
+    it('returns "Low" for UV index 2', () => {
+      expect(getUvLabel(2)).toBe('Low')
+    })
+
+    it('returns "Moderate" for UV index 3', () => {
+      expect(getUvLabel(3)).toBe('Moderate')
+    })
+
+    it('returns "Moderate" for UV index 5', () => {
+      expect(getUvLabel(5)).toBe('Moderate')
+    })
+
+    it('returns "High" for UV index 6', () => {
+      expect(getUvLabel(6)).toBe('High')
+    })
+
+    it('returns "High" for UV index 7', () => {
+      expect(getUvLabel(7)).toBe('High')
+    })
+
+    it('returns "Very High" for UV index 8', () => {
+      expect(getUvLabel(8)).toBe('Very High')
+    })
+
+    it('returns "Very High" for UV index 10', () => {
+      expect(getUvLabel(10)).toBe('Very High')
+    })
+
+    it('returns "Extreme" for UV index 11', () => {
+      expect(getUvLabel(11)).toBe('Extreme')
+    })
+
+    it('returns "Extreme" for UV index 15', () => {
+      expect(getUvLabel(15)).toBe('Extreme')
+    })
+  })
+
+  // ────────────────────────────────────────────────────────
+  // formatSunTime
+  // ────────────────────────────────────────────────────────
+
+  describe('formatSunTime', () => {
+    it('formats morning time correctly', () => {
+      expect(formatSunTime('2025-01-15T06:42')).toBe('6:42 AM')
+    })
+
+    it('formats afternoon time correctly', () => {
+      expect(formatSunTime('2025-01-15T17:30')).toBe('5:30 PM')
+    })
+
+    it('formats noon as 12:00 PM', () => {
+      expect(formatSunTime('2025-01-15T12:00')).toBe('12:00 PM')
+    })
+
+    it('formats midnight as 12:00 AM', () => {
+      expect(formatSunTime('2025-01-15T00:00')).toBe('12:00 AM')
+    })
+
+    it('pads minutes with leading zero', () => {
+      expect(formatSunTime('2025-01-15T07:05')).toBe('7:05 AM')
+    })
+  })
+
+  // ────────────────────────────────────────────────────────
   // getCurrentPosition
   // ────────────────────────────────────────────────────────
 
@@ -468,12 +566,18 @@ describe('weatherService', () => {
         temperature_2m: 22.3,
         apparent_temperature: 20.1,
         weather_code: 0,
+        wind_speed_10m: 12.5,
+        relative_humidity_2m: 65,
+        uv_index: 5.2,
       },
       daily: {
         time: ['2024-06-01', '2024-06-02', '2024-06-03'],
         weather_code: [0, 2, 61],
         temperature_2m_max: [25.5, 23.1, 18.9],
         temperature_2m_min: [15.2, 14.8, 12.3],
+        precipitation_probability_max: [10, 30, 80],
+        sunrise: ['2024-06-01T05:30', '2024-06-02T05:29', '2024-06-03T05:28'],
+        sunset: ['2024-06-01T20:15', '2024-06-02T20:16', '2024-06-03T20:17'],
       },
     }
 
@@ -500,6 +604,9 @@ describe('weatherService', () => {
       expect(result.current.weatherCode).toBe(0)
       expect(result.current.description).toBe('Clear sky')
       expect(result.current.emoji).toBe('☀️')
+      expect(result.current.windSpeed).toBe(13) // Math.round(12.5)
+      expect(result.current.humidity).toBe(65)
+      expect(result.current.uvIndex).toBe(5) // Math.round(5.2)
       expect(result.location.latitude).toBe(40.7128)
       expect(result.location.longitude).toBe(-74.006)
       expect(result.location.cityName).toBe('New York')
@@ -526,16 +633,21 @@ describe('weatherService', () => {
       expect(day1.emoji).toBe('☀️')
       expect(day1.tempHigh).toBe(26) // Math.round(25.5)
       expect(day1.tempLow).toBe(15) // Math.round(15.2)
+      expect(day1.precipitationProbability).toBe(10)
+      expect(day1.sunrise).toBe('2024-06-01T05:30')
+      expect(day1.sunset).toBe('2024-06-01T20:15')
 
       // Check second day
       const day2 = result.daily[1]
       expect(day2.weatherCode).toBe(2)
       expect(day2.emoji).toBe('⛅')
+      expect(day2.precipitationProbability).toBe(30)
 
       // Check third day (rain)
       const day3 = result.daily[2]
       expect(day3.weatherCode).toBe(61)
       expect(day3.emoji).toBe('🌧️')
+      expect(day3.precipitationProbability).toBe(80)
     })
 
     it('rounds temperature values', async () => {
@@ -583,6 +695,13 @@ describe('weatherService', () => {
       expect(weatherCall).toContain('current=temperature_2m')
       expect(weatherCall).toContain('apparent_temperature')
       expect(weatherCall).toContain('weather_code')
+      expect(weatherCall).toContain('wind_speed_10m')
+      expect(weatherCall).toContain('relative_humidity_2m')
+      expect(weatherCall).toContain('uv_index')
+      expect(weatherCall).toContain('precipitation_probability_max')
+      expect(weatherCall).toContain('sunrise')
+      expect(weatherCall).toContain('sunset')
+      expect(weatherCall).toContain('wind_speed_unit=kmh')
       expect(weatherCall).toContain('temperature_unit=celsius')
       expect(weatherCall).toContain('timezone=auto')
       expect(weatherCall).toContain('forecast_days=7')

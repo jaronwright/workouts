@@ -38,6 +38,23 @@ vi.mock('@/stores/weatherStore', () => ({
 vi.mock('@/services/weatherService', () => ({
   celsiusToFahrenheit: (c: number) => Math.round(c * 9 / 5 + 32),
   getWeatherGradient: () => 'from-sky-400/15 to-blue-500/5',
+  kmhToMph: (kmh: number) => Math.round(kmh * 0.621371),
+  getUvLabel: (uv: number) => {
+    if (uv < 3) return 'Low'
+    if (uv < 6) return 'Moderate'
+    if (uv < 8) return 'High'
+    if (uv < 11) return 'Very High'
+    return 'Extreme'
+  },
+  formatSunTime: (iso: string) => {
+    const date = new Date(iso)
+    const hours = date.getHours()
+    const minutes = date.getMinutes()
+    const ampm = hours >= 12 ? 'PM' : 'AM'
+    const h = hours % 12 || 12
+    const m = minutes.toString().padStart(2, '0')
+    return `${h}:${m} ${ampm}`
+  },
 }))
 
 const mockWeatherData: WeatherData = {
@@ -47,11 +64,14 @@ const mockWeatherData: WeatherData = {
     weatherCode: 0,
     description: 'Clear sky',
     emoji: 'sun-emoji',
+    windSpeed: 15,
+    humidity: 65,
+    uvIndex: 5,
   },
   daily: [
-    { date: '2025-01-15', dayName: 'Wed', weatherCode: 0, emoji: 'sun-emoji', tempHigh: 25, tempLow: 15 },
-    { date: '2025-01-16', dayName: 'Thu', weatherCode: 2, emoji: 'cloud-emoji', tempHigh: 20, tempLow: 12 },
-    { date: '2025-01-17', dayName: 'Fri', weatherCode: 61, emoji: 'rain-emoji', tempHigh: 18, tempLow: 10 },
+    { date: '2025-01-15', dayName: 'Wed', weatherCode: 0, emoji: 'sun-emoji', tempHigh: 25, tempLow: 15, precipitationProbability: 10, sunrise: '2025-01-15T06:42', sunset: '2025-01-15T17:30' },
+    { date: '2025-01-16', dayName: 'Thu', weatherCode: 2, emoji: 'cloud-emoji', tempHigh: 20, tempLow: 12, precipitationProbability: 30, sunrise: '2025-01-16T06:41', sunset: '2025-01-16T17:31' },
+    { date: '2025-01-17', dayName: 'Fri', weatherCode: 61, emoji: 'rain-emoji', tempHigh: 18, tempLow: 10, precipitationProbability: 80, sunrise: '2025-01-17T06:40', sunset: '2025-01-17T17:32' },
   ],
   location: {
     latitude: 40.7128,
@@ -441,6 +461,96 @@ describe('WeatherCard', () => {
       render(<WeatherCard />)
       expect(screen.getByText('cloud-emoji')).toBeInTheDocument()
       expect(screen.getByText('rain-emoji')).toBeInTheDocument()
+    })
+  })
+
+  describe('expandable details', () => {
+    beforeEach(() => {
+      mockUseWeather.mockReturnValue({
+        weather: mockWeatherData,
+        isLoading: false,
+        isLocating: false,
+        error: null,
+        retry: mockRetry,
+      })
+      mockUseWeatherStore.mockReturnValue({
+        temperatureUnit: 'C',
+        toggleTemperatureUnit: mockToggleTemperatureUnit,
+        cachedCityName: null,
+      })
+    })
+
+    it('does not show details by default', () => {
+      render(<WeatherCard />)
+      expect(screen.queryByText('Wind')).not.toBeInTheDocument()
+      expect(screen.queryByText('Humidity')).not.toBeInTheDocument()
+      expect(screen.queryByText('UV Index')).not.toBeInTheDocument()
+    })
+
+    it('shows details after clicking the card', () => {
+      render(<WeatherCard />)
+      // Click the card to expand
+      fireEvent.click(screen.getByText('Clear sky').closest('[class*="overflow-hidden"]')!)
+      expect(screen.getByText('Wind')).toBeInTheDocument()
+      expect(screen.getByText('Humidity')).toBeInTheDocument()
+      expect(screen.getByText('UV Index')).toBeInTheDocument()
+      expect(screen.getByText('Rain Chance')).toBeInTheDocument()
+      expect(screen.getByText('Sunrise')).toBeInTheDocument()
+      expect(screen.getByText('Sunset')).toBeInTheDocument()
+    })
+
+    it('shows correct wind speed in km/h when Celsius', () => {
+      render(<WeatherCard />)
+      fireEvent.click(screen.getByText('Clear sky').closest('[class*="overflow-hidden"]')!)
+      expect(screen.getByText('15 km/h')).toBeInTheDocument()
+    })
+
+    it('shows correct wind speed in mph when Fahrenheit', () => {
+      mockUseWeatherStore.mockReturnValue({
+        temperatureUnit: 'F',
+        toggleTemperatureUnit: mockToggleTemperatureUnit,
+        cachedCityName: null,
+      })
+      render(<WeatherCard />)
+      fireEvent.click(screen.getByText('Clear sky').closest('[class*="overflow-hidden"]')!)
+      // 15 * 0.621371 = 9.32 → 9
+      expect(screen.getByText('9 mph')).toBeInTheDocument()
+    })
+
+    it('shows humidity percentage', () => {
+      render(<WeatherCard />)
+      fireEvent.click(screen.getByText('Clear sky').closest('[class*="overflow-hidden"]')!)
+      expect(screen.getByText('65%')).toBeInTheDocument()
+    })
+
+    it('shows UV index with label', () => {
+      render(<WeatherCard />)
+      fireEvent.click(screen.getByText('Clear sky').closest('[class*="overflow-hidden"]')!)
+      expect(screen.getByText('5 · Moderate')).toBeInTheDocument()
+    })
+
+    it('shows precipitation probability', () => {
+      render(<WeatherCard />)
+      fireEvent.click(screen.getByText('Clear sky').closest('[class*="overflow-hidden"]')!)
+      expect(screen.getByText('10%')).toBeInTheDocument()
+    })
+
+    it('collapses on second click', () => {
+      render(<WeatherCard />)
+      const card = screen.getByText('Clear sky').closest('[class*="overflow-hidden"]')!
+      fireEvent.click(card)
+      expect(screen.getByText('Wind')).toBeInTheDocument()
+      fireEvent.click(card)
+      expect(screen.queryByText('Wind')).not.toBeInTheDocument()
+    })
+
+    it('does not toggle expand when temperature button is clicked', () => {
+      render(<WeatherCard />)
+      const tempButton = screen.getByTitle(/Switch to/)
+      fireEvent.click(tempButton)
+      // Should NOT expand — details should still be hidden
+      expect(screen.queryByText('Wind')).not.toBeInTheDocument()
+      expect(mockToggleTemperatureUnit).toHaveBeenCalledTimes(1)
     })
   })
 })
