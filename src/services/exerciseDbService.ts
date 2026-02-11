@@ -1,8 +1,9 @@
 // ExerciseDB API service with V2 RapidAPI (primary) and V1 OSS (fallback)
 const V1_BASE_URL = 'https://oss.exercisedb.dev/api/v1'
 const V2_BASE_URL = 'https://exercisedb.p.rapidapi.com'
-const CACHE_KEY = 'exercisedb_cache_v4' // Bump version to clear stale null entries
+const CACHE_KEY = 'exercisedb_cache_v5' // Bump version to clear stale null entries
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000 // 7 days (exercises don't change)
+const NULL_CACHE_DURATION = 60 * 60 * 1000 // 1 hour for failed lookups
 
 // Read API key dynamically so tests can stub import.meta.env
 function getRapidApiKey(): string | undefined {
@@ -35,6 +36,7 @@ const EXERCISE_NAME_MAPPINGS: Record<string, string> = {
   'band rows': 'resistance band seated row',
   'reverse crunches': 'reverse crunch',
   'ab wheel rollouts': 'wheel rollout',
+  'ab wheel rollout': 'wheel rollout',
 
   // Legs day exercises
   'hip thrusts': 'barbell hip thrust',
@@ -47,6 +49,7 @@ const EXERCISE_NAME_MAPPINGS: Record<string, string> = {
   'seated calf raises': 'lever seated calf raise',
   'air squats': 'bodyweight squat',
   'banded lateral walks': 'resistance band lateral walk',
+  'banded lateral walk': 'resistance band lateral walk',
   'deep squat hold': 'bodyweight squat',
   'zombie walks': 'bodyweight walking lunge',
 
@@ -55,6 +58,7 @@ const EXERCISE_NAME_MAPPINGS: Record<string, string> = {
   'push-ups': 'push up',
   'rowing machine': 'rowing machine',
   'bike or stair stepper': 'stationary bike',
+  'bike': 'stationary bike',
   'plank': 'plank',
 
   // Upper/Lower plan
@@ -72,15 +76,97 @@ const EXERCISE_NAME_MAPPINGS: Record<string, string> = {
   'bulgarian split squats': 'dumbbell bulgarian split squat',
   'leg cable kickback': 'cable kickback',
 
-  // Mobility plan
+  // Full Body plan
+  'leg curl': 'lever lying leg curl',
+  'single-arm dumbbell row': 'dumbbell one arm row',
+  'single leg rdl': 'dumbbell single leg deadlift',
+  'barbell back squat': 'barbell squat',
+  'barbell row': 'barbell bent over row',
+  'cable row': 'cable seated row',
+
+  // Bro Split plan
+  'pec deck machine': 'pec deck fly',
+  'decline dumbbell press': 'dumbbell decline bench press',
+  'straight arm pulldown': 'cable straight arm pulldown',
+  'seated dumbbell shoulder press': 'dumbbell seated shoulder press',
+  'rear delt fly machine': 'lever rear delt fly',
+  'incline dumbbell curl': 'dumbbell incline curl',
+  'close grip bench press': 'close grip barbell bench press',
+  'band curl': 'resistance band bicep curl',
+  'dumbbell front raise': 'dumbbell front raise',
+  'cable lateral raise': 'cable lateral raise',
+
+  // Glute Hypertrophy plan
+  'romanian deadlift': 'barbell romanian deadlift',
+  'glute-focused hyperextension': 'hyperextension',
+  'seated leg curl': 'lever seated leg curl',
+  'single-leg hip thrust': 'single leg hip thrust',
+  'cable pull-through': 'cable pull through',
+  'incline dumbbell press': 'dumbbell incline bench press',
+  'banded glute bridge': 'resistance band glute bridge',
+  'banded monster walk': 'resistance band monster walk',
+  'jump rope or jumping jacks': 'jumping jack',
+  'scapula push-ups': 'scapular push up',
+  'bicep curl': 'dumbbell bicep curl',
+  'overhead tricep extension': 'dumbbell overhead tricep extension',
+  'rear delt fly': 'dumbbell rear delt fly',
+  'banded clamshell': 'resistance band hip abduction',
+  'banded fire hydrant': 'resistance band fire hydrant',
+  'glute bridge hold': 'glute bridge',
+  'cable glute kickback': 'cable kickback',
+  'abductor machine': 'lever seated hip abduction',
+  'step-ups': 'dumbbell step up',
+  'step-up': 'dumbbell step up',
+  'smith machine hip thrust': 'smith machine hip thrust',
+  'walking quad stretch': 'quad stretch',
+  'band dislocate': 'band pull apart',
+
+  // Mobility - CARs (Controlled Articular Rotations)
+  'shoulder cars': 'shoulder circles',
+  'ankle cars': 'ankle circles',
+  'wrist cars': 'wrist circles',
+  'hip cars': 'hip circles',
+  'elbow cars': 'elbow circles',
+
+  // Mobility - Core Stability
   'dead bug': 'dead bug',
   'pallof press hold': 'pallof press',
+  'pallof press': 'pallof press',
   'hanging knee raise': 'hanging knee raise',
   'side plank': 'side plank',
+  'hollow body hold': 'hollow body',
+  'plank with shoulder tap': 'plank',
+  'turkish get-up': 'turkish get up',
+  'bear crawl hold': 'bear crawl',
+  'banded dead bug': 'dead bug',
+  'copenhagen plank': 'copenhagen side bridge',
+
+  // Mobility - Hip, Knee & Ankle
   'cossack squat': 'cossack squat',
+  '90/90 hip switches': '90 90 hip switch',
+  '90/90 hip switch': '90 90 hip switch',
+  'walking knee hug': 'knee hug',
+  'lateral lunge hold': 'lateral lunge',
+  'shin box transition': 'shin box',
+  'half kneeling hip flexor stretch': 'hip flexor stretch',
+
+  // Mobility - Spine
   'cat-cow': 'cat cow stretch',
+  'thoracic rotation': 'thoracic spine rotation',
+  'side-lying windmill': 'windmill',
+  'prone press-up': 'cobra stretch',
+  "child's pose with lateral reach": "child's pose",
+  'supine spinal twist': 'supine twist',
+
+  // Mobility - Upper Body
   'wall slides': 'wall slide',
-  'shoulder cars': 'shoulder circles',
+  'prone y-t-w raise': 'prone y raise',
+  'side-lying external rotation': 'side lying external rotation',
+
+  // Mobility - Full Body Recovery
+  'supine figure-4 stretch': 'figure 4 stretch',
+  'prone quad stretch': 'lying quad stretch',
+  'neck half circle': 'neck circles',
 }
 
 export interface ExerciseDbExercise {
@@ -139,8 +225,9 @@ function getCachedExercise(key: string): ExerciseDbExercise | null | undefined {
 
   if (!entry) return undefined
 
-  // Check if cache is expired
-  if (Date.now() - entry.timestamp > CACHE_DURATION) {
+  // Use shorter expiration for null entries (failed lookups) so they retry sooner
+  const maxAge = entry.data === null ? NULL_CACHE_DURATION : CACHE_DURATION
+  if (Date.now() - entry.timestamp > maxAge) {
     return undefined
   }
 
@@ -148,7 +235,7 @@ function getCachedExercise(key: string): ExerciseDbExercise | null | undefined {
 }
 
 function normalizeSearchName(name: string): string {
-  const normalized = name
+  let normalized = name
     .toLowerCase()
     .replace(/\s*\([^)]*\)/g, '') // Remove parenthetical notes like "(each side)"
     .replace(/db\b/gi, 'dumbbell')
@@ -156,6 +243,17 @@ function normalizeSearchName(name: string): string {
     .replace(/\s+/g, ' ')
     .trim()
 
+  // Check mapping before stripping plurals (some mapped names are plural)
+  if (EXERCISE_NAME_MAPPINGS[normalized]) {
+    return EXERCISE_NAME_MAPPINGS[normalized]
+  }
+
+  // Strip trailing 's' from last word to handle plurals:
+  // "mountain climbers" → "mountain climber", "walking lunges" → "walking lunge"
+  // Avoid stripping from words ending in 'ss' (e.g., "press") or short words
+  normalized = normalized.replace(/(?<=[a-z]{2}[^s])s$/, '')
+
+  // Check mapping again after stripping plural
   if (EXERCISE_NAME_MAPPINGS[normalized]) {
     return EXERCISE_NAME_MAPPINGS[normalized]
   }
@@ -169,7 +267,9 @@ function getMainKeyword(name: string): string | null {
     'press', 'curl', 'row', 'squat', 'lunge', 'deadlift', 'fly', 'raise',
     'extension', 'pulldown', 'pull-up', 'pull up', 'dip', 'crunch', 'plank',
     'thrust', 'walk', 'step', 'bike', 'rowing',
-    'rotation', 'stretch', 'hang', 'slide', 'circle', 'bug', 'kickback'
+    'rotation', 'stretch', 'hang', 'slide', 'circle', 'bug', 'kickback',
+    'bridge', 'kick', 'climber', 'twist', 'hyperextension', 'shrug',
+    'calf', 'hip', 'glute', 'ab', 'pullover',
   ]
 
   const nameLower = name.toLowerCase()

@@ -81,7 +81,7 @@ describe('exerciseDbService', () => {
 
       expect(mockLocalStorage.setItem).toHaveBeenCalled()
       const cacheCall = mockLocalStorage.setItem.mock.calls[0]
-      expect(cacheCall[0]).toBe('exercisedb_cache_v4')
+      expect(cacheCall[0]).toBe('exercisedb_cache_v5')
       const cached = JSON.parse(cacheCall[1])
       expect(cached['bench press'].data).toEqual(mockExercise)
     })
@@ -94,7 +94,7 @@ describe('exerciseDbService', () => {
           timestamp: Date.now(),
         },
       }
-      mockLocalStorage.store['exercisedb_cache_v4'] = JSON.stringify(cacheData)
+      mockLocalStorage.store['exercisedb_cache_v5'] = JSON.stringify(cacheData)
 
       const result = await searchExerciseByName('bench press')
 
@@ -110,7 +110,7 @@ describe('exerciseDbService', () => {
           timestamp: Date.now() - 8 * 24 * 60 * 60 * 1000,
         },
       }
-      mockLocalStorage.store['exercisedb_cache_v4'] = JSON.stringify(cacheData)
+      mockLocalStorage.store['exercisedb_cache_v5'] = JSON.stringify(cacheData)
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -187,7 +187,7 @@ describe('exerciseDbService', () => {
     }, 15000) // Backoff delays: 2s + 4s = 6s minimum
 
     describe('exercise name mapping', () => {
-      it('expands "db" to "dumbbell" in search term', async () => {
+      it('expands "db" to "dumbbell" and applies mapping', async () => {
         mockFetch.mockResolvedValueOnce({
           ok: true,
           status: 200,
@@ -196,9 +196,9 @@ describe('exerciseDbService', () => {
 
         await searchExerciseByName('incline db press')
 
-        // "incline db press" → "db" expands to "dumbbell" → "incline dumbbell press"
+        // "incline db press" → "db" expands to "dumbbell" → mapping → "dumbbell incline bench press"
         expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('search=incline%20dumbbell%20press'),
+          expect.stringContaining('search=dumbbell%20incline%20bench%20press'),
           expect.anything()
         )
       })
@@ -218,7 +218,7 @@ describe('exerciseDbService', () => {
         )
       })
 
-      it('removes parenthetical notes from exercise names', async () => {
+      it('removes parenthetical notes and strips plurals from exercise names', async () => {
         mockFetch
           .mockResolvedValueOnce({
             ok: true,
@@ -233,9 +233,9 @@ describe('exerciseDbService', () => {
 
         await searchExerciseByName('lunges (each side)')
 
-        // First call should be with 'lunges' without the parenthetical
+        // "lunges (each side)" → parens removed → "lunges" → plural stripped → "lunge"
         expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('search=lunges'),
+          expect.stringContaining('search=lunge'),
           expect.anything()
         )
       })
@@ -386,12 +386,12 @@ describe('exerciseDbService', () => {
 
   describe('clearExerciseCache', () => {
     it('removes cache from localStorage', () => {
-      mockLocalStorage.store['exercisedb_cache_v4'] = JSON.stringify({})
+      mockLocalStorage.store['exercisedb_cache_v5'] = JSON.stringify({})
 
       clearExerciseCache()
 
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith(
-        'exercisedb_cache_v4'
+        'exercisedb_cache_v5'
       )
     })
   })
