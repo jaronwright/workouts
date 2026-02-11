@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { format } from 'date-fns'
 import { motion, AnimatePresence } from 'motion/react'
 import {
-  Play, TrendingUp, ChevronRight, ChevronDown, Flame, Trophy, Calendar,
-  Zap, Dumbbell, Heart, Activity, X
+  Play, TrendingUp, ChevronRight, Flame, Trophy, Calendar,
+  Dumbbell, Heart, Activity, X
 } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { Avatar, Button, Card, CardContent, AnimatedCard, AnimatedCounter, Badge } from '@/components/ui'
 import { CardioLogCard, ScheduleWidget } from '@/components/workout'
 import { WeatherCard } from '@/components/weather'
+import { WeeklyReviewCard } from '@/components/review/WeeklyReviewCard'
 import { OnboardingWizard } from '@/components/onboarding'
 import { useActiveSession, useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
 import { useProfile } from '@/hooks/useProfile'
@@ -28,7 +28,8 @@ import {
   getCardioStyle,
   getMobilityStyle,
   getWeightsStyleByName,
-  CATEGORY_DEFAULTS
+  CATEGORY_DEFAULTS,
+  CATEGORY_LABELS
 } from '@/config/workoutConfig'
 import type { SessionWithDay } from '@/services/workoutService'
 import type { TemplateWorkoutSession } from '@/services/templateWorkoutService'
@@ -38,24 +39,6 @@ import type { WorkoutTemplate } from '@/services/scheduleService'
 type RecentSession =
   | { kind: 'weights'; session: SessionWithDay }
   | { kind: 'template'; session: TemplateWorkoutSession }
-
-// Get greeting based on time of day
-function getGreeting(): string {
-  const hour = new Date().getHours()
-  if (hour < 12) return 'Good morning'
-  if (hour < 17) return 'Good afternoon'
-  return 'Good evening'
-}
-
-// Get motivational message based on stats
-function getMotivationalMessage(streak: number, thisWeek: number, hasActiveSession: boolean): string {
-  if (hasActiveSession) return "You have a workout in progress!"
-  if (streak >= 7) return "You're on fire! Keep the momentum going!"
-  if (streak >= 3) return "Great consistency! You're building a habit."
-  if (thisWeek >= 3) return "Solid week! One more workout to crush it."
-  if (thisWeek >= 1) return "Good start this week. Keep pushing!"
-  return "Ready to start strong? Let's go!"
-}
 
 // Calculate streak from sessions
 function calculateStreak(sessions: { completed_at: string | null }[]): number {
@@ -200,56 +183,12 @@ function TemplateCard({ template, onClick, delay = 0, subtitle }: TemplateCardPr
   )
 }
 
-// Collapsible Section Component
-interface CollapsibleSectionProps {
-  title: string
-  icon: React.ElementType
-  iconColor: string
-  children: React.ReactNode
-  defaultOpen?: boolean
-}
-
-function CollapsibleSection({ title, icon: Icon, iconColor, children, defaultOpen = false }: CollapsibleSectionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen)
-  const prefersReduced = useReducedMotion()
-
-  return (
-    <section>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between py-2 active:opacity-70"
-      >
-        <div className="flex items-center gap-2">
-          <Icon className="w-5 h-5" style={{ color: iconColor }} />
-          <h2 className="text-base font-bold text-[var(--color-text)]">{title}</h2>
-        </div>
-        <ChevronDown
-          className={`w-5 h-5 text-[var(--color-text-muted)] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-        />
-      </button>
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={prefersReduced ? false : { height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div className="space-y-3 mt-1 pb-1">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </section>
-  )
-}
-
 export function HomePage() {
   const navigate = useNavigate()
   const { data: activeSession } = useActiveSession()
   const deleteSession = useDeleteSession()
   const { data: sessions, isLoading: sessionsLoading } = useUserSessions()
-  const { data: profile, isLoading: profileLoading } = useProfile()
+  useProfile() // keep hook for TanStack Query cache priming
   const currentCycleDay = useCycleDay()
   const { data: days, isLoading: daysLoading } = useSelectedPlanDays()
   const { data: cardioTemplates, isLoading: cardioLoading } = useWorkoutTemplatesByType('cardio')
@@ -300,11 +239,10 @@ export function HomePage() {
   const totalWorkouts = allCompleted.filter(s => s.completed_at).length
   const statsLoading = sessionsLoading || templateSessionsLoading
 
-  // Greeting
-  const greeting = getGreeting()
-  const displayName = profile?.display_name || 'there'
   const avatarUrl = useAvatarUrl()
-  const motivation = getMotivationalMessage(streak, thisWeek, !!activeSession)
+
+  // Quick Select tab state
+  const [activeQuickTab, setActiveQuickTab] = useState<'weights' | 'cardio' | 'mobility'>('weights')
 
   // Handlers
   const handleStartWorkout = (dayId: string) => navigate(`/workout/${dayId}`)
@@ -327,34 +265,19 @@ export function HomePage() {
   }
 
   return (
-    <AppShell title="Home">
-      <div className="p-4 space-y-5 pb-4">
-        {/* Greeting */}
-        <motion.div
-          className="flex items-center gap-3"
-          initial={prefersReduced ? false : { opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+    <AppShell
+      title="Home"
+      headerAction={
+        <button
+          onClick={() => navigate('/profile')}
+          className="rounded-full active:opacity-70 transition-opacity"
+          aria-label="Profile"
         >
-          <Avatar src={avatarUrl} size="md" alt="Profile" />
-          <div>
-            {(profileLoading || !profile) ? (
-              <div className="h-8 w-48 rounded bg-[var(--color-surface-hover)] animate-pulse" />
-            ) : (
-              <h2 className="text-[28px] font-bold text-[var(--color-text)] leading-tight">
-                {greeting}, {displayName}!
-              </h2>
-            )}
-            <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
-              {format(new Date(), 'EEEE, MMMM d')}
-            </p>
-            <p className="text-sm text-[var(--color-text-muted)] mt-0.5 flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-yellow-500" />
-              {motivation}
-            </p>
-          </div>
-        </motion.div>
-
+          <Avatar src={avatarUrl} size="sm" alt="Profile" />
+        </button>
+      }
+    >
+      <div className="p-4 space-y-5 pb-4">
         {/* Active Session Banner */}
         {activeSession && (
           <Card highlight>
@@ -457,104 +380,148 @@ export function HomePage() {
           </motion.div>
         </motion.div>
 
+        {/* Weekly Review Summary */}
+        <WeeklyReviewCard weekStart={(() => {
+          const now = new Date()
+          const d = new Date(now)
+          d.setDate(now.getDate() - now.getDay())
+          d.setHours(0, 0, 0, 0)
+          return d
+        })()} />
+
         {/* Quick Select Workouts */}
-        <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
-          Quick Select
-        </p>
+        <section className="space-y-4">
+          <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
+            Quick Select
+          </p>
 
-        <CollapsibleSection
-          title="Weights"
-          icon={Dumbbell}
-          iconColor={CATEGORY_DEFAULTS.weights.color}
-          defaultOpen={false}
-        >
-          {daysLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-20 rounded-[var(--radius-xl)] skeleton" />
-              ))}
-            </div>
-          ) : days?.length ? (
-            days.map((day, idx) => (
-              <WorkoutDayCard
-                key={day.id}
-                day={day}
-                onClick={() => handleStartWorkout(day.id)}
-                delay={idx * 0.06}
-                subtitle={getWeightsSessionSummary(day.id, weightsSessions)}
-              />
-            ))
-          ) : (
-            <Card variant="outlined">
-              <CardContent className="py-6 text-center">
-                <p className="text-[var(--color-text-muted)]">No weight workouts found.</p>
-              </CardContent>
-            </Card>
-          )}
-        </CollapsibleSection>
+          {/* Category Tab Circles */}
+          <div className="flex items-center justify-around">
+            {(['weights', 'cardio', 'mobility'] as const).map((cat) => {
+              const cfg = CATEGORY_DEFAULTS[cat]
+              const Icon = cfg.icon
+              const isActive = activeQuickTab === cat
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setActiveQuickTab(cat)}
+                  className="flex flex-col items-center gap-1.5"
+                >
+                  <motion.div
+                    className="w-14 h-14 rounded-full flex items-center justify-center border-2"
+                    animate={{
+                      backgroundColor: isActive ? cfg.bgColor : 'rgba(0, 0, 0, 0)',
+                      borderColor: isActive ? cfg.color : 'var(--color-border)',
+                    }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                  >
+                    <Icon
+                      className="w-6 h-6"
+                      style={{ color: isActive ? cfg.color : 'var(--color-text-muted)' }}
+                    />
+                  </motion.div>
+                  <span
+                    className="text-[10px] font-medium uppercase tracking-wide"
+                    style={{ color: isActive ? cfg.color : 'var(--color-text-muted)' }}
+                  >
+                    {CATEGORY_LABELS[cat]}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
 
-        <CollapsibleSection
-          title="Cardio"
-          icon={Heart}
-          iconColor={CATEGORY_DEFAULTS.cardio.color}
-          defaultOpen={false}
-        >
-          {cardioLoading ? (
-            <div className="space-y-3">
-              {[1, 2].map((i) => (
-                <div key={i} className="h-20 rounded-[var(--radius-xl)] skeleton" />
-              ))}
-            </div>
-          ) : cardioTemplates?.length ? (
-            cardioTemplates.map((template, idx) => (
-              <CardioLogCard
-                key={template.id}
-                template={template}
-                sessions={templateWorkoutSessions || []}
-                schedule={schedule || []}
-                currentCycleDay={currentCycleDay}
-                delay={idx * 0.06}
-              />
-            ))
-          ) : (
-            <Card variant="outlined">
-              <CardContent className="py-6 text-center">
-                <p className="text-[var(--color-text-muted)]">No cardio workouts available.</p>
-              </CardContent>
-            </Card>
-          )}
-        </CollapsibleSection>
+          {/* Tab Content Panel */}
+          <AnimatePresence>
+            <motion.div
+              key={activeQuickTab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="space-y-3"
+            >
+              {activeQuickTab === 'weights' && (
+                daysLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-20 rounded-[var(--radius-xl)] skeleton" />
+                    ))}
+                  </div>
+                ) : days?.length ? (
+                  days.map((day, idx) => (
+                    <WorkoutDayCard
+                      key={day.id}
+                      day={day}
+                      onClick={() => handleStartWorkout(day.id)}
+                      delay={idx * 0.06}
+                      subtitle={getWeightsSessionSummary(day.id, weightsSessions)}
+                    />
+                  ))
+                ) : (
+                  <Card variant="outlined">
+                    <CardContent className="py-6 text-center">
+                      <p className="text-[var(--color-text-muted)]">No weight workouts found.</p>
+                    </CardContent>
+                  </Card>
+                )
+              )}
 
-        <CollapsibleSection
-          title="Mobility"
-          icon={Activity}
-          iconColor={CATEGORY_DEFAULTS.mobility.color}
-          defaultOpen={false}
-        >
-          {mobilityLoading ? (
-            <div className="space-y-3">
-              {[1, 2].map((i) => (
-                <div key={i} className="h-20 rounded-[var(--radius-xl)] skeleton" />
-              ))}
-            </div>
-          ) : mobilityCategories?.length ? (
-            mobilityCategories.map(({ category, template }, idx) => (
-              <TemplateCard
-                key={category}
-                template={template}
-                onClick={() => handleStartMobility(category)}
-                delay={idx * 0.06}
-                subtitle={getMobilityCategorySummary(category, templateSessions)}
-              />
-            ))
-          ) : (
-            <Card variant="outlined">
-              <CardContent className="py-6 text-center">
-                <p className="text-[var(--color-text-muted)]">No mobility workouts available.</p>
-              </CardContent>
-            </Card>
-          )}
-        </CollapsibleSection>
+              {activeQuickTab === 'cardio' && (
+                cardioLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="h-20 rounded-[var(--radius-xl)] skeleton" />
+                    ))}
+                  </div>
+                ) : cardioTemplates?.length ? (
+                  cardioTemplates.map((template, idx) => (
+                    <CardioLogCard
+                      key={template.id}
+                      template={template}
+                      sessions={templateWorkoutSessions || []}
+                      schedule={schedule || []}
+                      currentCycleDay={currentCycleDay}
+                      delay={idx * 0.06}
+                    />
+                  ))
+                ) : (
+                  <Card variant="outlined">
+                    <CardContent className="py-6 text-center">
+                      <p className="text-[var(--color-text-muted)]">No cardio workouts available.</p>
+                    </CardContent>
+                  </Card>
+                )
+              )}
+
+              {activeQuickTab === 'mobility' && (
+                mobilityLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="h-20 rounded-[var(--radius-xl)] skeleton" />
+                    ))}
+                  </div>
+                ) : mobilityCategories?.length ? (
+                  mobilityCategories.map(({ category, template }, idx) => (
+                    <TemplateCard
+                      key={category}
+                      template={template}
+                      onClick={() => handleStartMobility(category)}
+                      delay={idx * 0.06}
+                      subtitle={getMobilityCategorySummary(category, templateSessions)}
+                    />
+                  ))
+                ) : (
+                  <Card variant="outlined">
+                    <CardContent className="py-6 text-center">
+                      <p className="text-[var(--color-text-muted)]">No mobility workouts available.</p>
+                    </CardContent>
+                  </Card>
+                )
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </section>
 
         {/* Recent Activity */}
         {recentActivity.length > 0 && (

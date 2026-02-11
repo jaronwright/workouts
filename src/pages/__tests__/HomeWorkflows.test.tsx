@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@/test/utils'
+import { render, screen, waitFor, act } from '@/test/utils'
 import userEvent from '@testing-library/user-event'
 import { HomePage } from '../Home'
 
@@ -470,42 +470,46 @@ describe('HomePage Workflows', () => {
   // 5. Empty states
   // -----------------------------------------------------------------------
   describe('Empty states', () => {
-    it('shows "No weight workouts found." when days list is empty and section is opened', async () => {
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    it('shows "No weight workouts found." when days list is empty (Weights tab is default)', () => {
       mockDays = []
 
       render(<HomePage />)
 
-      // The Weights section is collapsed by default; open it
-      await user.click(screen.getByText('Weights'))
-
+      // Weights tab is active by default, so empty state should be visible immediately
       expect(screen.getByText('No weight workouts found.')).toBeInTheDocument()
     })
 
-    it('shows "No cardio workouts available." when no cardio templates exist and section is opened', async () => {
+    it('shows "No cardio workouts available." when no cardio templates exist and Cardio tab is clicked', async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
       mockCardioTemplates = []
 
       render(<HomePage />)
 
       await user.click(screen.getByText('Cardio'))
+      // Flush AnimatePresence exit/enter animations via act + runAllTimers
+      await act(async () => { vi.runAllTimers() })
 
-      expect(screen.getByText('No cardio workouts available.')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByText('No cardio workouts available.')).toBeInTheDocument()
+      })
     })
 
-    it('shows "No mobility workouts available." when no mobility templates exist and section is opened', async () => {
+    it('shows "No mobility workouts available." when no mobility templates exist and Mobility tab is clicked', async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
       mockMobilityCategories = []
 
       render(<HomePage />)
 
       await user.click(screen.getByText('Mobility'))
+      // Flush AnimatePresence exit/enter animations via act + runAllTimers
+      await act(async () => { vi.runAllTimers() })
 
-      expect(screen.getByText('No mobility workouts available.')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByText('No mobility workouts available.')).toBeInTheDocument()
+      })
     })
 
-    it('shows workout day cards when days are available', async () => {
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    it('shows workout day cards when days are available (Weights tab is default)', () => {
       mockDays = [
         { id: 'day-1', name: 'Push (Chest, Shoulders, Triceps)', day_number: 1 },
         { id: 'day-2', name: 'Pull (Back, Biceps, Rear Delts)', day_number: 2 },
@@ -513,169 +517,17 @@ describe('HomePage Workflows', () => {
 
       render(<HomePage />)
 
-      await user.click(screen.getByText('Weights'))
-
+      // Weights tab is active by default, so cards should be visible
       expect(screen.getByText('Push')).toBeInTheDocument()
       expect(screen.getByText('Pull')).toBeInTheDocument()
     })
   })
 
   // -----------------------------------------------------------------------
-  // 6. Greeting logic
-  // -----------------------------------------------------------------------
-  describe('Greeting logic', () => {
-    it('shows "Good morning" before noon', () => {
-      vi.setSystemTime(new Date(2026, 1, 7, 9, 0, 0)) // 9 AM
-
-      render(<HomePage />)
-
-      expect(screen.getByText(/Good morning, Jaron!/)).toBeInTheDocument()
-    })
-
-    it('shows "Good afternoon" between noon and 5 PM', () => {
-      vi.setSystemTime(new Date(2026, 1, 7, 14, 0, 0)) // 2 PM
-
-      render(<HomePage />)
-
-      expect(screen.getByText(/Good afternoon, Jaron!/)).toBeInTheDocument()
-    })
-
-    it('shows "Good evening" after 5 PM', () => {
-      vi.setSystemTime(new Date(2026, 1, 7, 20, 0, 0)) // 8 PM
-
-      render(<HomePage />)
-
-      expect(screen.getByText(/Good evening, Jaron!/)).toBeInTheDocument()
-    })
-
-    it('shows "Good morning" at exactly midnight (hour 0)', () => {
-      vi.setSystemTime(new Date(2026, 1, 7, 0, 0, 0))
-
-      render(<HomePage />)
-
-      expect(screen.getByText(/Good morning, Jaron!/)).toBeInTheDocument()
-    })
-
-    it('shows "Good afternoon" at exactly noon (hour 12)', () => {
-      vi.setSystemTime(new Date(2026, 1, 7, 12, 0, 0))
-
-      render(<HomePage />)
-
-      expect(screen.getByText(/Good afternoon, Jaron!/)).toBeInTheDocument()
-    })
-
-    it('shows "Good evening" at exactly 5 PM (hour 17)', () => {
-      vi.setSystemTime(new Date(2026, 1, 7, 17, 0, 0))
-
-      render(<HomePage />)
-
-      expect(screen.getByText(/Good evening, Jaron!/)).toBeInTheDocument()
-    })
-  })
-
-  // -----------------------------------------------------------------------
-  // 7. Motivational messages
-  // -----------------------------------------------------------------------
-  describe('Motivational messages', () => {
-    it('shows active session message when a workout is in progress', () => {
-      vi.setSystemTime(new Date(2026, 1, 7, 10, 0, 0))
-      mockActiveSession = {
-        id: 'session-1',
-        workout_day_id: 'day-1',
-        workout_day: { name: 'Push' },
-      }
-
-      render(<HomePage />)
-
-      expect(screen.getByText('You have a workout in progress!')).toBeInTheDocument()
-    })
-
-    it('shows "on fire" message when streak is 7 or more', () => {
-      vi.setSystemTime(new Date(2026, 1, 7, 10, 0, 0))
-      // Create sessions for 7 consecutive days
-      const now = new Date(2026, 1, 7, 10, 0, 0)
-      mockSessions = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(now)
-        d.setDate(d.getDate() - i)
-        d.setHours(12, 0, 0, 0)
-        return {
-          id: `w${i}`,
-          completed_at: d.toISOString(),
-          started_at: d.toISOString(),
-          workout_day: null,
-        }
-      })
-
-      render(<HomePage />)
-
-      expect(screen.getByText("You're on fire! Keep the momentum going!")).toBeInTheDocument()
-    })
-
-    it('shows "consistency" message when streak is 3-6', () => {
-      vi.setSystemTime(new Date(2026, 1, 7, 10, 0, 0))
-      // Create sessions for 3 consecutive days
-      const now = new Date(2026, 1, 7, 10, 0, 0)
-      mockSessions = Array.from({ length: 3 }, (_, i) => {
-        const d = new Date(now)
-        d.setDate(d.getDate() - i)
-        d.setHours(12, 0, 0, 0)
-        return {
-          id: `w${i}`,
-          completed_at: d.toISOString(),
-          started_at: d.toISOString(),
-          workout_day: null,
-        }
-      })
-
-      render(<HomePage />)
-
-      expect(screen.getByText("Great consistency! You're building a habit.")).toBeInTheDocument()
-    })
-
-    it('shows default "ready to start" message when no streak and no workouts this week', () => {
-      vi.setSystemTime(new Date(2026, 1, 7, 10, 0, 0))
-      mockSessions = []
-      mockTemplateSessions = []
-
-      render(<HomePage />)
-
-      expect(screen.getByText("Ready to start strong? Let's go!")).toBeInTheDocument()
-    })
-
-    it('prioritizes active session message over streak message', () => {
-      vi.setSystemTime(new Date(2026, 1, 7, 10, 0, 0))
-      mockActiveSession = {
-        id: 'session-1',
-        workout_day_id: 'day-1',
-        workout_day: { name: 'Push' },
-      }
-      // Also have a high streak
-      const now = new Date(2026, 1, 7, 10, 0, 0)
-      mockSessions = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(now)
-        d.setDate(d.getDate() - i)
-        d.setHours(12, 0, 0, 0)
-        return {
-          id: `w${i}`,
-          completed_at: d.toISOString(),
-          started_at: d.toISOString(),
-          workout_day: null,
-        }
-      })
-
-      render(<HomePage />)
-
-      // Active session message takes priority
-      expect(screen.getByText('You have a workout in progress!')).toBeInTheDocument()
-      expect(screen.queryByText("You're on fire! Keep the momentum going!")).not.toBeInTheDocument()
-    })
-  })
-
-  // -----------------------------------------------------------------------
-  // Additional workflow: Weights section navigation
+  // 6. Workout navigation via Quick Select tabs
   // -----------------------------------------------------------------------
   describe('Workout navigation', () => {
-    it('navigates to workout day page when a weight workout card is clicked', async () => {
+    it('navigates to workout day page when a weight workout card is clicked (Weights tab is default)', async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
       mockDays = [
         { id: 'day-push', name: 'Push (Chest, Shoulders, Triceps)', day_number: 1 },
@@ -683,9 +535,7 @@ describe('HomePage Workflows', () => {
 
       render(<HomePage />)
 
-      // Open Weights section
-      await user.click(screen.getByText('Weights'))
-      // Click the Push workout card
+      // Weights tab is active by default, so Push card should be visible
       await user.click(screen.getByText('Push'))
 
       expect(mockNavigate).toHaveBeenCalledWith('/workout/day-push')
@@ -709,10 +559,13 @@ describe('HomePage Workflows', () => {
 
       render(<HomePage />)
 
-      // Open Mobility section
+      // Switch to Mobility tab
       await user.click(screen.getByText('Mobility'))
-      // Click the Hip, Knee & Ankle Flow category card
-      await user.click(screen.getByText('Hip, Knee & Ankle Flow'))
+      // Flush AnimatePresence exit/enter animations via act + runAllTimers
+      await act(async () => { vi.runAllTimers() })
+      // Wait for tab content to animate in, then click the category card
+      const card = await waitFor(() => screen.getByText('Hip, Knee & Ankle Flow'))
+      await user.click(card)
 
       expect(mockNavigate).toHaveBeenCalledWith('/mobility/hip_knee_ankle/select')
     })

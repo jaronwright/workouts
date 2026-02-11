@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@/test/utils'
+import { render, screen, waitFor } from '@/test/utils'
 import { HomePage } from '../Home'
 
 // Track navigate calls
@@ -92,25 +92,14 @@ describe('HomePage', () => {
     mockActiveSession = null
   })
 
-  describe('Greeting', () => {
-    it('shows user display name in greeting', () => {
+  describe('Header', () => {
+    it('renders avatar button in header that navigates to profile', async () => {
+      const userEvent = (await import('@testing-library/user-event')).default
       render(<HomePage />)
-      expect(screen.getByText(/Jaron!/)).toBeInTheDocument()
-    })
-
-    it('shows loading skeleton when profile is loading', () => {
-      mockProfileLoading = true
-      mockProfile = null
-      const { container } = render(<HomePage />)
-      // Should show a skeleton placeholder, not "there!"
-      expect(screen.queryByText(/there!/)).not.toBeInTheDocument()
-      expect(container.querySelector('.animate-pulse')).toBeInTheDocument()
-    })
-
-    it('shows fallback "there" when profile has no display name', () => {
-      mockProfile = { ...mockProfile!, display_name: null }
-      render(<HomePage />)
-      expect(screen.getByText(/there!/)).toBeInTheDocument()
+      const profileButton = screen.getByRole('button', { name: /profile/i })
+      expect(profileButton).toBeInTheDocument()
+      await userEvent.click(profileButton)
+      expect(mockNavigate).toHaveBeenCalledWith('/profile')
     })
   })
 
@@ -237,12 +226,12 @@ describe('HomePage', () => {
       ]
       render(<HomePage />)
 
-      // Open the Mobility section first
-      const mobilityButton = screen.getByText('Mobility')
-      await userEvent.click(mobilityButton)
+      // Switch to the Mobility tab
+      const mobilityTab = screen.getByText('Mobility')
+      await userEvent.click(mobilityTab)
 
-      // Click the Hip Flow category card
-      const template = screen.getByText('Hip, Knee & Ankle Flow')
+      // Wait for tab content to animate in
+      const template = await waitFor(() => screen.getByText('Hip, Knee & Ankle Flow'))
       await userEvent.click(template)
 
       // Should navigate to /mobility/hip_knee_ankle/select (duration picker)
