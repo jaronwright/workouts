@@ -34,10 +34,16 @@ export interface DailyForecast {
   sunset: string
 }
 
+export interface HourlyUvEntry {
+  time: string
+  uvIndex: number
+}
+
 export interface WeatherData {
   current: CurrentWeather
   daily: DailyForecast[]
   location: LocationInfo
+  hourly?: { uvIndex: HourlyUvEntry[] }
 }
 
 // WMO Weather interpretation codes
@@ -164,6 +170,14 @@ export function getUvLabel(uvIndex: number): string {
   return 'Extreme'
 }
 
+export function getUvColor(uvIndex: number): string {
+  if (uvIndex < 3) return '#22C55E'   // green - Low
+  if (uvIndex < 6) return '#EAB308'   // yellow - Moderate
+  if (uvIndex < 8) return '#F97316'   // orange - High
+  if (uvIndex < 11) return '#EF4444'  // red - Very High
+  return '#A855F7'                     // purple - Extreme
+}
+
 export function formatSunTime(isoString: string): string {
   const date = new Date(isoString)
   const hours = date.getHours()
@@ -226,6 +240,7 @@ export async function fetchWeather(location: GeoLocation): Promise<WeatherData> 
     longitude: longitude.toString(),
     current: 'temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m,uv_index',
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset',
+    hourly: 'uv_index',
     temperature_unit: 'celsius',
     wind_speed_unit: 'kmh',
     timezone: 'auto',
@@ -258,6 +273,18 @@ export async function fetchWeather(location: GeoLocation): Promise<WeatherData> 
 
   const currentCode = data.current.weather_code
 
+  // Parse hourly UV data (first 24 entries = today)
+  let hourly: WeatherData['hourly'] = undefined
+  if (data.hourly?.time && data.hourly?.uv_index) {
+    const todayEntries: HourlyUvEntry[] = data.hourly.time
+      .slice(0, 24)
+      .map((time: string, i: number) => ({
+        time,
+        uvIndex: data.hourly.uv_index[i] ?? 0,
+      }))
+    hourly = { uvIndex: todayEntries }
+  }
+
   return {
     current: {
       temperature: Math.round(data.current.temperature_2m),
@@ -270,6 +297,7 @@ export async function fetchWeather(location: GeoLocation): Promise<WeatherData> 
       uvIndex: Math.round(data.current.uv_index ?? 0),
     },
     daily,
+    hourly,
     location: {
       latitude,
       longitude,

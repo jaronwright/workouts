@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { MapPin, RefreshCw, ChevronDown, Wind, Droplets, Sun, CloudRain, Sunrise, Sunset } from 'lucide-react'
+import { MapPin, RefreshCw, ChevronDown, Wind, Droplets, Sun, CloudRain } from 'lucide-react'
 import { Card, CardContent, Button } from '@/components/ui'
 import { useWeather } from '@/hooks/useWeather'
 import { useWeatherStore } from '@/stores/weatherStore'
@@ -12,6 +12,7 @@ import {
   getUvLabel,
   formatSunTime,
 } from '@/services/weatherService'
+import { UvIndexChart } from './UvIndexChart'
 
 function formatTemp(tempC: number, unit: 'C' | 'F'): string {
   return unit === 'C' ? `${tempC}°` : `${celsiusToFahrenheit(tempC)}°`
@@ -229,25 +230,33 @@ export function WeatherCard() {
                     value={`${current.humidity}%`}
                   />
                   <WeatherDetailItem
-                    icon={<Sun className="w-4 h-4" />}
-                    label="UV Index"
-                    value={`${current.uvIndex} · ${getUvLabel(current.uvIndex)}`}
-                  />
-                  <WeatherDetailItem
                     icon={<CloudRain className="w-4 h-4" />}
                     label="Rain Chance"
                     value={`${today?.precipitationProbability ?? 0}%`}
                   />
                   <WeatherDetailItem
-                    icon={<Sunrise className="w-4 h-4" />}
-                    label="Sunrise"
-                    value={today?.sunrise ? formatSunTime(today.sunrise) : '--'}
+                    icon={<Sun className="w-4 h-4" />}
+                    label="Sun Times"
+                    value={today?.sunrise && today?.sunset
+                      ? `${formatSunTime(today.sunrise)}  ${formatSunTime(today.sunset)}`
+                      : '--'}
                   />
-                  <WeatherDetailItem
-                    icon={<Sunset className="w-4 h-4" />}
-                    label="Sunset"
-                    value={today?.sunset ? formatSunTime(today.sunset) : '--'}
-                  />
+                  {/* UV Index Chart (full width) */}
+                  <div className="col-span-2 pt-1">
+                    {weather.hourly?.uvIndex ? (
+                      <UvIndexChart
+                        data={weather.hourly.uvIndex}
+                        sunrise={today?.sunrise}
+                        sunset={today?.sunset}
+                      />
+                    ) : (
+                      <WeatherDetailItem
+                        icon={<Sun className="w-4 h-4" />}
+                        label="UV Index"
+                        value={`${current.uvIndex} · ${getUvLabel(current.uvIndex)}`}
+                      />
+                    )}
+                  </div>
                 </div>
               </motion.div>
             )}

@@ -46,6 +46,13 @@ vi.mock('@/services/weatherService', () => ({
     if (uv < 11) return 'Very High'
     return 'Extreme'
   },
+  getUvColor: (uv: number) => {
+    if (uv < 3) return '#22C55E'
+    if (uv < 6) return '#EAB308'
+    if (uv < 8) return '#F97316'
+    if (uv < 11) return '#EF4444'
+    return '#A855F7'
+  },
   formatSunTime: (iso: string) => {
     const date = new Date(iso)
     const hours = date.getHours()
@@ -493,10 +500,10 @@ describe('WeatherCard', () => {
       fireEvent.click(screen.getByText('Clear sky').closest('[class*="overflow-hidden"]')!)
       expect(screen.getByText('Wind')).toBeInTheDocument()
       expect(screen.getByText('Humidity')).toBeInTheDocument()
-      expect(screen.getByText('UV Index')).toBeInTheDocument()
       expect(screen.getByText('Rain Chance')).toBeInTheDocument()
-      expect(screen.getByText('Sunrise')).toBeInTheDocument()
-      expect(screen.getByText('Sunset')).toBeInTheDocument()
+      expect(screen.getByText('Sun Times')).toBeInTheDocument()
+      // UV Index shown as static fallback (no hourly data in mock)
+      expect(screen.getByText('UV Index')).toBeInTheDocument()
     })
 
     it('shows correct wind speed in km/h when Celsius', () => {
