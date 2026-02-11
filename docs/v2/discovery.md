@@ -79,4 +79,6 @@ _Move questions here once answered, with the decision and rationale._
 
 | Question | Decision | Rationale | Date |
 |----------|----------|-----------|------|
-| _example_ | _example_ | _example_ | _--_ |
+| What feedback mechanism exists for workout quality? | Built comprehensive review system with 1-5 star ratings, difficulty rating, and performance tags | Users need to capture "how it felt" alongside "what I did." A structured review flow (4 steps, only rating required) adds subjective quality data without blocking the post-workout flow. Data enables future training quality trends and AI recommendations. | Feb 11, 2026 |
+| How do users track workout mood/energy? | Per-session mood before/after (5 discrete options: great, good, neutral, tired, stressed) + energy level (1-5 scale) | Before/after mood delta is more valuable than a single mood reading. It reveals whether exercise improved mental state. 5 discrete options (not a numeric scale) produce more consistent data. Energy level is separate from mood to distinguish physical from emotional state. | Feb 11, 2026 |
+| What post-workout reflection exists? | 4-step review flow: (1) ratings, (2) mood/energy, (3) performance tags, (4) free-text reflection with highlights and improvements | Multi-step wizard reduces cognitive load after a tiring workout. Only the overall rating (step 1) is required; steps 2-4 are optional. Free-text fields for reflection, highlights, and improvements give depth that ratings and tags cannot capture. | Feb 11, 2026 |

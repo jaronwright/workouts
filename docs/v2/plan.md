@@ -44,7 +44,18 @@ _Key technical decisions that shape the v2 implementation._
 ### Phase 1: Core V2 Features
 > The features that define v2. Order TBD based on discovery.
 
-_Placeholder sections — to be filled after discovery:_
+#### Workout Reviews (Completed - Feb 11, 2026)
+> Post-workout review system with ratings, mood tracking, performance tags, and reflections.
+> See [review-feature.md](./review-feature.md) for full PRD.
+
+- [x] Database migration: `workout_reviews` table with polymorphic session references, RLS policies, indexes, and updated_at trigger (`supabase/migrations/20250211000000_add_workout_reviews.sql`)
+- [x] Service layer: `reviewService.ts` with full CRUD operations, type definitions (`WorkoutReview`, `CreateReviewData`, `UpdateReviewData`, `MoodValue`, `PerformanceTag`), session lookup, date range queries, and count queries
+- [x] React Query hooks: `useReview.ts` with `useSessionReview`, `useTemplateSessionReview`, `useUserReviews`, `useReviewsInRange`, `useReviewCount`, `useCreateReview`, `useUpdateReview`, `useDeleteReview`, plus computed `useWeeklyReview` and `useReviewStats`
+- [x] Zustand store: `reviewStore.ts` with multi-step form state management, draft review state, step navigation, tag toggling, and modal open/close lifecycle
+- [x] Configuration: `reviewConfig.ts` with mood options (5 emoji-labeled states), 12 performance tags with Lucide icons and colors, rating/difficulty/energy labels and color scales, and step configuration
+- [x] UI components: PostWorkoutReview (4-step modal), StarRating, MoodSelector, DifficultyRating, EnergyLevel, PerformanceTagPicker, ReflectionForm, ReviewSummaryCard, WeeklyReviewCard, ReviewBadge
+- [x] Page integration: Workout.tsx, CardioWorkout.tsx, MobilityWorkout.tsx (completion flow), SessionDetail.tsx, CardioSessionDetail.tsx (review display), Home.tsx (weekly summary)
+- [x] Tests: 101 unit tests across reviewService (36), reviewStore (36), reviewConfig (29) - all passing
 
 #### Custom Workout Plans (if confirmed)
 - [ ] Schema: `custom_plans`, `custom_days`, `custom_exercises` tables
