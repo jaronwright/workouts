@@ -1,6 +1,6 @@
 import { motion } from 'motion/react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
-import { Moon, type LucideIcon } from 'lucide-react'
+import { Check, Moon, type LucideIcon } from 'lucide-react'
 
 export interface StreakDay {
   label: string
@@ -26,53 +26,80 @@ export function StreakBar({ days, className = '' }: StreakBarProps) {
     <div className={`flex items-center justify-between gap-1 ${className}`}>
       {days.map((day, i) => {
         const Icon = day.workoutIcon
+        const isToday = day.isToday
+
         return (
           <div key={`${day.label}-${i}`} className="flex flex-col items-center gap-1 flex-1 min-w-0">
-            <span className={`text-[10px] font-medium ${day.isToday ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`}>
-              {day.label}
+            <span className={`text-[10px] font-medium ${
+              isToday
+                ? 'text-[var(--color-text)]'
+                : 'text-[var(--color-text-muted)]'
+            }`}>
+              {isToday ? 'Today' : day.label}
             </span>
             <motion.div
               initial={prefersReduced ? false : { scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{
-                delay: i * 0.05,
+                delay: i * 0.04,
                 type: 'spring',
                 stiffness: 400,
                 damping: 25,
               }}
               className="relative"
             >
+              {/* Today's circle is larger and more prominent */}
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors
-                  ${day.completed
+                className={`flex items-center justify-center rounded-full transition-colors ${
+                  isToday
+                    ? 'w-9 h-9'
+                    : 'w-7 h-7'
+                } ${
+                  day.completed
                     ? 'text-white shadow-sm'
-                    : day.isToday
-                      ? 'border-2 border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-surface)]'
-                      : 'border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)] bg-transparent'
-                  }`}
-                style={day.completed
-                  ? { backgroundColor: day.workoutColor || day.color || 'var(--color-primary)' }
-                  : undefined
-                }
+                    : isToday && !day.isRest
+                      ? 'text-white shadow-sm'
+                      : isToday && day.isRest
+                        ? 'border-2 border-[var(--color-border-strong)] text-[var(--color-text-muted)] bg-[var(--color-surface-hover)]'
+                        : day.isRest
+                          ? 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]'
+                          : 'border border-dashed text-[var(--color-text-muted)] bg-transparent'
+                }`}
+                style={{
+                  ...(day.completed
+                    ? { backgroundColor: day.workoutColor || day.color || 'var(--color-primary)' }
+                    : isToday && !day.isRest
+                      ? { backgroundColor: day.workoutColor || 'var(--color-primary)' }
+                      : !day.isRest && !day.completed
+                        ? { borderColor: `${day.workoutColor || 'var(--color-border-strong)'}60` }
+                        : undefined
+                  ),
+                }}
               >
-                {day.workoutCount && day.workoutCount > 1 ? (
-                  <span className="text-xs font-bold">{day.workoutCount}</span>
+                {day.completed ? (
+                  <Check className={`${isToday ? 'w-4 h-4' : 'w-3 h-3'}`} strokeWidth={3} />
+                ) : day.workoutCount && day.workoutCount > 1 ? (
+                  <span className={`font-bold ${isToday ? 'text-xs' : 'text-[10px]'}`}>{day.workoutCount}</span>
                 ) : Icon ? (
-                  <Icon className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  <Icon className={`${isToday ? 'w-4 h-4' : 'w-3 h-3'}`} strokeWidth={2.5} />
                 ) : (
-                  <Moon className="w-3 h-3 text-[var(--color-text-muted)]" strokeWidth={2} />
+                  <Moon className={`${isToday ? 'w-3.5 h-3.5' : 'w-3 h-3'}`} strokeWidth={2} />
                 )}
               </div>
-              {day.isToday && !day.completed && !prefersReduced && (
+              {/* Pulsing ring for today when not completed */}
+              {isToday && !day.completed && !day.isRest && !prefersReduced && (
                 <motion.div
-                  className="absolute inset-0 rounded-full border-2 border-[var(--color-primary)]"
-                  animate={{ scale: [1, 1.25, 1], opacity: [0.6, 0, 0.6] }}
+                  className="absolute inset-0 rounded-full"
+                  style={{ borderWidth: 2, borderStyle: 'solid', borderColor: day.workoutColor || 'var(--color-primary)' }}
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 />
               )}
             </motion.div>
-            <span className={`text-[9px] leading-tight text-center truncate w-full ${day.isToday ? 'font-semibold text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}`}>
-              {day.workoutName || (day.isRest ? 'Rest' : '—')}
+            <span className={`text-[9px] leading-tight text-center truncate w-full ${
+              isToday ? 'font-semibold text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'
+            }`}>
+              {day.workoutName || (day.isRest ? 'Rest' : '')}
             </span>
           </div>
         )

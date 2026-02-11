@@ -200,4 +200,71 @@ describe('ScheduleWidget', () => {
 
     expect(screen.getByText('No schedule set up yet')).toBeInTheDocument()
   })
+
+  it('shows "Start" action for non-completed, non-rest workout', () => {
+    mockSchedule = [
+      makeScheduleDay({ day_number: 1 }),
+    ]
+    mockCycleDay = 1
+
+    render(<ScheduleWidget />)
+
+    expect(screen.getByText('Start')).toBeInTheDocument()
+    expect(screen.getByText("Today's workout")).toBeInTheDocument()
+  })
+
+  it('shows "Completed" when today has a completed session', () => {
+    mockSchedule = [
+      makeScheduleDay({ day_number: 1 }),
+    ]
+    mockCycleDay = 1
+
+    const today = new Date()
+    mockWeightsSessions = [
+      { id: 'session-1', completed_at: today.toISOString() },
+    ]
+
+    render(<ScheduleWidget />)
+
+    expect(screen.getByText('Completed')).toBeInTheDocument()
+    expect(screen.queryByText('Start')).not.toBeInTheDocument()
+  })
+
+  it('does not show "DAY X" badge or "Today" label (removed in redesign)', () => {
+    mockSchedule = [
+      makeScheduleDay({ day_number: 1 }),
+    ]
+    mockCycleDay = 1
+
+    render(<ScheduleWidget />)
+
+    expect(screen.queryByText(/^Day \d/)).not.toBeInTheDocument()
+    // "Today" as a standalone label should not appear in the card
+    // (it may appear in the StreakBar mock but that's a separate component)
+    expect(screen.queryByText('Today', { exact: true })).not.toBeInTheDocument()
+  })
+
+  it('navigates to workout page when today card is clicked', async () => {
+    const userEvent = (await import('@testing-library/user-event')).default
+    mockSchedule = [
+      makeScheduleDay({ day_number: 1 }),
+    ]
+    mockCycleDay = 1
+
+    render(<ScheduleWidget />)
+
+    const pushDayText = screen.getByText('Push Day')
+    // Click on the card area (parent container handles the click)
+    await userEvent.setup().click(pushDayText)
+
+    expect(mockNavigate).toHaveBeenCalledWith('/workout/wd-1')
+  })
+
+  it('renders loading skeleton when data is loading', () => {
+    mockIsLoading = true
+
+    const { container } = render(<ScheduleWidget />)
+
+    expect(container.querySelector('.skeleton')).toBeInTheDocument()
+  })
 })

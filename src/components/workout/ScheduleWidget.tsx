@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, Calendar, Check } from 'lucide-react'
+import { ChevronRight, Calendar, Check, Play } from 'lucide-react'
 import { motion } from 'motion/react'
 import { Card, CardContent, Button, StreakBar } from '@/components/ui'
 import { useUserSchedule } from '@/hooks/useSchedule'
@@ -62,7 +62,7 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
     })
   }, [weightsSessions, templateSessions])
 
-  // Compute weekly completion for StreakBar with schedule info
+  // Compute rolling 7-day schedule starting from today
   const streakDays = useMemo(() => {
     const now = new Date()
     const startOfWeek = new Date(now)
@@ -85,24 +85,21 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
 
     const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
     const todayDow = now.getDay() // 0=Sun, 1=Mon, ...
-
-    // Map day-of-week to cycle day number
-    // currentCycleDay corresponds to todayDow
-    // So for any dow, cycleDay = ((dow - todayDow + 7) % 7) + currentCycleDay, wrapped to totalDays
     const totalDays = days.length // always 7
 
-    return dayLabels.map((label, dow) => {
-      const offset = ((dow - todayDow + 7) % 7)
-      const cycleDay = ((currentCycleDay - 1 + offset) % totalDays) + 1
+    // Rolling 7-day view starting from today
+    return Array.from({ length: 7 }, (_, i) => {
+      const dow = (todayDow + i) % 7
+      const cycleDay = ((currentCycleDay - 1 + i) % totalDays) + 1
       const dayInfo = days[cycleDay - 1]
 
       const cycleDaySchedules = scheduleMap.get(cycleDay) || []
       const workoutCount = cycleDaySchedules.length
 
       return {
-        label,
+        label: dayLabels[dow],
         completed: completedDayNums.has(dow),
-        isToday: dow === todayDow,
+        isToday: i === 0,
         color: completedDayNums.has(dow) ? dayInfo?.color || 'var(--color-primary)' : undefined,
         workoutName: workoutCount > 1 ? 'Multi' : dayInfo?.name ? getWorkoutShortName(dayInfo.name) : undefined,
         workoutIcon: dayInfo?.icon,
@@ -185,55 +182,72 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
       transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.1 }}
     >
       <Card className="overflow-hidden">
-        {/* Today's Workout - Hero Section with color-coded left border */}
+        {/* Today's Workout - Minimal card with left accent */}
         <div
-          className="p-4 cursor-pointer active:opacity-90 transition-opacity relative"
-          style={{ backgroundColor: `${todayInfo.color}10` }}
+          className="px-4 py-3.5 cursor-pointer active:opacity-90 transition-opacity relative"
           onClick={handleTodayClick}
         >
-          {/* Color-coded left border */}
+          {/* Color-coded left accent bar */}
           <div
             className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[var(--radius-xl)]"
             style={{ backgroundColor: todayInfo.color }}
           />
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div
-                className="w-14 h-14 rounded-[var(--radius-lg)] flex items-center justify-center bg-gradient-to-br shadow-sm"
-                style={{
-                  backgroundImage: `linear-gradient(to bottom right, ${todayInfo.color}, ${todayInfo.color}cc)`,
-                }}
-              >
-                <TodayIcon className="w-7 h-7 text-white" />
-              </div>
-              {todayCompleted && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[var(--color-success)] border-2 border-[var(--color-surface)] flex items-center justify-center">
-                  <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
-                </div>
-              )}
-            </div>
+
+          <div className="flex items-center gap-3">
+            {/* Inline icon + workout name */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
-                  style={{ backgroundColor: todayInfo.bgColor, color: todayInfo.color }}>
-                  Day {new Date().getDay() + 1}
-                </span>
-                <span className="text-[10px] text-[var(--color-text-muted)]">Today</span>
+              <div className="flex items-center gap-2.5">
+                {todayCompleted ? (
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: `${todayInfo.color}20` }}
+                  >
+                    <Check className="w-4 h-4" style={{ color: todayInfo.color }} strokeWidth={2.5} />
+                  </div>
+                ) : (
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: `${todayInfo.color}15` }}
+                  >
+                    <TodayIcon className="w-3.5 h-3.5" style={{ color: todayInfo.color }} strokeWidth={2.5} />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <h3 className="text-base font-bold text-[var(--color-text)] truncate leading-tight">
+                    {todayInfo.name}
+                  </h3>
+                  {todayCompleted ? (
+                    <p className="text-xs text-[var(--color-success)] mt-0.5 font-medium">
+                      Completed
+                    </p>
+                  ) : todayWorkoutCount > 1 ? (
+                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                      + {todayWorkoutCount - 1} more workout{todayWorkoutCount > 2 ? 's' : ''}
+                    </p>
+                  ) : !todayInfo.isRest ? (
+                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                      Today's workout
+                    </p>
+                  ) : null}
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-[var(--color-text)] mt-1 truncate">
-                {todayInfo.name}
-              </h3>
-              {todayWorkoutCount > 1 && (
-                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                  + {todayWorkoutCount - 1} more workout{todayWorkoutCount > 2 ? 's' : ''}
-                </p>
-              )}
             </div>
-            <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)]" />
+
+            {/* Right action */}
+            {todayCompleted ? (
+              <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)] shrink-0" />
+            ) : !todayInfo.isRest ? (
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-xs font-semibold" style={{ color: todayInfo.color }}>Start</span>
+                <Play className="w-3.5 h-3.5" style={{ color: todayInfo.color }} strokeWidth={2.5} />
+              </div>
+            ) : (
+              <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)] shrink-0" />
+            )}
           </div>
         </div>
 
-        {/* Weekly Streak Bar */}
+        {/* Rolling 7-day schedule strip */}
         <CardContent className="py-3 border-t border-[var(--color-border)]">
           <StreakBar days={streakDays} />
         </CardContent>
