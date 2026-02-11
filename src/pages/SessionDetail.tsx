@@ -486,28 +486,60 @@ export function SessionDetailPage() {
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-[var(--color-text)]">{exercise.name}</h4>
                           <div className="flex flex-wrap gap-2 mt-2">
-                            {sets.map((set) => (
-                              <button
-                                key={set.id}
-                                onClick={() => setEditingSet(set)}
-                                className="text-xs bg-[var(--color-surface-hover)] px-2 py-1 rounded-lg hover:bg-[var(--color-surface-hover)]/80 transition-colors active:scale-95"
-                              >
-                                <span className="font-medium text-[var(--color-text)]">Set {set.set_number}</span>
-                                {set.reps_completed && (
-                                  <span className="text-[var(--color-text-muted)]">
-                                    : {set.reps_completed} {exercise.reps_unit || 'reps'}
-                                  </span>
-                                )}
-                                {set.weight_used && (
-                                  <span className="text-[var(--color-text-muted)]">
-                                    {' '}@ {set.weight_used} {exercise.weight_unit || 'lbs'}
-                                  </span>
-                                )}
-                              </button>
-                            ))}
+                            {(() => {
+                              const allSameReps = sets.every(s => s.reps_completed === sets[0].reps_completed)
+                              const allSameWeight = sets.every(s => s.weight_used === sets[0].weight_used)
+
+                              if (allSameReps && allSameWeight) {
+                                // Consolidated: "2 sets, 20 reps @ 135 lbs"
+                                const reps = sets[0].reps_completed
+                                const weight = sets[0].weight_used
+                                return (
+                                  <button
+                                    onClick={() => setEditingSet(sets[0])}
+                                    className="text-xs bg-[var(--color-surface-hover)] px-2 py-1 rounded-lg hover:bg-[var(--color-surface-hover)]/80 transition-colors active:scale-95"
+                                  >
+                                    <span className="font-medium text-[var(--color-text)]">
+                                      {sets.length} {sets.length === 1 ? 'set' : 'sets'}
+                                    </span>
+                                    {reps != null && (
+                                      <span className="text-[var(--color-text-muted)]">
+                                        , {reps} {exercise.reps_unit || 'reps'}
+                                      </span>
+                                    )}
+                                    {weight != null && (
+                                      <span className="text-[var(--color-text-muted)]">
+                                        {' '}@ {weight} {exercise.weight_unit || 'lbs'}
+                                      </span>
+                                    )}
+                                  </button>
+                                )
+                              } else {
+                                // Different values per set — show individually
+                                return sets.map((set, index) => (
+                                  <button
+                                    key={set.id}
+                                    onClick={() => setEditingSet(set)}
+                                    className="text-xs bg-[var(--color-surface-hover)] px-2 py-1 rounded-lg hover:bg-[var(--color-surface-hover)]/80 transition-colors active:scale-95"
+                                  >
+                                    <span className="font-medium text-[var(--color-text)]">Set {index + 1}</span>
+                                    {set.reps_completed != null && (
+                                      <span className="text-[var(--color-text-muted)]">
+                                        : {set.reps_completed} {exercise.reps_unit || 'reps'}
+                                      </span>
+                                    )}
+                                    {set.weight_used != null && (
+                                      <span className="text-[var(--color-text-muted)]">
+                                        {' '}@ {set.weight_used} {exercise.weight_unit || 'lbs'}
+                                      </span>
+                                    )}
+                                  </button>
+                                ))
+                              }
+                            })()}
                           </div>
                           <p className="text-[10px] text-[var(--color-text-muted)] mt-1.5 opacity-70">
-                            Tap a set to edit
+                            Tap to edit
                           </p>
                         </div>
                       </div>

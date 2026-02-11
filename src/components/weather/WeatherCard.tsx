@@ -65,6 +65,7 @@ export function WeatherCard() {
   const { weather, isLoading, isLocating, error, retry } = useWeather()
   const { temperatureUnit, toggleTemperatureUnit, cachedCityName } = useWeatherStore()
   const prefersReduced = useReducedMotion()
+  const [isExpanded, setIsExpanded] = useState(false)
 
   // Loading state
   if (isLocating || isLoading) {
@@ -127,8 +128,6 @@ export function WeatherCard() {
 
   // No data and no cache — return nothing (fresh install, no permission prompt yet)
   if (!weather) return null
-
-  const [isExpanded, setIsExpanded] = useState(false)
 
   const { current, daily, location } = weather
   const gradient = getWeatherGradient(current.weatherCode)
