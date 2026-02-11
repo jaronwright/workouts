@@ -6,6 +6,10 @@ vi.mock('@/components/auth/VerificationBanner', () => ({
   VerificationBanner: () => <div data-testid="verification-banner">VerificationBanner</div>,
 }))
 
+vi.mock('@/hooks/useAvatar', () => ({
+  useAvatarUrl: () => null,
+}))
+
 vi.mock('../Header', () => ({
   Header: ({ title }: { title: string }) => (
     <header data-testid="header">
@@ -65,7 +69,7 @@ describe('AppShell', () => {
     expect(screen.queryByTestId('bottom-nav')).not.toBeInTheDocument()
   })
 
-  it('applies extra bottom padding when nav is visible', () => {
+  it('renders main content area with padding', () => {
     const { container } = render(
       <AppShell title="Test">
         <p>Content</p>
@@ -73,18 +77,6 @@ describe('AppShell', () => {
     )
     const main = container.querySelector('main')
     expect(main).toBeInTheDocument()
-    expect(main!.className).toContain('pb-32')
-  })
-
-  it('applies reduced bottom padding when nav is hidden', () => {
-    const { container } = render(
-      <AppShell title="Test" hideNav={true}>
-        <p>Content</p>
-      </AppShell>
-    )
-    const main = container.querySelector('main')
-    expect(main).toBeInTheDocument()
     expect(main!.className).toContain('pb-6')
-    expect(main!.className).not.toContain('pb-32')
   })
 })

@@ -6,7 +6,7 @@ import {
   Dumbbell, Heart, Activity, X
 } from 'lucide-react'
 import { AppShell } from '@/components/layout'
-import { Avatar, Button, Card, CardContent, AnimatedCard, AnimatedCounter, Badge } from '@/components/ui'
+import { Button, Card, CardContent, AnimatedCard, AnimatedCounter, Badge } from '@/components/ui'
 import { CardioLogCard, ScheduleWidget } from '@/components/workout'
 import { WeatherCard } from '@/components/weather'
 import { WeeklyReviewCard } from '@/components/review/WeeklyReviewCard'
@@ -14,7 +14,6 @@ import { OnboardingWizard } from '@/components/onboarding'
 import { useActiveSession, useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
 import { useProfile } from '@/hooks/useProfile'
 import { useCycleDay } from '@/hooks/useCycleDay'
-import { useAvatarUrl } from '@/hooks/useAvatar'
 import { useSelectedPlanDays } from '@/hooks/useWorkoutPlan'
 import { useWorkoutTemplatesByType, useUserSchedule } from '@/hooks/useSchedule'
 import { useMobilityCategories } from '@/hooks/useMobilityTemplates'
@@ -239,8 +238,6 @@ export function HomePage() {
   const totalWorkouts = allCompleted.filter(s => s.completed_at).length
   const statsLoading = sessionsLoading || templateSessionsLoading
 
-  const avatarUrl = useAvatarUrl()
-
   // Quick Select tab state
   const [activeQuickTab, setActiveQuickTab] = useState<'weights' | 'cardio' | 'mobility'>('weights')
 
@@ -265,18 +262,7 @@ export function HomePage() {
   }
 
   return (
-    <AppShell
-      title="Home"
-      headerAction={
-        <button
-          onClick={() => navigate('/profile')}
-          className="rounded-full active:opacity-70 transition-opacity"
-          aria-label="Profile"
-        >
-          <Avatar src={avatarUrl} size="sm" alt="Profile" />
-        </button>
-      }
-    >
+    <AppShell title="Home">
       <div className="p-4 space-y-5 pb-4">
         {/* Active Session Banner */}
         {activeSession && (

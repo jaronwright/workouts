@@ -25,10 +25,10 @@ describe('BottomNav', () => {
       expect(screen.getByRole('navigation')).toBeInTheDocument()
     })
 
-    it('renders all five navigation links', () => {
+    it('renders all four navigation links', () => {
       render(<BottomNav />)
       const links = screen.getAllByRole('link')
-      expect(links).toHaveLength(5)
+      expect(links).toHaveLength(4)
     })
 
     it('renders the Home link', () => {
@@ -51,9 +51,9 @@ describe('BottomNav', () => {
       expect(screen.getByText('Review')).toBeInTheDocument()
     })
 
-    it('renders the Profile link', () => {
+    it('does not render a Profile link (profile accessed via header)', () => {
       render(<BottomNav />)
-      expect(screen.getByText('Profile')).toBeInTheDocument()
+      expect(screen.queryByText('Profile')).not.toBeInTheDocument()
     })
   })
 
@@ -82,11 +82,6 @@ describe('BottomNav', () => {
       expect(historyLink).toHaveAttribute('href', '/history')
     })
 
-    it('Profile link points to /profile', () => {
-      render(<BottomNav />)
-      const profileLink = screen.getByText('Profile').closest('a')
-      expect(profileLink).toHaveAttribute('href', '/profile')
-    })
   })
 
   describe('active state', () => {
@@ -108,7 +103,7 @@ describe('BottomNav', () => {
   describe('structure', () => {
     it('contains labels for each nav item', () => {
       render(<BottomNav />)
-      const labels = ['Home', 'Community', 'Schedule', 'Review', 'Profile']
+      const labels = ['Home', 'Community', 'Schedule', 'Review']
       labels.forEach(label => {
         expect(screen.getByText(label)).toBeInTheDocument()
       })
@@ -118,7 +113,7 @@ describe('BottomNav', () => {
       render(<BottomNav />)
       const nav = screen.getByRole('navigation')
       const svgs = nav.querySelectorAll('svg')
-      expect(svgs.length).toBe(5)
+      expect(svgs.length).toBe(4)
     })
 
     it('nav items are wrapped in flex container', () => {

@@ -304,7 +304,7 @@ export function ProfilePage() {
 
   if (isLoading) {
     return (
-      <AppShell title="Profile">
+      <AppShell title="Profile" showBack hideNav>
         <div className="p-4 space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
@@ -315,7 +315,7 @@ export function ProfilePage() {
   }
 
   return (
-    <AppShell title="Profile">
+    <AppShell title="Profile" showBack hideNav>
       <motion.div
         className="p-4 space-y-6"
         variants={staggerContainer}

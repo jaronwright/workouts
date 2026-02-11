@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Home, History, User, Calendar, Users } from 'lucide-react'
+import { Home, History, Calendar, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 
 const navItems = [
@@ -7,7 +7,6 @@ const navItems = [
   { to: '/community', icon: Users, label: 'Community' },
   { to: '/schedule', icon: Calendar, label: 'Schedule' },
   { to: '/history', icon: History, label: 'Review' },
-  { to: '/profile', icon: User, label: 'Profile' }
 ]
 
 export function BottomNav() {

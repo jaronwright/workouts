@@ -178,6 +178,26 @@ export function WeatherCard() {
             </div>
           </div>
 
+          {/* 7-day forecast — always visible to pair with schedule widget */}
+          <div className="border-t border-[var(--color-border)] mt-3 pt-3">
+            <div className="grid grid-cols-7 gap-1">
+              {daily.map((day, i) => (
+                <div key={day.date} className="flex flex-col items-center gap-1">
+                  <span className={`text-[10px] font-medium uppercase tracking-wide ${i === 0 ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`}>
+                    {i === 0 ? 'Now' : day.dayName}
+                  </span>
+                  <span className="text-base leading-none">{day.emoji}</span>
+                  <span className="text-xs font-semibold text-[var(--color-text)]">
+                    {formatTemp(day.tempHigh, temperatureUnit)}
+                  </span>
+                  <span className="text-[10px] text-[var(--color-text-muted)]">
+                    {formatTemp(day.tempLow, temperatureUnit)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Expand indicator */}
           <div className="flex justify-center mt-2">
             <motion.div
@@ -188,7 +208,7 @@ export function WeatherCard() {
             </motion.div>
           </div>
 
-          {/* Expandable details (forecast + weather details) */}
+          {/* Expandable details (wind, humidity, etc.) */}
           <AnimatePresence initial={false}>
             {isExpanded && (
               <motion.div
@@ -198,27 +218,7 @@ export function WeatherCard() {
                 transition={reducedTransition ?? { type: 'spring', stiffness: 300, damping: 30 }}
                 className="overflow-hidden"
               >
-                {/* 7-day forecast */}
-                <div className="border-t border-[var(--color-border)] mt-2 pt-3">
-                  <div className="grid grid-cols-7 gap-1">
-                    {daily.map((day, i) => (
-                      <div key={day.date} className="flex flex-col items-center gap-1">
-                        <span className={`text-[10px] font-medium uppercase tracking-wide ${i === 0 ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`}>
-                          {i === 0 ? 'Now' : day.dayName}
-                        </span>
-                        <span className="text-base leading-none">{day.emoji}</span>
-                        <span className="text-xs font-semibold text-[var(--color-text)]">
-                          {formatTemp(day.tempHigh, temperatureUnit)}
-                        </span>
-                        <span className="text-[10px] text-[var(--color-text-muted)]">
-                          {formatTemp(day.tempLow, temperatureUnit)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="border-t border-[var(--color-border)] mt-3 pt-3 grid grid-cols-2 gap-3">
+                <div className="border-t border-[var(--color-border)] mt-2 pt-3 grid grid-cols-2 gap-3">
                   <WeatherDetailItem
                     icon={<Wind className="w-4 h-4" />}
                     label="Wind"
