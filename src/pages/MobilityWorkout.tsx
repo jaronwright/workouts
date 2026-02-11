@@ -2,10 +2,13 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
+import { RestTimer } from '@/components/workout'
+import { PostWorkoutReview } from '@/components/review/PostWorkoutReview'
 import { useTemplate, useQuickLogTemplateWorkout } from '@/hooks/useTemplateWorkout'
 import { useWorkoutDay } from '@/hooks/useWorkoutPlan'
 import { useToast } from '@/hooks/useToast'
 import { useWakeLock } from '@/hooks/useWakeLock'
+import { useReviewStore } from '@/stores/reviewStore'
 import { getMobilityStyle } from '@/config/workoutConfig'
 import { Check } from 'lucide-react'
 import type { PlanExercise } from '@/types/workout'
@@ -63,19 +66,28 @@ export function MobilityWorkoutPage() {
     })
   }
 
+  const openReview = useReviewStore((s) => s.openReview)
+
   const handleComplete = () => {
     if (!templateId) return
 
     quickLog(
       { templateId, durationMinutes: template?.duration_minutes ?? 15 },
       {
-        onSuccess: () => {
-          toast.success('Mobility workout complete!')
-          navigate('/history')
+        onSuccess: (result) => {
+          const templateSessionId = (result as { id?: string })?.id
+          if (templateSessionId) {
+            openReview({
+              templateSessionId,
+              sessionType: 'mobility',
+              durationMinutes: template?.duration_minutes ?? 15,
+            })
+          } else {
+            toast.success('Mobility workout complete!')
+            navigate('/history')
+          }
         },
         onError: () => {
-          // Network errors are handled by hook (returns optimistic session, queues for sync)
-          // This only fires for real server errors
           toast.error('Failed to save workout. Please try again.')
         }
       }
@@ -132,6 +144,8 @@ export function MobilityWorkoutPage() {
             </p>
           </CardContent>
         </Card>
+
+        <RestTimer />
 
         {/* Exercise List */}
         {allExercises.length > 0 ? (
@@ -205,6 +219,9 @@ export function MobilityWorkoutPage() {
           </Button>
         </div>
       </div>
+
+      {/* Post-Workout Review Modal */}
+      <PostWorkoutReview onComplete={() => navigate('/history')} />
     </AppShell>
   )
 }

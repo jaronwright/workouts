@@ -79,6 +79,16 @@ vi.mock('@/hooks/useWorkoutSession', () => ({
   }),
 }))
 
+// ---- Review hooks mock ----
+vi.mock('@/hooks/useReview', () => ({
+  useSessionReview: () => ({ data: null, isLoading: false }),
+}))
+
+// ---- Review component mock ----
+vi.mock('@/components/review/ReviewSummaryCard', () => ({
+  ReviewSummaryCard: () => null,
+}))
+
 // ---- Layout mock ----
 vi.mock('@/components/layout', () => ({
   AppShell: ({

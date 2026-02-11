@@ -2,10 +2,12 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout'
 import { Card, CardContent } from '@/components/ui'
+import { ReviewSummaryCard } from '@/components/review/ReviewSummaryCard'
 import { supabase } from '@/services/supabase'
 import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
 import { Calendar, Clock, MapPin, Timer, CheckCircle, Circle, Trash2, Share2 } from 'lucide-react'
 import { useShare } from '@/hooks/useShare'
+import { useTemplateSessionReview } from '@/hooks/useReview'
 import { formatCardioShareText } from '@/utils/shareFormatters'
 import type { TemplateWorkoutSession } from '@/services/templateWorkoutService'
 
@@ -47,6 +49,9 @@ export function CardioSessionDetailPage() {
   })
 
   const { share } = useShare()
+
+  // Fetch review for this template session
+  const { data: review } = useTemplateSessionReview(sessionId)
 
   const { mutate: deleteSession, isPending: isDeleting } = useMutation({
     mutationFn: () => deleteTemplateSession(sessionId!),
@@ -155,6 +160,9 @@ export function CardioSessionDetailPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Workout Review */}
+        {review && <ReviewSummaryCard review={review} />}
 
         {/* Share Button */}
         <button

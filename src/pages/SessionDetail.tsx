@@ -4,7 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout'
 import { Card, CardContent, Modal, Button } from '@/components/ui'
+import { ReviewSummaryCard } from '@/components/review/ReviewSummaryCard'
 import { useDeleteSession, useUpdateSession, useUpdateSet, useDeleteSet } from '@/hooks/useWorkoutSession'
+import { useSessionReview } from '@/hooks/useReview'
 import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
 import { getWorkoutDisplayName } from '@/config/workoutConfig'
 import {
@@ -233,6 +235,9 @@ export function SessionDetailPage() {
     queryFn: () => getSessionDetail(sessionId!),
     enabled: !!sessionId
   })
+
+  // Fetch review for this session
+  const { data: review } = useSessionReview(sessionId)
 
   // Handlers
   const handleDeleteSession = () => {
@@ -469,6 +474,9 @@ export function SessionDetailPage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Workout Review */}
+            {review && <ReviewSummaryCard review={review} />}
 
             {/* Exercises by Section */}
             {Object.entries(sections).map(([sectionName, exercises]) => (

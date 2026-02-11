@@ -5,9 +5,11 @@ import { ArrowRight } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
 import { CollapsibleSection, ExerciseCard, RestTimer } from '@/components/workout'
+import { PostWorkoutReview } from '@/components/review/PostWorkoutReview'
 import { useWorkoutDay } from '@/hooks/useWorkoutPlan'
 import { useStartWorkout, useCompleteWorkout, useLogSet, useDeleteSet, useSessionSets } from '@/hooks/useWorkoutSession'
 import { useWorkoutStore } from '@/stores/workoutStore'
+import { useReviewStore } from '@/stores/reviewStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useToast } from '@/hooks/useToast'
 import { useWakeLock } from '@/hooks/useWakeLock'
@@ -105,13 +107,25 @@ export function WorkoutPage() {
     }, 2000)
   }, [dayId, user, startWorkout, setActiveSession, toast])
 
+  const openReview = useReviewStore((s) => s.openReview)
+
   const handleComplete = () => {
     if (!activeSession) return
+    const sessionStartedAt = activeSession.started_at
     completeWorkout(
       { sessionId: activeSession.id },
       {
         onSuccess: () => {
-          navigate('/')
+          // Calculate duration for the review
+          const durationMinutes = sessionStartedAt
+            ? Math.round((Date.now() - new Date(sessionStartedAt).getTime()) / 60000)
+            : undefined
+          // Open post-workout review instead of navigating home
+          openReview({
+            sessionId: activeSession.id,
+            sessionType: 'weights',
+            durationMinutes,
+          })
         },
         onError: () => {
           toast.error('Failed to complete workout. Please try again.')
@@ -291,6 +305,10 @@ export function WorkoutPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+      {/* Post-Workout Review Modal (must be in non-active branch too,
+          since clearWorkout() fires before openReview() in the mutation lifecycle) */}
+      <PostWorkoutReview onComplete={() => navigate('/')} />
       </AppShell>
     )
   }
@@ -362,6 +380,9 @@ export function WorkoutPage() {
           </Button>
         </div>
       </div>
+
+      {/* Post-Workout Review Modal */}
+      <PostWorkoutReview onComplete={() => navigate('/')} />
     </AppShell>
   )
 }

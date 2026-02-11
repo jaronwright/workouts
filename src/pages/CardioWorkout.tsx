@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
+import { PostWorkoutReview } from '@/components/review/PostWorkoutReview'
 import {
   useTemplate,
   useLastTemplateSession,
@@ -12,6 +13,7 @@ import {
 } from '@/hooks/useTemplateWorkout'
 import { useToast } from '@/hooks/useToast'
 import { useWakeLock } from '@/hooks/useWakeLock'
+import { useReviewStore } from '@/stores/reviewStore'
 import { getCardioStyle } from '@/config/workoutConfig'
 import {
   CARDIO_INPUT_CONFIG,
@@ -130,15 +132,30 @@ export function CardioWorkoutPage() {
 
   // ─── Completion ───────────────────────────────────────────────────────
 
-  const onSuccess = () => {
+  const openReview = useReviewStore((s) => s.openReview)
+  const [completedTemplateSessionId, setCompletedTemplateSessionId] = useState<string | null>(null)
+
+  const onSuccess = (result?: { id?: string }) => {
     if (template?.category) {
       setCardioPreference(template.category, {
         mode: currentMode.mode,
         unit: currentMode.unit
       })
     }
-    toast.success(`${template?.name || 'Workout'} logged!`)
-    navigate('/')
+    // Open post-workout review with the completed session ID
+    const templateSessionId = result?.id || sessionId || undefined
+    if (templateSessionId) {
+      const durationMinutes = sessionId ? Math.ceil(elapsedSeconds / 60) : undefined
+      setCompletedTemplateSessionId(templateSessionId)
+      openReview({
+        templateSessionId,
+        sessionType: 'cardio',
+        durationMinutes,
+      })
+    } else {
+      toast.success(`${template?.name || 'Workout'} logged!`)
+      navigate('/')
+    }
   }
 
   const onError = () => {
@@ -396,6 +413,9 @@ export function CardioWorkoutPage() {
           Log Workout
         </Button>
       </div>
+
+      {/* Post-Workout Review Modal */}
+      <PostWorkoutReview onComplete={() => navigate('/')} />
     </AppShell>
   )
 }
