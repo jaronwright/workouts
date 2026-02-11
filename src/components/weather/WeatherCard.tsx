@@ -176,22 +176,21 @@ export function WeatherCard() {
             )}
           </div>
 
-          {/* 7-day forecast aligned to S M T W T F S (matches schedule widget) */}
+          {/* Rolling 7-day forecast starting from today (matches schedule widget) */}
           {(() => {
             const todayDow = new Date().getDay() // 0=Sun
             const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
             return (
               <div className="mt-3">
                 <div className="grid grid-cols-7 gap-1">
-                  {DAY_LABELS.map((label, dow) => {
-                    const offset = (dow - todayDow + 7) % 7
-                    const isPast = dow < todayDow
-                    const forecast = !isPast ? daily[offset] : null
-                    const isToday = dow === todayDow
+                  {Array.from({ length: 7 }, (_, i) => {
+                    const dow = (todayDow + i) % 7
+                    const forecast = daily[i]
+                    const isToday = i === 0
                     return (
-                      <div key={dow} className={`flex flex-col items-center gap-1 ${isPast ? 'opacity-30' : ''}`}>
-                        <span className={`text-[10px] font-medium uppercase tracking-wide ${isToday ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`}>
-                          {label}
+                      <div key={i} className="flex flex-col items-center gap-1">
+                        <span className={`text-[10px] font-medium uppercase tracking-wide ${isToday ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}`}>
+                          {isToday ? 'Now' : DAY_LABELS[dow]}
                         </span>
                         {forecast ? (
                           <>

@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight, Calendar, Check, Play } from 'lucide-react'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import { Card, CardContent, Button, StreakBar } from '@/components/ui'
 import { useUserSchedule } from '@/hooks/useSchedule'
 import { useCycleDay } from '@/hooks/useCycleDay'
@@ -39,10 +39,14 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
     return getDayInfo(daySchedules[0], dayNumber)
   })
 
-  // Get today's workout info
-  const todayInfo = days[currentCycleDay - 1] || days[0]
-  const todayWorkoutCount = (scheduleMap.get(currentCycleDay) || []).length
+  // Get ALL today's workout infos (for tabs)
+  const todaySchedules = scheduleMap.get(currentCycleDay) || []
+  const todayInfos = todaySchedules.length > 0
+    ? todaySchedules.map(s => getDayInfo(s, currentCycleDay))
+    : [getDayInfo(undefined, currentCycleDay)]
+  const todayWorkoutCount = todaySchedules.length
   const hasSchedule = schedule && schedule.length > 0
+  const [activeTab, setActiveTab] = useState(0)
 
   // Check if today's workout is completed
   const todayCompleted = useMemo(() => {
@@ -126,10 +130,6 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
     }
   }
 
-  const handleTodayClick = () => {
-    handleDayClick(todayInfo)
-  }
-
   if (isLoading) {
     return (
       <Card>
@@ -173,7 +173,12 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
     )
   }
 
-  const TodayIcon = todayInfo.icon
+  const activeInfo = todayInfos[activeTab] || todayInfos[0]
+  const ActiveIcon = activeInfo.icon
+
+  const handleActiveClick = () => {
+    handleDayClick(activeInfo)
+  }
 
   return (
     <motion.div
@@ -182,70 +187,109 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
       transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.1 }}
     >
       <Card className="overflow-hidden">
-        {/* Today's Workout - Minimal card with left accent */}
-        <div
-          className="px-4 py-3.5 cursor-pointer active:opacity-90 transition-opacity relative"
-          onClick={handleTodayClick}
-        >
-          {/* Color-coded left accent bar */}
-          <div
-            className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[var(--radius-xl)]"
-            style={{ backgroundColor: todayInfo.color }}
-          />
+        {/* Multi-workout tabs (only shown when >1 workout today) */}
+        {todayWorkoutCount > 1 && (
+          <div className="flex border-b border-[var(--color-border)]">
+            {todayInfos.map((info, i) => {
+              const isActive = i === activeTab
+              const TabIcon = info.icon
+              return (
+                <button
+                  key={i}
+                  onClick={() => setActiveTab(i)}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 text-xs font-medium transition-colors relative ${
+                    isActive ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'
+                  }`}
+                >
+                  <TabIcon className="w-3.5 h-3.5" style={{ color: isActive ? info.color : undefined }} strokeWidth={2} />
+                  <span className="truncate">{getWorkoutShortName(info.name)}</span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full"
+                      style={{ backgroundColor: info.color }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
 
-          <div className="flex items-center gap-3">
-            {/* Inline icon + workout name */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2.5">
+        {/* Today's Workout - Minimal card with left accent */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={todayWorkoutCount > 1 && !prefersReduced ? { opacity: 0, x: 8 } : false}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ duration: 0.15 }}
+          >
+            <div
+              className="px-4 py-3.5 cursor-pointer active:opacity-90 transition-opacity relative"
+              onClick={handleActiveClick}
+            >
+              {/* Color-coded left accent bar */}
+              <div
+                className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[var(--radius-xl)]"
+                style={{ backgroundColor: activeInfo.color }}
+              />
+
+              <div className="flex items-center gap-3">
+                {/* Inline icon + workout name */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2.5">
+                    {todayCompleted ? (
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${activeInfo.color}20` }}
+                      >
+                        <Check className="w-4 h-4" style={{ color: activeInfo.color }} strokeWidth={2.5} />
+                      </div>
+                    ) : (
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${activeInfo.color}15` }}
+                      >
+                        <ActiveIcon className="w-3.5 h-3.5" style={{ color: activeInfo.color }} strokeWidth={2.5} />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <h3 className="text-base font-bold text-[var(--color-text)] truncate leading-tight">
+                        {activeInfo.name}
+                      </h3>
+                      {todayCompleted ? (
+                        <p className="text-xs text-[var(--color-success)] mt-0.5 font-medium">
+                          Completed
+                        </p>
+                      ) : !activeInfo.isRest ? (
+                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                          Today's workout
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right action — Start or Finished */}
                 {todayCompleted ? (
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: `${todayInfo.color}20` }}
-                  >
-                    <Check className="w-4 h-4" style={{ color: todayInfo.color }} strokeWidth={2.5} />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-xs font-semibold text-[var(--color-success)]">Finished</span>
+                    <Check className="w-3.5 h-3.5 text-[var(--color-success)]" strokeWidth={2.5} />
+                  </div>
+                ) : !activeInfo.isRest ? (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-xs font-semibold" style={{ color: activeInfo.color }}>Start</span>
+                    <Play className="w-3.5 h-3.5" style={{ color: activeInfo.color }} strokeWidth={2.5} />
                   </div>
                 ) : (
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: `${todayInfo.color}15` }}
-                  >
-                    <TodayIcon className="w-3.5 h-3.5" style={{ color: todayInfo.color }} strokeWidth={2.5} />
-                  </div>
+                  <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)] shrink-0" />
                 )}
-                <div className="min-w-0">
-                  <h3 className="text-base font-bold text-[var(--color-text)] truncate leading-tight">
-                    {todayInfo.name}
-                  </h3>
-                  {todayCompleted ? (
-                    <p className="text-xs text-[var(--color-success)] mt-0.5 font-medium">
-                      Completed
-                    </p>
-                  ) : todayWorkoutCount > 1 ? (
-                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                      + {todayWorkoutCount - 1} more workout{todayWorkoutCount > 2 ? 's' : ''}
-                    </p>
-                  ) : !todayInfo.isRest ? (
-                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                      Today's workout
-                    </p>
-                  ) : null}
-                </div>
               </div>
             </div>
-
-            {/* Right action */}
-            {todayCompleted ? (
-              <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)] shrink-0" />
-            ) : !todayInfo.isRest ? (
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span className="text-xs font-semibold" style={{ color: todayInfo.color }}>Start</span>
-                <Play className="w-3.5 h-3.5" style={{ color: todayInfo.color }} strokeWidth={2.5} />
-              </div>
-            ) : (
-              <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)] shrink-0" />
-            )}
-          </div>
-        </div>
+          </motion.div>
+        </AnimatePresence>
 
         {/* Rolling 7-day schedule strip */}
         <CardContent className="py-3 border-t border-[var(--color-border)]">

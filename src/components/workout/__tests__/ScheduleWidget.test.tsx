@@ -146,7 +146,7 @@ describe('ScheduleWidget', () => {
     expect(screen.queryByText(/more workout/)).not.toBeInTheDocument()
   })
 
-  it('renders "+ N more" when multiple workouts exist for today', () => {
+  it('renders tabs when multiple workouts exist for today', () => {
     mockSchedule = [
       makeScheduleDay({ day_number: 1, sort_order: 0 }),
       makeScheduleDay({
@@ -161,13 +161,16 @@ describe('ScheduleWidget', () => {
 
     render(<ScheduleWidget />)
 
-    // Should show the first workout's name
-    expect(screen.getByText('Push Day')).toBeInTheDocument()
-    // Should show "+ 1 more workout"
-    expect(screen.getByText('+ 1 more workout')).toBeInTheDocument()
+    // First workout name appears in both the tab and the active card (2 matches)
+    const pushDayElements = screen.getAllByText('Push Day')
+    expect(pushDayElements.length).toBeGreaterThanOrEqual(1)
+    // Second workout appears in its tab
+    expect(screen.getByText('Pull Day')).toBeInTheDocument()
+    // No "+ N more" text — tabs replace that pattern
+    expect(screen.queryByText(/more workout/)).not.toBeInTheDocument()
   })
 
-  it('renders "+ N more workouts" (plural) when 3+ workouts for today', () => {
+  it('renders tabs for 3+ workouts for today', () => {
     mockSchedule = [
       makeScheduleDay({ day_number: 1, sort_order: 0 }),
       makeScheduleDay({ id: 'sched-2', day_number: 1, sort_order: 1, workout_day_id: 'wd-2', workout_day: { id: 'wd-2', name: 'Pull Day', day_number: 2 } }),
@@ -177,8 +180,12 @@ describe('ScheduleWidget', () => {
 
     render(<ScheduleWidget />)
 
-    expect(screen.getByText('Push Day')).toBeInTheDocument()
-    expect(screen.getByText('+ 2 more workouts')).toBeInTheDocument()
+    // First workout appears in tab + active card
+    const pushDayElements = screen.getAllByText('Push Day')
+    expect(pushDayElements.length).toBeGreaterThanOrEqual(1)
+    // Other workouts appear in their tabs
+    expect(screen.getByText('Pull Day')).toBeInTheDocument()
+    expect(screen.getByText('Legs Day')).toBeInTheDocument()
   })
 
   it('handles rest days correctly (no "+ N more" shown)', () => {
