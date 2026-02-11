@@ -1,6 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { useAuthStore } from '@/stores/authStore'
+import { useOfflineStore } from '@/stores/offlineStore'
+import {
+  isNetworkError,
+  generateClientId,
+  buildOptimisticSet,
+  buildOptimisticSession,
+} from '@/utils/offlineUtils'
 import {
   startWorkoutSession,
   completeWorkoutSession,
@@ -82,7 +89,26 @@ export function useStartWorkout() {
   const { setActiveSession } = useWorkoutStore()
 
   return useMutation({
-    mutationFn: (workoutDayId: string) => startWorkoutSession(user!.id, workoutDayId),
+    mutationFn: async (workoutDayId: string) => {
+      try {
+        return await startWorkoutSession(user!.id, workoutDayId)
+      } catch (err) {
+        if (isNetworkError(err)) {
+          const clientId = generateClientId()
+          useOfflineStore.getState().enqueue({
+            type: 'start-session',
+            payload: { userId: user!.id, workoutDayId },
+            clientId,
+          })
+          return buildOptimisticSession({
+            clientId,
+            userId: user!.id,
+            workoutDayId,
+          })
+        }
+        throw err
+      }
+    },
     onSuccess: (session) => {
       setActiveSession(session)
       queryClient.invalidateQueries({ queryKey: ['active-session'] })
@@ -96,8 +122,27 @@ export function useCompleteWorkout() {
   const { clearWorkout } = useWorkoutStore()
 
   return useMutation({
-    mutationFn: ({ sessionId, notes }: { sessionId: string; notes?: string }) =>
-      completeWorkoutSession(sessionId, notes),
+    mutationFn: async ({ sessionId, notes }: { sessionId: string; notes?: string }) => {
+      const resolvedId = useOfflineStore.getState().resolveId(sessionId)
+      try {
+        return await completeWorkoutSession(resolvedId, notes)
+      } catch (err) {
+        if (isNetworkError(err)) {
+          const clientId = generateClientId()
+          useOfflineStore.getState().enqueue({
+            type: 'complete-session',
+            payload: { sessionId, notes },
+            clientId,
+          })
+          return {
+            id: resolvedId,
+            completed_at: new Date().toISOString(),
+            notes: notes ?? null,
+          }
+        }
+        throw err
+      }
+    },
     onSuccess: () => {
       clearWorkout()
       queryClient.invalidateQueries({ queryKey: ['active-session'] })
@@ -113,7 +158,7 @@ export function useLogSet() {
   const { addCompletedSet } = useWorkoutStore()
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       sessionId,
       planExerciseId,
       setNumber,
@@ -125,7 +170,30 @@ export function useLogSet() {
       setNumber: number
       repsCompleted: number | null
       weightUsed: number | null
-    }) => logExerciseSet(sessionId, planExerciseId, setNumber, repsCompleted, weightUsed),
+    }) => {
+      const resolvedSessionId = useOfflineStore.getState().resolveId(sessionId)
+      try {
+        return await logExerciseSet(resolvedSessionId, planExerciseId, setNumber, repsCompleted, weightUsed)
+      } catch (err) {
+        if (isNetworkError(err)) {
+          const clientId = generateClientId()
+          useOfflineStore.getState().enqueue({
+            type: 'log-set',
+            payload: { sessionId, planExerciseId, setNumber, repsCompleted, weightUsed },
+            clientId,
+          })
+          return buildOptimisticSet({
+            clientId,
+            sessionId,
+            planExerciseId,
+            setNumber,
+            repsCompleted,
+            weightUsed,
+          })
+        }
+        throw err
+      }
+    },
     onSuccess: (set, variables) => {
       addCompletedSet(variables.planExerciseId, set)
       queryClient.invalidateQueries({ queryKey: ['session-sets'] })
@@ -180,7 +248,7 @@ export function useUpdateSet() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       setId,
       updates
     }: {
@@ -190,7 +258,23 @@ export function useUpdateSet() {
         weight_used?: number | null
         completed?: boolean
       }
-    }) => updateExerciseSet(setId, updates),
+    }) => {
+      const resolvedId = useOfflineStore.getState().resolveId(setId)
+      try {
+        return await updateExerciseSet(resolvedId, updates)
+      } catch (err) {
+        if (isNetworkError(err)) {
+          const clientId = generateClientId()
+          useOfflineStore.getState().enqueue({
+            type: 'update-set',
+            payload: { setId, updates },
+            clientId,
+          })
+          return { id: resolvedId, ...updates } as ExerciseSet
+        }
+        throw err
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['session-sets'] })
       queryClient.invalidateQueries({ queryKey: ['session-detail'] })
@@ -204,7 +288,33 @@ export function useDeleteSet() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (setId: string) => deleteExerciseSet(setId),
+    mutationFn: async (setId: string) => {
+      // If the set was created offline (exists in queue), just remove it from the queue
+      const offlineState = useOfflineStore.getState()
+      const queuedEntry = offlineState.queue.find(
+        (m) => m.type === 'log-set' && m.clientId === setId
+      )
+      if (queuedEntry) {
+        offlineState.dequeue(queuedEntry.id)
+        return
+      }
+
+      const resolvedId = offlineState.resolveId(setId)
+      try {
+        return await deleteExerciseSet(resolvedId)
+      } catch (err) {
+        if (isNetworkError(err)) {
+          const clientId = generateClientId()
+          offlineState.enqueue({
+            type: 'delete-set',
+            payload: { setId },
+            clientId,
+          })
+          return
+        }
+        throw err
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['session-sets'] })
       queryClient.invalidateQueries({ queryKey: ['session-detail'] })

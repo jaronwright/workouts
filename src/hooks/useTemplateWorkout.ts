@@ -1,5 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/authStore'
+import { useOfflineStore } from '@/stores/offlineStore'
+import {
+  isNetworkError,
+  generateClientId,
+  buildOptimisticTemplateSession,
+  buildOptimisticCompletedTemplateSession,
+} from '@/utils/offlineUtils'
 import {
   startTemplateWorkout,
   completeTemplateWorkout,
@@ -56,7 +63,26 @@ export function useStartTemplateWorkout() {
   const user = useAuthStore((s) => s.user)
 
   return useMutation({
-    mutationFn: (templateId: string) => startTemplateWorkout(user!.id, templateId),
+    mutationFn: async (templateId: string) => {
+      try {
+        return await startTemplateWorkout(user!.id, templateId)
+      } catch (err) {
+        if (isNetworkError(err)) {
+          const clientId = generateClientId()
+          useOfflineStore.getState().enqueue({
+            type: 'start-template',
+            payload: { userId: user!.id, templateId },
+            clientId,
+          })
+          return buildOptimisticTemplateSession({
+            clientId,
+            userId: user!.id,
+            templateId,
+          })
+        }
+        throw err
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['active-template-workout'] })
       queryClient.invalidateQueries({ queryKey: ['user-template-workouts'] })
@@ -68,8 +94,30 @@ export function useCompleteTemplateWorkout() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ sessionId, ...data }: CompleteTemplateWorkoutData) =>
-      completeTemplateWorkout(sessionId, data),
+    mutationFn: async ({ sessionId, ...data }: CompleteTemplateWorkoutData) => {
+      const resolvedId = useOfflineStore.getState().resolveId(sessionId)
+      try {
+        return await completeTemplateWorkout(resolvedId, data)
+      } catch (err) {
+        if (isNetworkError(err)) {
+          const clientId = generateClientId()
+          useOfflineStore.getState().enqueue({
+            type: 'complete-template',
+            payload: { sessionId, ...data },
+            clientId,
+          })
+          return {
+            id: resolvedId,
+            completed_at: new Date().toISOString(),
+            duration_minutes: data.durationMinutes ?? null,
+            distance_value: data.distanceValue ?? null,
+            distance_unit: data.distanceUnit ?? null,
+            notes: data.notes ?? null,
+          } as TemplateWorkoutSession
+        }
+        throw err
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['active-template-workout'] })
       queryClient.invalidateQueries({ queryKey: ['user-template-workouts'] })
@@ -84,17 +132,44 @@ export function useQuickLogTemplateWorkout() {
   const user = useAuthStore((s) => s.user)
 
   return useMutation({
-    mutationFn: (params: {
+    mutationFn: async (params: {
       templateId: string
       durationMinutes?: number
       distanceValue?: number
       distanceUnit?: string
-    }) =>
-      quickLogTemplateWorkout(user!.id, params.templateId, {
-        durationMinutes: params.durationMinutes,
-        distanceValue: params.distanceValue,
-        distanceUnit: params.distanceUnit
-      }),
+    }) => {
+      try {
+        return await quickLogTemplateWorkout(user!.id, params.templateId, {
+          durationMinutes: params.durationMinutes,
+          distanceValue: params.distanceValue,
+          distanceUnit: params.distanceUnit
+        })
+      } catch (err) {
+        if (isNetworkError(err)) {
+          const clientId = generateClientId()
+          useOfflineStore.getState().enqueue({
+            type: 'quick-log-template',
+            payload: {
+              userId: user!.id,
+              templateId: params.templateId,
+              durationMinutes: params.durationMinutes,
+              distanceValue: params.distanceValue,
+              distanceUnit: params.distanceUnit,
+            },
+            clientId,
+          })
+          return buildOptimisticCompletedTemplateSession({
+            clientId,
+            userId: user!.id,
+            templateId: params.templateId,
+            durationMinutes: params.durationMinutes,
+            distanceValue: params.distanceValue,
+            distanceUnit: params.distanceUnit,
+          })
+        }
+        throw err
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['active-template-workout'] })
       queryClient.invalidateQueries({ queryKey: ['user-template-workouts'] })

@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/hooks/useTheme'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { ToastProvider } from '@/components/ui'
+import { SyncManager } from '@/components/layout/SyncManager'
 import { pageTransition } from '@/config/animationConfig'
 import {
   AuthPage,
@@ -28,7 +29,11 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5,
-      retry: 1
+      retry: 1,
+      networkMode: 'offlineFirst',  // Serve stale cache when offline
+    },
+    mutations: {
+      networkMode: 'always',  // Let our offline handling in hooks manage this
     }
   }
 })
@@ -230,7 +235,12 @@ function AppRoutes() {
     initializeTheme()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <AnimatedRoutes />
+  return (
+    <>
+      <SyncManager />
+      <AnimatedRoutes />
+    </>
+  )
 }
 
 export default function App() {

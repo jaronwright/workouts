@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { WorkoutDayWithSections, WorkoutSession, ExerciseSet } from '@/types/workout'
 
 interface WorkoutState {
@@ -22,7 +23,9 @@ interface WorkoutState {
   clearWorkout: () => void
 }
 
-export const useWorkoutStore = create<WorkoutState>((set, get) => ({
+export const useWorkoutStore = create<WorkoutState>()(
+  persist(
+    (set, get) => ({
   activeSession: null,
   activeWorkoutDay: null,
   completedSets: {},
@@ -89,4 +92,15 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     restTimerInitialSeconds: 0,
     isRestTimerActive: false
   })
-}))
+    }),
+    {
+      name: 'workout-active-session',
+      partialize: (state) => ({
+        activeSession: state.activeSession,
+        activeWorkoutDay: state.activeWorkoutDay,
+        completedSets: state.completedSets,
+        // Exclude timer state — ephemeral, not worth persisting
+      }),
+    }
+  )
+)

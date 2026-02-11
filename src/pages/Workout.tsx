@@ -90,6 +90,7 @@ export function WorkoutPage() {
     setShowSplash(true)
 
     // After splash animation, actually start the workout
+    // Network errors are handled by the hook (returns optimistic session)
     setTimeout(() => {
       startWorkout(dayId, {
         onSuccess: (session) => {
@@ -122,30 +123,21 @@ export function WorkoutPage() {
   const handleExerciseComplete = (exerciseId: string, reps: number | null, weight: number | null) => {
     if (!activeSession) return
     // Log a single set to mark the exercise as complete
-    logSet(
-      {
-        sessionId: activeSession.id,
-        planExerciseId: exerciseId,
-        setNumber: 1,
-        repsCompleted: reps,
-        weightUsed: weight
-      },
-      {
-        onError: () => {
-          toast.error('Failed to log set. Please try again.')
-        }
-      }
-    )
+    // Network errors are handled by the hook (returns optimistic set, queues for sync)
+    logSet({
+      sessionId: activeSession.id,
+      planExerciseId: exerciseId,
+      setNumber: 1,
+      repsCompleted: reps,
+      weightUsed: weight
+    })
   }
 
   const handleExerciseUncomplete = (exerciseId: string) => {
     const sets = completedSets[exerciseId] || []
     // Delete all sets for this exercise from the database
-    sets.forEach((s) => deleteSet(s.id, {
-      onError: () => {
-        toast.error('Failed to remove set. Please try again.')
-      }
-    }))
+    // Network errors are handled by the hook (queues delete for sync)
+    sets.forEach((s) => deleteSet(s.id))
     // Remove from local store immediately for responsive UI
     useWorkoutStore.getState().removeCompletedSets(exerciseId)
   }

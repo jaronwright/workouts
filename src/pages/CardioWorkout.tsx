@@ -88,6 +88,8 @@ export function CardioWorkoutPage() {
         }, 1000)
       },
       onError: () => {
+        // Network errors are handled by hook (returns optimistic session)
+        // This only fires for real server errors
         setIsRunning(false)
         toast.error('Failed to start workout. Please try again.')
       }
@@ -140,6 +142,8 @@ export function CardioWorkoutPage() {
   }
 
   const onError = () => {
+    // Network errors are handled by hooks (returns optimistic session, queues for sync)
+    // This only fires for real server errors
     toast.error('Failed to log workout')
   }
 

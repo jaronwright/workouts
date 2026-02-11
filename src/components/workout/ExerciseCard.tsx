@@ -1,10 +1,11 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react'
-import { Info, Check, Circle, Sparkles } from 'lucide-react'
+import { Info, Check, Circle, Sparkles, Cloud } from 'lucide-react'
 import type { PlanExercise, ExerciseSet } from '@/types/workout'
 import { formatSetReps } from '@/utils/parseSetReps'
 import { useLastWeight } from '@/hooks/useWorkoutSession'
 import { useProgressionSuggestion } from '@/hooks/useProgression'
+import { useOfflineStore } from '@/stores/offlineStore'
 import { ProgressionBadge } from './ProgressionBadge'
 import { ExerciseDetailModal } from './ExerciseDetailModal'
 import { updateExerciseWeightUnit } from '@/services/workoutService'
@@ -35,6 +36,14 @@ function isBodyweightOrCardio(exercise: PlanExercise): boolean {
     exercise.reps_unit === 'steps' ||
     noWeightKeywords.some(keyword => name.includes(keyword))
   )
+}
+
+function PendingSyncIndicator({ setId }: { setId: string }) {
+  const isPending = useOfflineStore((s) =>
+    s.queue.some((m) => m.type === 'log-set' && m.clientId === setId)
+  )
+  if (!isPending) return null
+  return <Cloud className="w-3 h-3 text-[var(--color-text-muted)] animate-pulse" />
 }
 
 export function ExerciseCard({
@@ -209,6 +218,7 @@ export function ExerciseCard({
             <span className="text-sm text-[var(--color-success)] font-bold">
               {completedSets[0].weight_used} {localWeightUnit}
             </span>
+            <PendingSyncIndicator setId={completedSets[0].id} />
           </div>
         )}
 

@@ -20,6 +20,10 @@ vi.mock('@/hooks/useTemplateWorkout', () => ({
     data: mockTemplate,
     isLoading: mockIsLoading,
   }),
+  useLastTemplateSession: () => ({
+    data: null,
+    isLoading: false,
+  }),
   useQuickLogTemplateWorkout: () => ({
     mutate: vi.fn(),
     isPending: false,

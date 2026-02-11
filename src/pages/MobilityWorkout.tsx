@@ -74,6 +74,8 @@ export function MobilityWorkoutPage() {
           navigate('/history')
         },
         onError: () => {
+          // Network errors are handled by hook (returns optimistic session, queues for sync)
+          // This only fires for real server errors
           toast.error('Failed to save workout. Please try again.')
         }
       }
