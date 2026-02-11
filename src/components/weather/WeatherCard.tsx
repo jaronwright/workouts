@@ -149,54 +149,74 @@ export function WeatherCard() {
         {/* Gradient overlay */}
         <div className={`absolute inset-0 bg-gradient-to-br ${gradient} pointer-events-none`} />
 
-        <CardContent className="py-4 relative">
-          {/* Current conditions */}
-          <div className="flex items-center gap-4">
-            <div className="text-4xl leading-none">{current.emoji}</div>
-            <div className="flex-1 min-w-0">
-              <button
-                onClick={(e) => { e.stopPropagation(); toggleTemperatureUnit() }}
-                className="text-2xl font-bold text-[var(--color-text)] leading-tight active:opacity-70 transition-opacity"
-                title={`Switch to °${temperatureUnit === 'C' ? 'F' : 'C'}`}
-              >
-                {formatTemp(current.temperature, temperatureUnit)}
-              </button>
-              <p className="text-sm text-[var(--color-text-muted)] leading-tight mt-0.5">
-                {current.description}
-              </p>
-            </div>
-            <div className="text-right shrink-0">
-              <p className="text-xs text-[var(--color-text-muted)]">
-                Feels like {formatTemp(current.feelsLike, temperatureUnit)}
-              </p>
-              {displayCity && (
-                <p className="text-xs text-[var(--color-text-muted)] flex items-center gap-0.5 justify-end mt-0.5">
+        <CardContent className="py-3 relative">
+          {/* Condensed current conditions — one line */}
+          <div className="flex items-center gap-2">
+            <span className="text-lg leading-none">{current.emoji}</span>
+            <button
+              onClick={(e) => { e.stopPropagation(); toggleTemperatureUnit() }}
+              className="text-sm font-bold text-[var(--color-text)] active:opacity-70 transition-opacity"
+              title={`Switch to °${temperatureUnit === 'C' ? 'F' : 'C'}`}
+            >
+              {formatTemp(current.temperature, temperatureUnit)}
+            </button>
+            <span className="text-xs text-[var(--color-text-muted)]">{current.description}</span>
+            <span className="text-xs text-[var(--color-text-muted)]">·</span>
+            <span className="text-xs text-[var(--color-text-muted)]">
+              Feels {formatTemp(current.feelsLike, temperatureUnit)}
+            </span>
+            {displayCity && (
+              <>
+                <span className="text-xs text-[var(--color-text-muted)]">·</span>
+                <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-0.5">
                   <MapPin className="w-3 h-3" />
                   {displayCity}
-                </p>
-              )}
-            </div>
+                </span>
+              </>
+            )}
           </div>
 
-          {/* 7-day forecast — always visible to pair with schedule widget */}
-          <div className="border-t border-[var(--color-border)] mt-3 pt-3">
-            <div className="grid grid-cols-7 gap-1">
-              {daily.map((day, i) => (
-                <div key={day.date} className="flex flex-col items-center gap-1">
-                  <span className={`text-[10px] font-medium uppercase tracking-wide ${i === 0 ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`}>
-                    {i === 0 ? 'Now' : day.dayName}
-                  </span>
-                  <span className="text-base leading-none">{day.emoji}</span>
-                  <span className="text-xs font-semibold text-[var(--color-text)]">
-                    {formatTemp(day.tempHigh, temperatureUnit)}
-                  </span>
-                  <span className="text-[10px] text-[var(--color-text-muted)]">
-                    {formatTemp(day.tempLow, temperatureUnit)}
-                  </span>
+          {/* 7-day forecast aligned to S M T W T F S (matches schedule widget) */}
+          {(() => {
+            const todayDow = new Date().getDay() // 0=Sun
+            const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+            return (
+              <div className="mt-3">
+                <div className="grid grid-cols-7 gap-1">
+                  {DAY_LABELS.map((label, dow) => {
+                    const offset = (dow - todayDow + 7) % 7
+                    const isPast = dow < todayDow
+                    const forecast = !isPast ? daily[offset] : null
+                    const isToday = dow === todayDow
+                    return (
+                      <div key={dow} className={`flex flex-col items-center gap-1 ${isPast ? 'opacity-30' : ''}`}>
+                        <span className={`text-[10px] font-medium uppercase tracking-wide ${isToday ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`}>
+                          {label}
+                        </span>
+                        {forecast ? (
+                          <>
+                            <span className="text-base leading-none">{forecast.emoji}</span>
+                            <span className="text-xs font-semibold text-[var(--color-text)]">
+                              {formatTemp(forecast.tempHigh, temperatureUnit)}
+                            </span>
+                            <span className="text-[10px] text-[var(--color-text-muted)]">
+                              {formatTemp(forecast.tempLow, temperatureUnit)}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-base leading-none">—</span>
+                            <span className="text-xs font-semibold text-[var(--color-text-muted)]">—</span>
+                            <span className="text-[10px] text-[var(--color-text-muted)]">—</span>
+                          </>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            )
+          })()}
 
           {/* Expand indicator */}
           <div className="flex justify-center mt-2">

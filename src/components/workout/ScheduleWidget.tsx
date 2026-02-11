@@ -216,7 +216,7 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
                   style={{ backgroundColor: todayInfo.bgColor, color: todayInfo.color }}>
-                  Day {currentCycleDay}
+                  Day {new Date().getDay() + 1}
                 </span>
                 <span className="text-[10px] text-[var(--color-text-muted)]">Today</span>
               </div>
