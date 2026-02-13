@@ -83,25 +83,41 @@ export function SchedulePage() {
       <AppShell title="Schedule">
         <div className="p-4 space-y-3">
           {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <div key={i} className="h-20 bg-[var(--color-surface-hover)] animate-pulse rounded-2xl" />
+            <div key={i} className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-2xl" />
           ))}
         </div>
       </AppShell>
     )
   }
 
+  const handleDayClick = (day: number) => {
+    const today = new Date()
+    const startDate = new Date(today)
+    startDate.setDate(today.getDate() - (day - 1))
+    const y = startDate.getFullYear()
+    const m = String(startDate.getMonth() + 1).padStart(2, '0')
+    const d = String(startDate.getDate()).padStart(2, '0')
+    updateProfile(
+      { cycle_start_date: `${y}-${m}-${d}` },
+      { onError: () => showError('Failed to update cycle day') }
+    )
+  }
+
   return (
     <AppShell title="Schedule">
-      <div className="p-4 space-y-3">
-        {/* Day Selector - Horizontal scrollable pills */}
-        <div className="flex flex-col items-center gap-2 py-3 mb-2">
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
-            <span className="text-sm font-medium text-[var(--color-text-muted)]">
-              Currently on <span className="text-[var(--color-primary)] font-semibold">Day {currentCycleDay}</span>
+      <div className="p-4 space-y-4">
+        {/* Day Picker */}
+        <div className="flex flex-col items-center gap-3 py-2">
+          <div className="flex items-center gap-1.5">
+            <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]" />
+            <span className="text-xs font-medium text-[var(--color-text-muted)]">
+              Day <span className="text-[var(--color-primary)] font-semibold">{currentCycleDay}</span>
+              <span className="mx-1.5 opacity-40">·</span>
+              {formatCycleStartDate(profile?.cycle_start_date)}
             </span>
           </div>
-          <div className="flex justify-between w-full max-w-xs gap-2">
+
+          <div className="flex justify-center gap-3">
             {[1, 2, 3, 4, 5, 6, 7].map((day) => {
               const isActive = currentCycleDay === day
               const daySchedules = schedulesByDay.get(day) || []
@@ -112,30 +128,19 @@ export function SchedulePage() {
                 <button
                   key={day}
                   type="button"
-                  onClick={() => {
-                    const today = new Date()
-                    const startDate = new Date(today)
-                    startDate.setDate(today.getDate() - (day - 1))
-                    const y = startDate.getFullYear()
-                    const m = String(startDate.getMonth() + 1).padStart(2, '0')
-                    const d = String(startDate.getDate()).padStart(2, '0')
-                    updateProfile(
-                      { cycle_start_date: `${y}-${m}-${d}` },
-                      { onError: () => showError('Failed to update cycle day') }
-                    )
-                  }}
-                  className="relative flex flex-col items-center gap-0.5"
+                  onClick={() => handleDayClick(day)}
+                  className="relative flex flex-col items-center"
                 >
                   {isActive && (
                     <motion.div
                       layoutId="schedule-day-active"
-                      className="absolute inset-0 -m-0.5 rounded-xl bg-[var(--color-primary)] shadow-sm"
+                      className="absolute -inset-0.5 rounded-full bg-[var(--color-primary)]"
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     />
                   )}
                   <div
                     className={`
-                      relative w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold
+                      relative w-10 h-10 rounded-full flex items-center justify-center
                       transition-colors duration-150
                       ${isActive
                         ? 'text-white'
@@ -144,23 +149,17 @@ export function SchedulePage() {
                     `}
                   >
                     {daySchedules.length > 1 ? (
-                      <span className="text-xs font-bold">{daySchedules.length}</span>
+                      <span className="text-sm font-bold">{daySchedules.length}</span>
                     ) : chip?.Icon ? (
-                      <chip.Icon className="w-4 h-4" />
+                      <chip.Icon className="w-[18px] h-[18px]" strokeWidth={2} />
                     ) : (
-                      day
+                      <span className="text-sm font-semibold">{day}</span>
                     )}
                   </div>
                 </button>
               )
             })}
           </div>
-          <span className="text-xs text-[var(--color-text-muted)] opacity-60">
-            Tap a day to set where you are in your cycle
-          </span>
-          <span className="text-xs text-[var(--color-text-muted)]">
-            Cycle started {formatCycleStartDate(profile?.cycle_start_date)}
-          </span>
         </div>
 
         {/* Schedule List */}
@@ -181,62 +180,66 @@ export function SchedulePage() {
                 <div
                   onClick={() => setEditingDay(dayNumber)}
                   className={`
-                    relative rounded-2xl p-4 cursor-pointer
+                    relative rounded-2xl cursor-pointer
                     transition-all duration-200 active:scale-[0.98]
                     ${isCurrentDay
-                      ? 'bg-[var(--color-primary)]/10 ring-2 ring-[var(--color-primary)]/30'
+                      ? 'bg-[var(--color-primary)]/8 ring-1.5 ring-[var(--color-primary)]/25'
                       : 'bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)]'
                     }
                   `}
                 >
-                  <div className="flex items-start gap-3">
-                    {/* Day Number Badge */}
+                  <div className="flex items-center gap-3.5 px-4 py-3.5">
+                    {/* Day Number */}
                     <div className={`
-                      w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0
+                      w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-[15px] font-bold
                       ${isCurrentDay
-                        ? 'bg-[var(--color-primary)] text-white'
-                        : 'bg-[var(--color-surface-hover)] text-[var(--color-text)]'
+                        ? 'bg-[var(--color-primary)] text-white shadow-sm'
+                        : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]'
                       }
                     `}>
-                      <span className="text-[10px] font-medium uppercase tracking-wide opacity-70">Day</span>
-                      <span className="text-lg font-bold -mt-0.5">{dayNumber}</span>
+                      {dayNumber}
                     </div>
 
                     {/* Workout Content */}
-                    <div className="flex-1 min-w-0 py-0.5">
+                    <div className="flex-1 min-w-0">
                       {isRestDay ? (
-                        <div className="flex items-center gap-2 text-[var(--color-text-muted)]">
-                          <Moon className="w-4 h-4" />
-                          <span className="text-sm font-medium">Rest Day</span>
+                        <div className="flex items-center gap-2.5 text-[var(--color-text-muted)]">
+                          <Moon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
+                          <span className="text-[15px]">Rest Day</span>
                         </div>
                       ) : hasWorkouts ? (
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className={daySchedules.length > 1 ? 'space-y-1.5' : ''}>
                           {daySchedules.map((s, idx) => {
                             const chipData = getWorkoutChip(s)
                             if (!chipData) return null
-                            const { Icon, color, label, bgColor } = chipData
+                            const { Icon, color, label } = chipData
                             return (
-                              <div
-                                key={idx}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium"
-                                style={{ backgroundColor: bgColor, color }}
-                              >
-                                <Icon className="w-3.5 h-3.5" />
-                                <span className="truncate max-w-[140px]">{label}</span>
+                              <div key={idx} className="flex items-center gap-2.5 min-w-0">
+                                <Icon
+                                  className="w-[18px] h-[18px] shrink-0"
+                                  style={{ color }}
+                                  strokeWidth={2}
+                                />
+                                <span
+                                  className="text-[15px] font-medium truncate"
+                                  style={{ color }}
+                                >
+                                  {label}
+                                </span>
                               </div>
                             )
                           })}
                         </div>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-[var(--color-text-muted)] bg-[var(--color-surface-hover)] border border-dashed border-[var(--color-border)]">
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Choose workout</span>
-                        </span>
+                        <div className="flex items-center gap-2.5 text-[var(--color-text-muted)]">
+                          <Plus className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
+                          <span className="text-[15px]">Add workout</span>
+                        </div>
                       )}
                     </div>
 
-                    {/* Arrow indicator */}
-                    <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0 mt-3" />
+                    {/* Chevron */}
+                    <ChevronRight className="w-4.5 h-4.5 text-[var(--color-text-muted)] shrink-0 opacity-40" />
                   </div>
                 </div>
               </motion.div>

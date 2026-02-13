@@ -9,7 +9,7 @@ import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent, AnimatedCard, AnimatedCounter, Badge } from '@/components/ui'
 import { CardioLogCard, ScheduleWidget } from '@/components/workout'
 import { WeatherCard } from '@/components/weather'
-import { WeeklyReviewCard } from '@/components/review/WeeklyReviewCard'
+
 import { OnboardingWizard } from '@/components/onboarding'
 import { useActiveSession, useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
 import { useProfile } from '@/hooks/useProfile'
@@ -365,15 +365,6 @@ export function HomePage() {
             </Card>
           </motion.div>
         </motion.div>
-
-        {/* Weekly Review Summary */}
-        <WeeklyReviewCard weekStart={(() => {
-          const now = new Date()
-          const d = new Date(now)
-          d.setDate(now.getDate() - now.getDay())
-          d.setHours(0, 0, 0, 0)
-          return d
-        })()} />
 
         {/* Quick Select Workouts */}
         <section className="space-y-4">

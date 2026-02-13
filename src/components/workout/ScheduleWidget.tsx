@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, Calendar, Check, Play } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
+import { ChevronRight, ChevronLeft, Calendar, Check, Play, type LucideIcon } from 'lucide-react'
+import { motion, AnimatePresence, type PanInfo } from 'motion/react'
 import { Card, CardContent, Button, StreakBar } from '@/components/ui'
 import { useUserSchedule } from '@/hooks/useSchedule'
 import { useCycleDay } from '@/hooks/useCycleDay'
@@ -9,11 +9,31 @@ import { useUserSessions } from '@/hooks/useWorkoutSession'
 import { useUserTemplateWorkouts } from '@/hooks/useTemplateWorkout'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { getDayInfo, type DayInfo } from '@/utils/scheduleUtils'
-import { getWorkoutShortName } from '@/config/workoutConfig'
+import {
+  getWorkoutShortName,
+  getWeightsStyleByName,
+  getCardioStyle,
+  getMobilityStyle,
+  getWorkoutDisplayName,
+} from '@/config/workoutConfig'
 import type { ScheduleDay } from '@/services/scheduleService'
 
 interface ScheduleWidgetProps {
   onSetupSchedule?: () => void
+}
+
+/** Stable date key for comparing calendar days (YYYY-MM-DD) */
+function toDateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+interface CompletedSessionInfo {
+  name: string
+  icon: LucideIcon
+  color: string
+  workoutDayId?: string
+  templateId?: string
+  templateType?: string
 }
 
 export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
@@ -39,80 +59,191 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
     return getDayInfo(daySchedules[0], dayNumber)
   })
 
-  // Get ALL today's workout infos (for tabs)
+  // Get ALL today's scheduled workout infos (for tabs when not yet completed)
   const todaySchedules = scheduleMap.get(currentCycleDay) || []
   const todayInfos = todaySchedules.length > 0
     ? todaySchedules.map(s => getDayInfo(s, currentCycleDay))
     : [getDayInfo(undefined, currentCycleDay)]
-  const todayWorkoutCount = todaySchedules.length
   const hasSchedule = schedule && schedule.length > 0
   const [activeTab, setActiveTab] = useState(0)
+  const [weekOffset, setWeekOffset] = useState(0)
+  const swipeDirection = useRef(0)
 
-  // Check if today's workout is completed
-  const todayCompleted = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+  // Briefly show dates on the current week after returning from another week
+  const [peekDates, setPeekDates] = useState(false)
+  const hasScrolledOnce = useRef(false)
 
-    const allSessions = [
-      ...(weightsSessions || []),
-      ...(templateSessions || [])
-    ]
+  useEffect(() => {
+    if (weekOffset !== 0) {
+      hasScrolledOnce.current = true
+      setPeekDates(false)
+      return
+    }
+    // Just returned to current week — peek for 3 seconds
+    if (hasScrolledOnce.current) {
+      setPeekDates(true)
+      const timer = setTimeout(() => setPeekDates(false), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [weekOffset])
 
-    return allSessions.some(s => {
-      if (!s.completed_at) return false
-      const completedDate = new Date(s.completed_at)
-      completedDate.setHours(0, 0, 0, 0)
-      return completedDate.getTime() === today.getTime()
+  const showDateInfo = weekOffset !== 0 || peekDates
+
+  // Map completed sessions by date — used for both the today card and streak bar.
+  // This fixes two bugs:
+  //  1. Uses actual calendar dates instead of day-of-week numbers, preventing
+  //     future days from being marked as completed.
+  //  2. Stores the actual session info (name/icon/color) so the today card
+  //     shows what was really completed, not what was scheduled.
+  const completedSessionsByDate = useMemo(() => {
+    const map = new Map<string, CompletedSessionInfo[]>()
+
+    weightsSessions?.forEach(s => {
+      if (!s.completed_at || !s.workout_day) return
+      const d = new Date(s.completed_at)
+      const key = toDateKey(d)
+      const style = getWeightsStyleByName(s.workout_day.name)
+      const existing = map.get(key) || []
+      existing.push({
+        name: getWorkoutDisplayName(s.workout_day.name) || s.workout_day.name,
+        icon: style.icon,
+        color: style.color,
+        workoutDayId: s.workout_day.id,
+      })
+      map.set(key, existing)
     })
+
+    templateSessions?.forEach(s => {
+      if (!s.completed_at || !s.template) return
+      const d = new Date(s.completed_at)
+      const key = toDateKey(d)
+      const style = s.template.type === 'cardio'
+        ? getCardioStyle(s.template.category)
+        : getMobilityStyle(s.template.category)
+      const existing = map.get(key) || []
+      existing.push({
+        name: s.template.name,
+        icon: style.icon,
+        color: style.color,
+        templateId: s.template_id,
+        templateType: s.template.type,
+      })
+      map.set(key, existing)
+    })
+
+    return map
   }, [weightsSessions, templateSessions])
 
-  // Compute rolling 7-day schedule starting from today
-  const streakDays = useMemo(() => {
+  // Derive today's completion state from actual sessions
+  const todayKey = toDateKey(new Date())
+  const todayCompletedSessions = completedSessionsByDate.get(todayKey) || []
+  const todayCompleted = todayCompletedSessions.length > 0
+
+  // When completed, show actual session info; otherwise show scheduled info
+  const todayDisplayInfos: DayInfo[] = useMemo(() => {
+    if (todayCompletedSessions.length > 0) {
+      return todayCompletedSessions.map(s => ({
+        dayNumber: currentCycleDay,
+        icon: s.icon,
+        color: s.color,
+        bgColor: `${s.color}20`,
+        name: s.name,
+        isRest: false,
+        workoutDayId: s.workoutDayId,
+        templateId: s.templateId,
+        templateType: s.templateType,
+      }))
+    }
+    return todayInfos
+  }, [todayCompletedSessions, todayInfos, currentCycleDay])
+
+  const displayWorkoutCount = todayDisplayInfos.length
+  const clampedTab = Math.max(0, Math.min(activeTab, displayWorkoutCount - 1))
+
+  // Compute rolling 7-day schedule starting from today + weekOffset
+  const { streakDays, monthLabel } = useMemo(() => {
     const now = new Date()
-    const startOfWeek = new Date(now)
-    startOfWeek.setDate(now.getDate() - now.getDay())
-    startOfWeek.setHours(0, 0, 0, 0)
-
-    const allSessions = [
-      ...(weightsSessions || []),
-      ...(templateSessions || [])
-    ]
-
-    const completedDayNums = new Set<number>()
-    allSessions.forEach(s => {
-      if (!s.completed_at) return
-      const completedDate = new Date(s.completed_at)
-      if (completedDate >= startOfWeek) {
-        completedDayNums.add(completedDate.getDay())
-      }
-    })
-
+    now.setHours(0, 0, 0, 0)
     const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-    const todayDow = now.getDay() // 0=Sun, 1=Mon, ...
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const totalDays = days.length // always 7
 
-    // Rolling 7-day view starting from today
-    return Array.from({ length: 7 }, (_, i) => {
-      const dow = (todayDow + i) % 7
-      const cycleDay = ((currentCycleDay - 1 + i) % totalDays) + 1
-      const dayInfo = days[cycleDay - 1]
+    // Track months seen for the header label
+    const monthsInView = new Set<string>()
 
+    const computed = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(now)
+      date.setDate(now.getDate() + weekOffset + i)
+      const dow = date.getDay()
+      const dateKey = toDateKey(date)
+      const dateNumber = date.getDate()
+
+      monthsInView.add(`${monthNames[date.getMonth()]} ${date.getFullYear()}`)
+
+      const dayDiff = weekOffset + i
+      const cycleDay = ((currentCycleDay - 1 + dayDiff) % totalDays + totalDays) % totalDays + 1
+      const dayInfo = days[cycleDay - 1]
+      const isToday = dayDiff === 0
+
+      // Check actual completed sessions for this date
+      const completedSessions = completedSessionsByDate.get(dateKey) || []
+      const isCompleted = completedSessions.length > 0
+
+      // For completed days, use real session data for name/icon/color
+      if (isCompleted) {
+        const first = completedSessions[0]
+        return {
+          label: dayLabels[dow],
+          completed: true,
+          isToday,
+          color: first.color,
+          workoutName: completedSessions.length > 1
+            ? 'Multi'
+            : getWorkoutShortName(first.name),
+          workoutIcon: first.icon,
+          workoutColor: first.color,
+          isRest: false,
+          workoutCount: completedSessions.length,
+          dateNumber,
+        }
+      }
+
+      // For non-completed days, use scheduled data
       const cycleDaySchedules = scheduleMap.get(cycleDay) || []
       const workoutCount = cycleDaySchedules.length
 
       return {
         label: dayLabels[dow],
-        completed: completedDayNums.has(dow),
-        isToday: i === 0,
-        color: completedDayNums.has(dow) ? dayInfo?.color || 'var(--color-primary)' : undefined,
+        completed: false,
+        isToday,
+        color: undefined,
         workoutName: workoutCount > 1 ? 'Multi' : dayInfo?.name ? getWorkoutShortName(dayInfo.name) : undefined,
         workoutIcon: dayInfo?.icon,
         workoutColor: dayInfo?.color,
         isRest: dayInfo?.isRest,
         workoutCount,
+        dateNumber,
       }
     })
-  }, [weightsSessions, templateSessions, days, currentCycleDay, schedule])
+
+    // Build month label: "Feb 2026" or "Feb – Mar 2026"
+    const months = Array.from(monthsInView)
+    const label = months.length === 1 ? months[0] : months.join(' – ')
+
+    return { streakDays: computed, monthLabel: label }
+  }, [days, currentCycleDay, schedule, weekOffset, completedSessionsByDate])
+
+  // Swipe handler for the 7-day strip
+  const handleSwipe = (_: unknown, info: PanInfo) => {
+    const threshold = 50
+    if (info.offset.x < -threshold || info.velocity.x < -300) {
+      swipeDirection.current = 1
+      setWeekOffset(prev => prev + 7)
+    } else if (info.offset.x > threshold || info.velocity.x > 300) {
+      swipeDirection.current = -1
+      setWeekOffset(prev => prev - 7)
+    }
+  }
 
   const handleDayClick = (day: DayInfo) => {
     if (day.isRest) {
@@ -173,7 +304,7 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
     )
   }
 
-  const activeInfo = todayInfos[activeTab] || todayInfos[0]
+  const activeInfo = todayDisplayInfos[clampedTab] || todayDisplayInfos[0]
   const ActiveIcon = activeInfo.icon
 
   const handleActiveClick = () => {
@@ -188,10 +319,10 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
     >
       <Card className="overflow-hidden">
         {/* Multi-workout tabs (only shown when >1 workout today) */}
-        {todayWorkoutCount > 1 && (
+        {displayWorkoutCount > 1 && (
           <div className="flex border-b border-[var(--color-border)]">
-            {todayInfos.map((info, i) => {
-              const isActive = i === activeTab
+            {todayDisplayInfos.map((info, i) => {
+              const isActive = i === clampedTab
               const TabIcon = info.icon
               return (
                 <button
@@ -220,8 +351,8 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
         {/* Today's Workout - Minimal card with left accent */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={activeTab}
-            initial={todayWorkoutCount > 1 && !prefersReduced ? { opacity: 0, x: 8 } : false}
+            key={clampedTab}
+            initial={displayWorkoutCount > 1 && !prefersReduced ? { opacity: 0, x: 8 } : false}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -8 }}
             transition={{ duration: 0.15 }}
@@ -291,9 +422,80 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
           </motion.div>
         </AnimatePresence>
 
-        {/* Rolling 7-day schedule strip */}
-        <CardContent className="py-3 border-t border-[var(--color-border)]">
-          <StreakBar days={streakDays} />
+        {/* Rolling 7-day schedule strip — swipeable */}
+        <CardContent className="py-3 border-t border-[var(--color-border)] overflow-hidden">
+          {/* Month header — fades in when dates are visible */}
+          <AnimatePresence>
+            {showDateInfo && (
+              <motion.p
+                initial={prefersReduced ? false : { opacity: 0, height: 0, marginBottom: 0 }}
+                animate={{ opacity: 1, height: 'auto', marginBottom: 6 }}
+                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] text-center"
+              >
+                {monthLabel}
+              </motion.p>
+            )}
+          </AnimatePresence>
+
+          <div className="relative">
+            {/* Scroll direction indicators */}
+            <AnimatePresence>
+              {showDateInfo && !prefersReduced && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.5 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 z-10 pointer-events-none"
+                  >
+                    <ChevronLeft className="w-3 h-3 text-[var(--color-text-muted)]" />
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.5 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 z-10 pointer-events-none"
+                  >
+                    <ChevronRight className="w-3 h-3 text-[var(--color-text-muted)]" />
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={weekOffset}
+                initial={{ opacity: 0, x: swipeDirection.current > 0 ? 60 : -60 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: swipeDirection.current > 0 ? -60 : 60 }}
+                transition={{ duration: 0.2 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragDirectionLock
+                dragElastic={0.2}
+                onDragEnd={handleSwipe}
+                style={{ touchAction: 'pan-y' }}
+              >
+                <StreakBar days={streakDays} showDates={showDateInfo} />
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {weekOffset !== 0 && (
+            <button
+              onClick={() => {
+                swipeDirection.current = weekOffset > 0 ? -1 : 1
+                setWeekOffset(0)
+              }}
+              className="mt-2 text-[10px] text-[var(--color-primary)] font-medium mx-auto block"
+            >
+              Back to Today
+            </button>
+          )}
         </CardContent>
       </Card>
     </motion.div>

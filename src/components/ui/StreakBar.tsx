@@ -1,4 +1,4 @@
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { Check, Moon, type LucideIcon } from 'lucide-react'
 
@@ -12,14 +12,16 @@ export interface StreakDay {
   workoutColor?: string
   isRest?: boolean
   workoutCount?: number
+  dateNumber?: number
 }
 
 interface StreakBarProps {
   days: StreakDay[]
   className?: string
+  showDates?: boolean
 }
 
-export function StreakBar({ days, className = '' }: StreakBarProps) {
+export function StreakBar({ days, className = '', showDates = false }: StreakBarProps) {
   const prefersReduced = useReducedMotion()
 
   return (
@@ -37,6 +39,23 @@ export function StreakBar({ days, className = '' }: StreakBarProps) {
             }`}>
               {isToday ? 'Today' : day.label}
             </span>
+            <AnimatePresence>
+              {showDates && day.dateNumber != null && (
+                <motion.span
+                  initial={prefersReduced ? false : { opacity: 0, height: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginTop: -2 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className={`text-[9px] font-semibold leading-none ${
+                    isToday
+                      ? 'text-[var(--color-text)]'
+                      : 'text-[var(--color-text-muted)]'
+                  }`}
+                >
+                  {day.dateNumber}
+                </motion.span>
+              )}
+            </AnimatePresence>
             <motion.div
               initial={prefersReduced ? false : { scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
