@@ -47,10 +47,8 @@ export function BottomNav() {
                         className="relative w-[18px] h-[18px]"
                         strokeWidth={isActive ? 2.5 : 1.8}
                       />
-                      {showBadge && unreadCount && unreadCount > 0 && !isActive && (
-                        <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[var(--color-primary)] text-white text-[8px] font-bold flex items-center justify-center">
-                          {unreadCount > 9 ? '!' : unreadCount}
-                        </span>
+                      {showBadge && (unreadCount ?? 0) > 0 && !isActive && (
+                        <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500" />
                       )}
                     </div>
                     <span className={`relative text-[10px] leading-none ${isActive ? 'font-semibold' : 'font-medium'}`}>

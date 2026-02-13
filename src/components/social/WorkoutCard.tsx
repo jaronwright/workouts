@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { Dumbbell, Heart, Activity, ChevronDown, Flame, Image as ImageIcon, ExternalLink } from 'lucide-react'
+import { Dumbbell, Heart, Activity, ChevronDown, Flame, Image as ImageIcon, ExternalLink, Weight } from 'lucide-react'
 import { Card, CardContent, Avatar } from '@/components/ui'
 import { ReactionBar } from './ReactionBar'
 import { formatRelativeTime } from '@/utils/formatters'
@@ -22,8 +22,8 @@ function getWorkoutIcon(type: string) {
 }
 
 function formatVolume(volume: number): string {
-  if (volume >= 10000) return `${(volume / 1000).toFixed(1)}k lbs`
-  return `${volume.toLocaleString()} lbs`
+  if (volume >= 10000) return `${(volume / 1000).toFixed(1)}k`
+  return volume.toLocaleString()
 }
 
 function formatPace(distanceValue: number, durationMinutes: number, unit: string): string {
@@ -33,8 +33,24 @@ function formatPace(distanceValue: number, durationMinutes: number, unit: string
   return `${mins}:${secs.toString().padStart(2, '0')}/${unit === 'km' ? 'km' : 'mi'}`
 }
 
+function formatRepsUnit(unit: string): string {
+  switch (unit) {
+    case 'sec': return 'sec'
+    case 'min': return 'min'
+    case 'reps':
+    default: return ''
+  }
+}
+
+interface GroupedExercise {
+  name: string
+  setCount: number
+  reps: number | null
+  repsUnit: string
+}
+
 // Group sets by exercise for display
-function groupExercises(sets: FeedExerciseSet[]): { name: string; summary: string; unit: string }[] {
+function groupExercises(sets: FeedExerciseSet[]): GroupedExercise[] {
   const groups = new Map<string, FeedExerciseSet[]>()
   for (const set of sets) {
     const name = set.plan_exercise?.name || 'Unknown'
@@ -42,17 +58,19 @@ function groupExercises(sets: FeedExerciseSet[]): { name: string; summary: strin
     groups.get(name)!.push(set)
   }
 
-  return [...groups.entries()].map(([name, exerciseSets]) => {
-    const setCount = exerciseSets.length
-    const reps = exerciseSets[0]?.reps_completed
-    const weight = exerciseSets[0]?.weight_used
-    const unit = exerciseSets[0]?.plan_exercise?.weight_unit || 'lbs'
+  return [...groups.entries()].map(([name, exerciseSets]) => ({
+    name,
+    setCount: exerciseSets.length,
+    reps: exerciseSets[0]?.reps_completed ?? null,
+    repsUnit: exerciseSets[0]?.plan_exercise?.reps_unit || 'reps',
+  }))
+}
 
-    let summary = `${setCount}x${reps || '?'}`
-    if (weight) summary += ` @ ${weight} ${unit}`
-
-    return { name, summary, unit }
-  })
+function formatExerciseSummary(ex: GroupedExercise): string {
+  const unit = formatRepsUnit(ex.repsUnit)
+  if (ex.reps == null) return `${ex.setCount} sets`
+  if (unit) return `${ex.setCount}x${ex.reps} ${unit}`
+  return `${ex.setCount}x${ex.reps}`
 }
 
 // ─── Collapsed Card ──────────────────────────────────
@@ -82,20 +100,16 @@ export function WorkoutCard({ workout, index, onUserClick }: WorkoutCardProps) {
     ? TAG_MAP[workout.review.performance_tags[0] as keyof typeof TAG_MAP]
     : null
 
-  // Summary stat line
-  const summaryParts: string[] = []
+  // Subtitle line (type-specific, no duration — that's in the header)
+  const subtitleParts: string[] = []
   if (workout.type === 'weights') {
-    if (workout.exercise_count > 0) summaryParts.push(`${workout.exercise_count} exercises`)
-    if (workout.total_volume && !hideWeights) summaryParts.push(formatVolume(workout.total_volume))
+    if (workout.exercise_count > 0) subtitleParts.push(`${workout.exercise_count} exercises`)
   }
   if (workout.distance_value && workout.distance_unit) {
-    summaryParts.push(`${workout.distance_value} ${workout.distance_unit}`)
-  }
-  if (workout.duration_minutes) {
-    summaryParts.push(`${workout.duration_minutes} min`)
+    subtitleParts.push(`${workout.distance_value} ${workout.distance_unit}`)
   }
   if (workout.type !== 'weights' && workout.distance_value && workout.duration_minutes && workout.distance_unit) {
-    summaryParts.push(formatPace(workout.distance_value, workout.duration_minutes, workout.distance_unit))
+    subtitleParts.push(formatPace(workout.distance_value, workout.duration_minutes, workout.distance_unit))
   }
 
   return (
@@ -142,14 +156,14 @@ export function WorkoutCard({ workout, index, onUserClick }: WorkoutCardProps) {
               </div>
 
               {/* Row 2: Workout name + duration */}
-              <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">
+              <p className="text-sm mt-0.5">
                 <span className="font-medium text-[var(--color-text)]">{workoutName}</span>
                 {workout.duration_minutes && (
                   <span className="text-[var(--color-text-muted)]"> · {workout.duration_minutes} min</span>
                 )}
               </p>
 
-              {/* Row 3: Mood + tag + streak */}
+              {/* Row 3: Badges (mood, tag, streak, photos) */}
               <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                 {moodBefore && moodAfter && (
                   <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs bg-[var(--color-surface-hover)]">
@@ -180,12 +194,24 @@ export function WorkoutCard({ workout, index, onUserClick }: WorkoutCardProps) {
                 )}
               </div>
 
-              {/* Row 4: Summary stat */}
-              {summaryParts.length > 0 && (
+              {/* Row 4: Volume highlight (weights) or subtitle (cardio/mobility) */}
+              {workout.type === 'weights' && workout.total_volume && !hideWeights ? (
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <Weight className="w-3.5 h-3.5 text-[var(--color-weights)]" />
+                  <span className="text-sm font-semibold text-[var(--color-text)]">
+                    {formatVolume(workout.total_volume)} lbs
+                  </span>
+                  {workout.exercise_count > 0 && (
+                    <span className="text-xs text-[var(--color-text-muted)]">
+                      total · {workout.exercise_count} exercises
+                    </span>
+                  )}
+                </div>
+              ) : subtitleParts.length > 0 ? (
                 <p className="text-xs text-[var(--color-text-muted)] mt-1">
-                  {summaryParts.join(' · ')}
+                  {subtitleParts.join(' · ')}
                 </p>
-              )}
+              ) : null}
             </div>
 
             {/* Expand indicator */}
@@ -210,7 +236,6 @@ export function WorkoutCard({ workout, index, onUserClick }: WorkoutCardProps) {
               >
                 <ExpandedContent
                   workout={workout}
-                  hideWeights={!!hideWeights}
                   onViewDetails={() => {
                     const path = workout.type === 'weights'
                       ? `/community/session/${workout.id}`
@@ -229,7 +254,7 @@ export function WorkoutCard({ workout, index, onUserClick }: WorkoutCardProps) {
 
 // ─── Expanded Content ────────────────────────────────
 
-function ExpandedContent({ workout, hideWeights, onViewDetails }: { workout: FeedWorkout; hideWeights: boolean; onViewDetails: () => void }) {
+function ExpandedContent({ workout, onViewDetails }: { workout: FeedWorkout; onViewDetails: () => void }) {
   const review = workout.review
   const exercises = groupExercises(workout.exercises)
   const visibleExercises = exercises.slice(0, MAX_INLINE_EXERCISES)
@@ -268,22 +293,24 @@ function ExpandedContent({ workout, hideWeights, onViewDetails }: { workout: Fee
         </div>
       )}
 
-      {/* Exercise list (weights only) */}
+      {/* Exercise list (weights only) — shows sets × reps, no individual weights */}
       {workout.type === 'weights' && exercises.length > 0 && (
-        <div className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)] mb-1.5">
             Exercises
           </p>
-          {visibleExercises.map((ex, i) => (
-            <div key={i} className="flex items-center justify-between text-sm">
-              <span className="text-[var(--color-text-secondary)] truncate">{ex.name}</span>
-              <span className="text-xs text-[var(--color-text-muted)] flex-shrink-0 ml-2">
-                {hideWeights ? `${ex.summary.split('@')[0].trim()}` : ex.summary}
-              </span>
-            </div>
-          ))}
+          <div className="rounded-lg bg-[var(--color-surface-hover)]/50 divide-y divide-[var(--color-border)]/50">
+            {visibleExercises.map((ex, i) => (
+              <div key={i} className="flex items-center justify-between px-3 py-2">
+                <span className="text-sm text-[var(--color-text)] truncate">{ex.name}</span>
+                <span className="text-xs text-[var(--color-text-muted)] flex-shrink-0 ml-3 font-medium tabular-nums">
+                  {formatExerciseSummary(ex)}
+                </span>
+              </div>
+            ))}
+          </div>
           {overflowCount > 0 && (
-            <p className="text-xs text-[var(--color-primary)] font-medium">
+            <p className="text-xs text-[var(--color-primary)] font-medium mt-1.5 pl-3">
               + {overflowCount} more exercise{overflowCount > 1 ? 's' : ''}
             </p>
           )}
@@ -312,9 +339,9 @@ function ExpandedContent({ workout, hideWeights, onViewDetails }: { workout: Fee
       {/* Reflection text */}
       {review?.reflection && (
         <p className="text-sm text-[var(--color-text-secondary)] italic leading-relaxed">
-          "{review.reflection.length > MAX_REFLECTION_LENGTH
+          &ldquo;{review.reflection.length > MAX_REFLECTION_LENGTH
             ? `${review.reflection.slice(0, MAX_REFLECTION_LENGTH)}...`
-            : review.reflection}"
+            : review.reflection}&rdquo;
         </p>
       )}
 

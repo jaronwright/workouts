@@ -61,10 +61,8 @@ export function CommunityPage() {
       className="relative p-1.5 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
     >
       <Bell className="w-5 h-5 text-[var(--color-text-muted)]" />
-      {unreadCount && unreadCount > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[var(--color-primary)] text-white text-[10px] font-bold flex items-center justify-center">
-          {unreadCount > 9 ? '9+' : unreadCount}
-        </span>
+      {(unreadCount ?? 0) > 0 && (
+        <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-red-500" />
       )}
     </button>
   )

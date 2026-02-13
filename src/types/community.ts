@@ -36,6 +36,7 @@ export interface FeedExerciseSet {
   plan_exercise: {
     name: string
     weight_unit: 'lbs' | 'kg'
+    reps_unit: string
   }
 }
 

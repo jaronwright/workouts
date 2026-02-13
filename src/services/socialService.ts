@@ -168,22 +168,34 @@ async function fetchUserProfiles(userIds: string[]): Promise<Map<string, FeedUse
   const map = new Map<string, FeedUserProfile>()
   if (userIds.length === 0) return map
 
-  const { data, error } = await supabase
+  // Try with hide_weight_details first; fall back to core columns if migration not applied
+  const result = await supabase
     .from('user_profiles')
     .select('id, display_name, avatar_url, selected_plan_id, hide_weight_details')
     .in('id', userIds)
 
-  if (error) {
-    console.warn('Error fetching profiles:', error.message)
-    return map
+  let profiles = result.data
+
+  if (result.error) {
+    // Retry without hide_weight_details in case the column doesn't exist yet
+    const fallback = await supabase
+      .from('user_profiles')
+      .select('id, display_name, avatar_url, selected_plan_id')
+      .in('id', userIds)
+
+    if (fallback.error) {
+      console.warn('Error fetching profiles:', fallback.error.message)
+      return map
+    }
+    profiles = fallback.data
   }
 
-  data?.forEach(p => {
+  profiles?.forEach(p => {
     map.set(p.id, {
       display_name: p.display_name,
       avatar_url: p.avatar_url,
       selected_plan_id: p.selected_plan_id,
-      hide_weight_details: p.hide_weight_details ?? false,
+      hide_weight_details: ('hide_weight_details' in p ? p.hide_weight_details : false) as boolean,
     })
   })
 
@@ -375,7 +387,7 @@ async function fetchExerciseSetsForSessions(
       reps_completed,
       weight_used,
       completed,
-      plan_exercise:plan_exercises(name, weight_unit)
+      plan_exercise:plan_exercises(name, weight_unit, reps_unit)
     `)
     .in('session_id', sessionIds)
     .eq('completed', true)
@@ -397,7 +409,7 @@ async function fetchExerciseSetsForSessions(
       reps_completed: s.reps_completed,
       weight_used: s.weight_used,
       completed: s.completed,
-      plan_exercise: (planExercise as { name: string; weight_unit: 'lbs' | 'kg' }) || { name: 'Unknown', weight_unit: 'lbs' as const },
+      plan_exercise: (planExercise as { name: string; weight_unit: 'lbs' | 'kg'; reps_unit: string }) || { name: 'Unknown', weight_unit: 'lbs' as const, reps_unit: 'reps' },
     })
   })
 
