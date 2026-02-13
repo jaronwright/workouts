@@ -65,12 +65,12 @@ Page → Hook (TanStack Query) → Service → Supabase
 
 ### Key Directories
 
-- `src/pages/` - Route components (15 pages)
+- `src/pages/` - Route components
 - `src/components/` - Organized by domain: `ui/`, `layout/`, `workout/`, `review/`, `onboarding/`, `profile/`, `schedule/`, `calendar/`, `stats/`, `social/`, `weather/`, `auth/`
-- `src/hooks/` - 25 custom hooks wrapping services with TanStack Query
-- `src/services/` - 15 service modules (Supabase operations + external APIs)
-- `src/stores/` - 8 Zustand stores: `authStore`, `workoutStore`, `reviewStore`, `offlineStore`, `settingsStore`, `themeStore`, `toastStore`, `weatherStore`
-- `src/config/` - `workoutConfig.ts` (style/display-name mappings), `reviewConfig.ts` (moods, tags, ratings), `planConstants.ts`, `animationConfig.ts`
+- `src/hooks/` - Custom hooks wrapping services with TanStack Query
+- `src/services/` - Service modules (Supabase operations + external APIs)
+- `src/stores/` - Zustand stores: `authStore`, `workoutStore`, `reviewStore`, `offlineStore`, `settingsStore`, `themeStore`, `toastStore`, `weatherStore`
+- `src/config/` - `workoutConfig.ts` (style/display-name mappings), `reviewConfig.ts` (moods, tags, ratings), `planConstants.ts`, `animationConfig.ts`, `defaultAvatars.ts`, `restDayActivities.ts`
 - `src/types/` - TypeScript types including Supabase-generated database types
 
 ### Database Schema
@@ -121,7 +121,7 @@ Protected routes require authentication. Full route list:
 
 ## Testing
 
-- Tests across 376 test files in `__tests__` directories adjacent to source
+- Tests in `__tests__` directories adjacent to source
 - Test setup in `src/test/setup.ts` with Supabase mocks in `src/test/mocks/`
 - Custom render with providers in `src/test/utils.tsx`
 - Uses jsdom environment with React Testing Library
@@ -138,5 +138,5 @@ Protected routes require authentication. Full route list:
 - Exercise name matching uses a mapping table + plural stripping + fuzzy scoring + keyword fallback
 - Bottom nav uses `min-w-14 px-2` (not fixed width) so longer labels fit; active state is Material 3-style pill
 - `react-hooks/set-state-in-effect` lint rule requires `/* eslint-disable */` for effects that reset state on open/close
-- V2 planning docs live in `docs/v2/` (discovery.md, research.md, plan.md, progress.md)
+- V2 planning docs live in `docs/v2/` (discovery.md, research.md, plan.md, progress.md); review redesign specs in `docs/` root
 - Deployed to Vercel with SPA rewrites configured in `vercel.json`
