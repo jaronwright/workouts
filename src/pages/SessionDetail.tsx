@@ -3,14 +3,14 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout'
-import { Card, CardContent, Modal, Button } from '@/components/ui'
+import { Modal, Button } from '@/components/ui'
 import { ReviewSummaryCard } from '@/components/review/ReviewSummaryCard'
 import { useDeleteSession, useUpdateSession, useUpdateSet, useDeleteSet } from '@/hooks/useWorkoutSession'
 import { useSessionReview } from '@/hooks/useReview'
 import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
-import { getWorkoutDisplayName } from '@/config/workoutConfig'
+import { getWorkoutDisplayName, getWeightsStyleByName } from '@/config/workoutConfig'
 import {
-  Calendar, Clock, CheckCircle, Dumbbell, Trash2, Edit2, X, Save, MoreVertical, Share2
+  Clock, CheckCircle, Dumbbell, Trash2, Edit2, X, Save, MoreVertical, Share2, Layers, StickyNote
 } from 'lucide-react'
 import { useShare } from '@/hooks/useShare'
 import { formatSessionShareText } from '@/utils/shareFormatters'
@@ -328,9 +328,16 @@ export function SessionDetailPage() {
     return formatDuration(seconds)
   }
 
+  // Get workout style for theming
+  const workoutName = getWorkoutDisplayName(data?.session.workout_day?.name)
+  const workoutStyle = data?.session.workout_day?.name
+    ? getWeightsStyleByName(data.session.workout_day.name)
+    : null
+  const accentColor = workoutStyle?.color || 'var(--color-primary)'
+
   return (
     <AppShell
-      title={getWorkoutDisplayName(data?.session.workout_day?.name) || 'Workout Details'}
+      title={workoutName || 'Workout Details'}
       showBack
       headerAction={
         data && (
@@ -353,9 +360,9 @@ export function SessionDetailPage() {
                       setShowActionsMenu(false)
                       if (data) {
                         share({
-                          title: getWorkoutDisplayName(data.session.workout_day?.name) || 'Workout',
+                          title: workoutName || 'Workout',
                           text: formatSessionShareText({
-                            workoutName: getWorkoutDisplayName(data.session.workout_day?.name) || 'Workout',
+                            workoutName: workoutName || 'Workout',
                             date: data.session.started_at,
                             duration: getDuration(),
                             exerciseCount: sortedExercises.length
@@ -392,120 +399,174 @@ export function SessionDetailPage() {
         )
       }
     >
-      <div className="p-4 space-y-4">
-        {isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
-            ))}
-          </div>
-        ) : data ? (
-          <>
-            {/* Session Info */}
-            <Card>
-              <CardContent className="py-4">
-                <div className="flex items-center gap-4 text-sm text-[var(--color-text-muted)]">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4" />
-                    {formatDate(data.session.started_at)}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4" />
-                    {formatTime(data.session.started_at)}
-                  </span>
-                </div>
-                {getDuration() && (
-                  <p className="text-sm text-[var(--color-text-muted)] mt-2">
-                    Duration: {getDuration()}
-                  </p>
-                )}
-                {data.session.completed_at && (
-                  <div className="flex items-center gap-1.5 mt-2 text-[var(--color-success)] text-sm">
-                    <CheckCircle className="w-4 h-4" />
-                    Completed
-                  </div>
-                )}
-
-                {/* Notes Section */}
-                {isEditingNotes ? (
-                  <div className="mt-3 space-y-2">
-                    <textarea
-                      value={editedNotes}
-                      onChange={(e) => setEditedNotes(e.target.value)}
-                      placeholder="Add notes about this workout..."
-                      className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-sm resize-none"
-                      rows={3}
-                    />
-                    <div className="flex gap-2 justify-end">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => setIsEditingNotes(false)}
-                      >
-                        <X className="w-4 h-4 mr-1" />
-                        Cancel
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        onClick={handleSaveNotes}
-                        loading={isUpdatingNotes}
-                      >
-                        <Save className="w-4 h-4 mr-1" />
-                        Save
-                      </Button>
-                    </div>
-                  </div>
-                ) : data.session.notes ? (
-                  <button
-                    onClick={handleStartEditNotes}
-                    className="mt-3 w-full text-left text-sm text-[var(--color-text-muted)] bg-[var(--color-surface-hover)] p-2 rounded-lg hover:bg-[var(--color-surface-hover)]/80 transition-colors"
-                  >
-                    {data.session.notes}
-                    <span className="text-xs text-[var(--color-primary)] ml-2">(tap to edit)</span>
-                  </button>
+      {isLoading ? (
+        <div className="p-4 space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-24 skeleton rounded-2xl" />
+          ))}
+        </div>
+      ) : data ? (
+        <div className="pb-8">
+          {/* Hero Section — gradient background with workout info */}
+          <div className="relative overflow-hidden">
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(180deg, ${accentColor}15 0%, transparent 100%)`
+              }}
+            />
+            <div className="relative px-6 pt-4 pb-6 flex flex-col items-center text-center">
+              {/* Workout icon */}
+              <div
+                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3"
+                style={{ backgroundColor: `${accentColor}20` }}
+              >
+                {workoutStyle?.icon ? (
+                  <workoutStyle.icon className="w-8 h-8" style={{ color: accentColor }} />
                 ) : (
-                  <button
-                    onClick={handleStartEditNotes}
-                    className="mt-3 text-sm text-[var(--color-primary)] hover:underline"
-                  >
-                    + Add notes
-                  </button>
+                  <Dumbbell className="w-8 h-8" style={{ color: accentColor }} />
                 )}
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Workout Review */}
-            {review && <ReviewSummaryCard review={review} />}
+              {/* Date & time */}
+              <p className="text-sm text-[var(--color-text-muted)]">
+                {formatDate(data.session.started_at)} · {formatTime(data.session.started_at)}
+              </p>
 
-            {/* Exercises by Section */}
+              {/* Status */}
+              {data.session.completed_at && (
+                <div className="flex items-center gap-1.5 mt-2 text-[var(--color-success)] text-sm font-medium">
+                  <CheckCircle className="w-4 h-4" />
+                  Completed
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Metrics Row */}
+          <div className="flex justify-around px-4 -mt-1 mb-4">
+            {getDuration() && (
+              <div className="flex flex-col items-center">
+                <div className="w-10 h-10 rounded-xl bg-sky-500/15 flex items-center justify-center mb-1.5">
+                  <Clock className="w-5 h-5 text-sky-500" />
+                </div>
+                <span className="text-sm font-bold text-[var(--color-text)]">{getDuration()}</span>
+                <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Duration</span>
+              </div>
+            )}
+            <div className="flex flex-col items-center">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center mb-1.5">
+                <Layers className="w-5 h-5 text-violet-500" />
+              </div>
+              <span className="text-sm font-bold text-[var(--color-text)]">{sortedExercises.length}</span>
+              <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Exercises</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center mb-1.5">
+                <Dumbbell className="w-5 h-5 text-amber-500" />
+              </div>
+              <span className="text-sm font-bold text-[var(--color-text)]">{data.sets.length}</span>
+              <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Sets</span>
+            </div>
+          </div>
+
+          {/* Notes Section */}
+          {isEditingNotes ? (
+            <div className="px-4 mb-4">
+              <div className="bg-[var(--color-surface)] rounded-2xl p-4 space-y-3">
+                <textarea
+                  value={editedNotes}
+                  onChange={(e) => setEditedNotes(e.target.value)}
+                  placeholder="Add notes about this workout..."
+                  className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-text)] text-sm resize-none"
+                  rows={3}
+                />
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setIsEditingNotes(false)}
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={handleSaveNotes}
+                    loading={isUpdatingNotes}
+                  >
+                    <Save className="w-4 h-4 mr-1" />
+                    Save
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : data.session.notes ? (
+            <div className="px-4 mb-4">
+              <button
+                onClick={handleStartEditNotes}
+                className="w-full text-left bg-[var(--color-surface)] rounded-2xl p-4 active:scale-[0.98] transition-transform"
+              >
+                <div className="flex items-start gap-3">
+                  <StickyNote className="w-4 h-4 text-[var(--color-text-muted)] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">{data.session.notes}</p>
+                    <span className="text-xs text-[var(--color-primary)] mt-1 block">Tap to edit</span>
+                  </div>
+                </div>
+              </button>
+            </div>
+          ) : (
+            <div className="px-4 mb-4">
+              <button
+                onClick={handleStartEditNotes}
+                className="w-full flex items-center justify-center gap-2 py-3 text-sm text-[var(--color-primary)] bg-[var(--color-surface)] rounded-2xl active:scale-[0.98] transition-transform"
+              >
+                <StickyNote className="w-4 h-4" />
+                Add notes
+              </button>
+            </div>
+          )}
+
+          {/* Workout Review */}
+          {review && (
+            <div className="px-4 mb-4">
+              <ReviewSummaryCard review={review} />
+            </div>
+          )}
+
+          {/* Exercises by Section — iOS grouped list style */}
+          <div className="px-4 space-y-5">
             {Object.entries(sections).map(([sectionName, exercises]) => (
-              <div key={sectionName} className="space-y-3">
-                <h3 className="font-semibold text-[var(--color-text-muted)] text-sm uppercase tracking-wide">
+              <div key={sectionName}>
+                <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 px-1">
                   {sectionName}
                 </h3>
-                {exercises.map(({ exercise, sets }) => (
-                  <Card key={exercise.id}>
-                    <CardContent className="py-3">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-[var(--color-primary)]/20 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Dumbbell className="w-5 h-5 text-[var(--color-primary)]" />
+                <div className="bg-[var(--color-surface)] rounded-2xl overflow-hidden divide-y divide-[var(--color-border)]">
+                  {exercises.map(({ exercise, sets }) => (
+                    <div key={exercise.id} className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: `${accentColor}15` }}
+                        >
+                          <Dumbbell className="w-4 h-4" style={{ color: accentColor }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-[var(--color-text)]">{exercise.name}</h4>
-                          <div className="flex flex-wrap gap-2 mt-2">
+                          <h4 className="text-sm font-medium text-[var(--color-text)]">{exercise.name}</h4>
+                          <div className="flex flex-wrap gap-1.5 mt-1.5">
                             {(() => {
                               const allSameReps = sets.every(s => s.reps_completed === sets[0].reps_completed)
                               const allSameWeight = sets.every(s => s.weight_used === sets[0].weight_used)
 
                               if (allSameReps && allSameWeight) {
-                                // Consolidated: "2 sets, 20 reps @ 135 lbs"
                                 const reps = sets[0].reps_completed
                                 const weight = sets[0].weight_used
                                 return (
                                   <button
                                     onClick={() => setEditingSet(sets[0])}
-                                    className="text-xs bg-[var(--color-surface-hover)] px-2 py-1 rounded-lg hover:bg-[var(--color-surface-hover)]/80 transition-colors active:scale-95"
+                                    className="text-xs bg-[var(--color-background)] px-2.5 py-1 rounded-lg active:scale-95 transition-transform"
                                   >
                                     <span className="font-medium text-[var(--color-text)]">
                                       {sets.length} {sets.length === 1 ? 'set' : 'sets'}
@@ -523,14 +584,13 @@ export function SessionDetailPage() {
                                   </button>
                                 )
                               } else {
-                                // Different values per set — show individually
                                 return sets.map((set, index) => (
                                   <button
                                     key={set.id}
                                     onClick={() => setEditingSet(set)}
-                                    className="text-xs bg-[var(--color-surface-hover)] px-2 py-1 rounded-lg hover:bg-[var(--color-surface-hover)]/80 transition-colors active:scale-95"
+                                    className="text-xs bg-[var(--color-background)] px-2.5 py-1 rounded-lg active:scale-95 transition-transform"
                                   >
-                                    <span className="font-medium text-[var(--color-text)]">Set {index + 1}</span>
+                                    <span className="font-medium text-[var(--color-text)]">S{index + 1}</span>
                                     {set.reps_completed != null && (
                                       <span className="text-[var(--color-text-muted)]">
                                         : {set.reps_completed} {exercise.reps_unit || 'reps'}
@@ -546,33 +606,27 @@ export function SessionDetailPage() {
                               }
                             })()}
                           </div>
-                          <p className="text-[10px] text-[var(--color-text-muted)] mt-1.5 opacity-70">
-                            Tap to edit
-                          </p>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
 
             {sortedExercises.length === 0 && (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="text-[var(--color-text-muted)]">No exercises logged for this session.</p>
-                </CardContent>
-              </Card>
+              <div className="text-center py-12">
+                <Dumbbell className="w-10 h-10 text-[var(--color-text-muted)] opacity-30 mx-auto mb-3" />
+                <p className="text-sm text-[var(--color-text-muted)]">No exercises logged for this session.</p>
+              </div>
             )}
-          </>
-        ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-[var(--color-text-muted)]">Session not found.</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-20">
+          <p className="text-[var(--color-text-muted)]">Session not found.</p>
+        </div>
+      )}
 
       {/* Delete Session Modal */}
       <Modal
@@ -585,7 +639,7 @@ export function SessionDetailPage() {
             Are you sure you want to delete this workout session?
           </p>
           <p className="text-sm font-medium text-[var(--color-text)]">
-            {getWorkoutDisplayName(data?.session.workout_day?.name)} - {data && formatDate(data.session.started_at)}
+            {workoutName} - {data && formatDate(data.session.started_at)}
           </p>
           <p className="text-sm text-[var(--color-danger)]">
             This will permanently delete all logged sets and cannot be undone.

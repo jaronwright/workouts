@@ -59,9 +59,50 @@ vi.mock('@/hooks/useTemplateWorkout', () => ({
   useUserTemplateWorkouts: () => ({ data: mockTemplateSessions }),
 }))
 
+vi.mock('@/hooks/useReducedMotion', () => ({
+  useReducedMotion: () => false,
+}))
+
+vi.mock('@/hooks/useToast', () => ({
+  useToast: () => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() }),
+}))
+
+vi.mock('@/config/animationConfig', () => ({
+  staggerContainer: {},
+  staggerChild: {},
+}))
+
+vi.mock('motion/react', () => {
+  const { forwardRef } = require('react')
+  const motionValueMock = (initial: number) => ({
+    get: () => initial,
+    set: vi.fn(),
+    on: () => vi.fn(),
+  })
+  return {
+    motion: new Proxy({}, {
+      get: (_target: unknown, prop: string) => {
+        return forwardRef((props: Record<string, unknown>, ref: unknown) => {
+          const { children, variants, initial, animate, exit, transition, whileTap, whileHover, ...rest } = props as Record<string, unknown>
+          const Tag = prop as string
+          return <Tag ref={ref} {...rest}>{children as React.ReactNode}</Tag>
+        })
+      },
+    }),
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    useMotionValue: motionValueMock,
+    useSpring: (mv: unknown) => mv,
+    useTransform: (mv: unknown) => ({ get: () => 0, on: () => vi.fn() }),
+  }
+})
+
 vi.mock('@/components/workout', () => ({
   CardioLogCard: () => <div data-testid="cardio-log-card" />,
   ScheduleWidget: () => <div data-testid="schedule-widget" />,
+}))
+
+vi.mock('@/components/weather', () => ({
+  WeatherCard: () => <div data-testid="weather-card" />,
 }))
 
 vi.mock('@/components/onboarding', () => ({
@@ -249,6 +290,28 @@ describe('HomePage', () => {
       render(<HomePage />)
       expect(screen.getByText('Continue')).toBeInTheDocument()
       expect(screen.getByText('In Progress')).toBeInTheDocument()
+    })
+  })
+
+  describe('WeeklyReviewCard removal', () => {
+    it('does not render any Weekly Review content', () => {
+      render(<HomePage />)
+      expect(screen.queryByText(/weekly review/i)).not.toBeInTheDocument()
+      expect(screen.queryByTestId('weekly-review')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('ScheduleWidget', () => {
+    it('renders the schedule widget', () => {
+      render(<HomePage />)
+      expect(screen.getByTestId('schedule-widget')).toBeInTheDocument()
+    })
+  })
+
+  describe('WeatherCard', () => {
+    it('renders the weather card', () => {
+      render(<HomePage />)
+      expect(screen.getByTestId('weather-card')).toBeInTheDocument()
     })
   })
 })

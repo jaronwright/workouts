@@ -47,7 +47,6 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
   let Icon = showProjectedIcon ? projected!.icon : sessionStyle?.icon || null
   let iconColor = showProjectedIcon ? (projected!.color || '#6B7280') : (sessionStyle?.color || '#6B7280')
   let bgCircleColor = showProjectedIcon ? (projected!.bgColor || 'transparent') : (sessionStyle?.bgColor || 'transparent')
-  let iconOpacity = 1
 
   // Override for completed sessions — always show the actual workout icon
   if (hasCompletedSession && sessionStyle) {
@@ -56,86 +55,101 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
     bgCircleColor = sessionStyle.bgColor
   }
 
+  // Cell background and opacity based on state
+  let cellBg = 'transparent'
+  let iconOpacity = 1
+
   if (!isCurrentMonth) {
     iconOpacity = 0.3
+  } else if (hasCompletedSession) {
+    // Completed: subtle workout-type tint on cell
+    cellBg = `${iconColor}0D`
   } else if (isRest) {
-    iconOpacity = 0.4
+    iconOpacity = 0.5
   } else if (isFuture && !isToday) {
-    iconOpacity = 0.3
-    bgCircleColor = hasIcon ? `${iconColor}10` : 'transparent'
+    iconOpacity = 0.55
+    bgCircleColor = hasIcon ? `${iconColor}18` : 'transparent'
   } else if (isMissed) {
     iconColor = '#9CA3AF'
     bgCircleColor = 'rgba(156, 163, 175, 0.1)'
-    iconOpacity = 0.5
+    iconOpacity = 0.6
   }
 
   return (
     <button
       onClick={() => onSelect(day)}
       className={`
-        relative flex flex-col items-center justify-start gap-0.5 py-1.5 rounded-lg
-        transition-all duration-150 min-h-[52px]
-        ${!isCurrentMonth ? 'opacity-30' : ''}
-        ${isSelected ? 'ring-2 ring-[var(--color-primary)] bg-[var(--color-primary)]/5' : ''}
+        relative flex flex-col items-center justify-center gap-1 rounded-2xl
+        transition-all duration-150 h-full
+        ${!isCurrentMonth ? 'opacity-25' : ''}
+        ${isSelected && !isToday ? 'ring-2 ring-[var(--color-primary)] bg-[var(--color-primary)]/5' : ''}
+        ${isSelected && isToday ? 'ring-2 ring-[var(--color-primary)]' : ''}
         active:scale-95
       `}
+      style={{ backgroundColor: !isSelected ? cellBg : undefined }}
     >
-      {/* Day number */}
-      <span className={`
-        text-[11px] font-semibold leading-none
-        ${isToday ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}
-      `}>
-        {dayOfMonth}
-      </span>
+      {/* Day number — Apple-style filled circle for today */}
+      {isToday ? (
+        <span className="w-7 h-7 flex items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-sm font-bold leading-none">
+          {dayOfMonth}
+        </span>
+      ) : (
+        <span className={`
+          text-sm font-semibold leading-none
+          ${hasCompletedSession && isCurrentMonth ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}
+        `}>
+          {dayOfMonth}
+        </span>
+      )}
 
       {/* Workout icon circle */}
       {showCountBadge ? (
-        <div className="relative mt-0.5">
+        <div className="relative">
           <div
-            className="w-7 h-7 rounded-full flex items-center justify-center"
+            className="w-8 h-8 rounded-full flex items-center justify-center"
             style={{
-              background: 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.15))',
+              background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))',
               opacity: iconOpacity
             }}
           >
-            <span className="text-[11px] font-bold text-[var(--color-text)]">{multiCount}</span>
+            <span className="text-xs font-bold text-[var(--color-text)]">{multiCount}</span>
           </div>
         </div>
       ) : hasIcon && Icon ? (
-        <div className="relative mt-0.5">
+        <div className="relative">
           <div
-            className="w-7 h-7 rounded-full flex items-center justify-center"
+            className="w-8 h-8 rounded-full flex items-center justify-center"
             style={{
               backgroundColor: bgCircleColor,
               opacity: iconOpacity
             }}
           >
             <Icon
-              className="w-3.5 h-3.5"
+              className="w-4 h-4"
               style={{ color: iconColor }}
             />
           </div>
           {/* Today pulse ring — inside relative container so it aligns with icon */}
           {isToday && showProjectedIcon && !isRest && !hasCompletedSession && isCurrentMonth && !prefersReduced && (
             <motion.div
-              className="absolute inset-0 w-7 h-7 rounded-full border-2 border-[var(--color-primary)]"
+              className="absolute inset-0 w-8 h-8 rounded-full border-2 border-[var(--color-primary)]"
               animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             />
           )}
         </div>
       ) : (
-        <div className="w-7 h-7 mt-0.5" />
+        <div className="w-8 h-8" />
       )}
 
       {/* Green completion dot */}
       {hasCompletedSession && isCurrentMonth && (
-        <div className="absolute bottom-0.5 w-1.5 h-1.5 rounded-full bg-[var(--color-success)]" />
+        <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-success)]" />
       )}
 
-      {/* Missed workout red dot */}
+      {/* Missed workout indicator dot */}
       {isMissed && isCurrentMonth && (
-        <div className="absolute bottom-0.5 w-1.5 h-1.5 rounded-full bg-[var(--color-danger)]" />
+        <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-danger)] opacity-70" />
       )}
     </button>
   )

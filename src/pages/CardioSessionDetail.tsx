@@ -1,14 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout'
-import { Card, CardContent } from '@/components/ui'
+import { Modal, Button } from '@/components/ui'
 import { ReviewSummaryCard } from '@/components/review/ReviewSummaryCard'
 import { supabase } from '@/services/supabase'
 import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
-import { Calendar, Clock, MapPin, Timer, CheckCircle, Circle, Trash2, Share2 } from 'lucide-react'
+import { Clock, MapPin, Timer, CheckCircle, Circle, Trash2, Share2, Zap, Activity, StickyNote } from 'lucide-react'
 import { useShare } from '@/hooks/useShare'
 import { useTemplateSessionReview } from '@/hooks/useReview'
 import { formatCardioShareText } from '@/utils/shareFormatters'
+import { getCardioStyle, getMobilityStyle } from '@/config/workoutConfig'
+import { useState } from 'react'
 import type { TemplateWorkoutSession } from '@/services/templateWorkoutService'
 
 async function getTemplateSession(sessionId: string): Promise<TemplateWorkoutSession | null> {
@@ -41,6 +43,7 @@ export function CardioSessionDetailPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const { data: session, isLoading } = useQuery({
     queryKey: ['cardio-session', sessionId],
@@ -65,7 +68,8 @@ export function CardioSessionDetailPage() {
     return (
       <AppShell title="Loading..." showBack>
         <div className="p-4 space-y-4">
-          <div className="h-32 bg-[var(--color-surface-hover)] animate-pulse rounded-xl" />
+          <div className="h-32 skeleton rounded-2xl" />
+          <div className="h-20 skeleton rounded-2xl" />
         </div>
       </AppShell>
     )
@@ -74,7 +78,7 @@ export function CardioSessionDetailPage() {
   if (!session) {
     return (
       <AppShell title="Workout" showBack>
-        <div className="p-4">
+        <div className="flex flex-col items-center justify-center py-20">
           <p className="text-[var(--color-text-muted)]">Session not found.</p>
         </div>
       </AppShell>
@@ -86,118 +90,201 @@ export function CardioSessionDetailPage() {
       ? Math.round((new Date(session.completed_at).getTime() - new Date(session.started_at).getTime()) / 60000)
       : null)
 
+  // Get workout style for theming
+  const templateType = session.template?.type || 'cardio'
+  const category = session.template?.category
+  const workoutStyle = templateType === 'mobility'
+    ? (category ? getMobilityStyle(category) : null)
+    : (category ? getCardioStyle(category) : null)
+  const accentColor = workoutStyle?.color || 'var(--color-cardio)'
+  const WorkoutIcon = workoutStyle?.icon || (templateType === 'mobility' ? Activity : Zap)
+
   return (
     <AppShell title={session.template?.name || 'Workout'} showBack>
-      <div className="p-4 space-y-4">
-        {/* Session Info Card */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-4 text-sm text-[var(--color-text-muted)]">
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  {formatDate(session.started_at)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  {formatTime(session.started_at)}
-                </span>
-              </div>
-
-              {durationMinutes && (
-                <p className="text-[var(--color-text-muted)]">
-                  <Timer className="w-4 h-4 inline mr-1" />
-                  Duration: {formatDuration(durationMinutes * 60)}
-                </p>
-              )}
-
-              {session.distance_value && (
-                <p className="text-[var(--color-text-muted)]">
-                  <MapPin className="w-4 h-4 inline mr-1" />
-                  Distance: {session.distance_value} {session.distance_unit || 'miles'}
-                </p>
-              )}
-
-              <div className={`flex items-center gap-2 ${session.completed_at ? 'text-[var(--color-success)]' : 'text-[var(--color-warning)]'}`}>
-                {session.completed_at ? (
-                  <>
-                    <CheckCircle className="w-4 h-4" />
-                    Completed
-                  </>
-                ) : (
-                  <>
-                    <Circle className="w-4 h-4" />
-                    In Progress
-                  </>
-                )}
-              </div>
-
-              {session.notes && (
-                <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
-                  <p className="text-sm font-medium text-[var(--color-text)] mb-1">Notes</p>
-                  <p className="text-[var(--color-text-muted)]">{session.notes}</p>
-                </div>
-              )}
+      <div className="pb-8">
+        {/* Hero Section */}
+        <div className="relative overflow-hidden">
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(180deg, ${accentColor}15 0%, transparent 100%)`
+            }}
+          />
+          <div className="relative px-6 pt-4 pb-6 flex flex-col items-center text-center">
+            {/* Workout icon */}
+            <div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3"
+              style={{ backgroundColor: `${accentColor}20` }}
+            >
+              <WorkoutIcon className="w-8 h-8" style={{ color: accentColor }} />
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Workout Type Info */}
-        {session.template && (
-          <Card>
-            <CardContent className="py-4">
-              <h3 className="font-semibold text-[var(--color-text)] mb-2">
-                {session.template.name}
-              </h3>
-              <p className="text-sm text-[var(--color-text-muted)] capitalize">
+            {/* Workout type subtitle */}
+            {session.template && (
+              <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider font-medium mb-1">
                 {session.template.type} workout
               </p>
-              {session.template.description && (
-                <p className="text-sm text-[var(--color-text-muted)] mt-2">
-                  {session.template.description}
-                </p>
+            )}
+
+            {/* Date & time */}
+            <p className="text-sm text-[var(--color-text-muted)]">
+              {formatDate(session.started_at)} · {formatTime(session.started_at)}
+            </p>
+
+            {/* Status */}
+            <div className={`flex items-center gap-1.5 mt-2 text-sm font-medium ${
+              session.completed_at ? 'text-[var(--color-success)]' : 'text-[var(--color-warning)]'
+            }`}>
+              {session.completed_at ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  Completed
+                </>
+              ) : (
+                <>
+                  <Circle className="w-4 h-4" />
+                  In Progress
+                </>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </div>
+
+        {/* Metrics Row */}
+        <div className="flex justify-around px-4 -mt-1 mb-4">
+          {durationMinutes && (
+            <div className="flex flex-col items-center">
+              <div className="w-10 h-10 rounded-xl bg-sky-500/15 flex items-center justify-center mb-1.5">
+                <Timer className="w-5 h-5 text-sky-500" />
+              </div>
+              <span className="text-sm font-bold text-[var(--color-text)]">
+                {formatDuration(durationMinutes * 60)}
+              </span>
+              <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Duration</span>
+            </div>
+          )}
+          {session.distance_value && (
+            <div className="flex flex-col items-center">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center mb-1.5">
+                <MapPin className="w-5 h-5 text-emerald-500" />
+              </div>
+              <span className="text-sm font-bold text-[var(--color-text)]">
+                {session.distance_value} {session.distance_unit || 'mi'}
+              </span>
+              <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Distance</span>
+            </div>
+          )}
+          {durationMinutes && session.distance_value && (
+            <div className="flex flex-col items-center">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center mb-1.5">
+                <Clock className="w-5 h-5 text-violet-500" />
+              </div>
+              <span className="text-sm font-bold text-[var(--color-text)]">
+                {(durationMinutes / session.distance_value).toFixed(1)}
+              </span>
+              <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Min/Mile</span>
+            </div>
+          )}
+        </div>
+
+        {/* Description */}
+        {session.template?.description && (
+          <div className="px-4 mb-4">
+            <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+              <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">
+                {session.template.description}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Notes */}
+        {session.notes && (
+          <div className="px-4 mb-4">
+            <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+              <div className="flex items-start gap-3">
+                <StickyNote className="w-4 h-4 text-[var(--color-text-muted)] mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">{session.notes}</p>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Workout Review */}
-        {review && <ReviewSummaryCard review={review} />}
+        {review && (
+          <div className="px-4 mb-4">
+            <ReviewSummaryCard review={review} />
+          </div>
+        )}
 
-        {/* Share Button */}
-        <button
-          onClick={() =>
-            share({
-              title: session.template?.name || 'Workout',
-              text: formatCardioShareText({
-                workoutName: session.template?.name || 'Workout',
-                date: session.started_at,
-                durationMinutes: durationMinutes,
-                distanceValue: session.distance_value,
-                distanceUnit: session.distance_unit
+        {/* Action buttons */}
+        <div className="px-4 space-y-2 mt-6">
+          <button
+            onClick={() =>
+              share({
+                title: session.template?.name || 'Workout',
+                text: formatCardioShareText({
+                  workoutName: session.template?.name || 'Workout',
+                  date: session.started_at,
+                  durationMinutes: durationMinutes,
+                  distanceValue: session.distance_value,
+                  distanceUnit: session.distance_unit
+                })
               })
-            })
-          }
-          className="w-full flex items-center justify-center gap-2 py-3 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-xl transition-colors"
-        >
-          <Share2 className="w-5 h-5" />
-          Share Workout
-        </button>
-
-        {/* Delete Button */}
-        <button
-          onClick={() => {
-            if (confirm('Are you sure you want to delete this workout?')) {
-              deleteSession()
             }
-          }}
-          disabled={isDeleting}
-          className="w-full flex items-center justify-center gap-2 py-3 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-xl transition-colors"
-        >
-          <Trash2 className="w-5 h-5" />
-          {isDeleting ? 'Deleting...' : 'Delete Workout'}
-        </button>
+            className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/10 rounded-2xl active:scale-[0.98] transition-transform"
+          >
+            <Share2 className="w-4 h-4" />
+            Share Workout
+          </button>
+
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            disabled={isDeleting}
+            className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-[var(--color-danger)] bg-[var(--color-danger)]/10 rounded-2xl active:scale-[0.98] transition-transform"
+          >
+            <Trash2 className="w-4 h-4" />
+            {isDeleting ? 'Deleting...' : 'Delete Workout'}
+          </button>
+        </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete Workout"
+      >
+        <div className="space-y-4">
+          <p className="text-[var(--color-text-muted)]">
+            Are you sure you want to delete this workout?
+          </p>
+          <p className="text-sm font-medium text-[var(--color-text)]">
+            {session.template?.name} - {formatDate(session.started_at)}
+          </p>
+          <p className="text-sm text-[var(--color-danger)]">
+            This cannot be undone.
+          </p>
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="secondary"
+              onClick={() => setShowDeleteModal(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => deleteSession()}
+              loading={isDeleting}
+              className="flex-1"
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              Delete
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </AppShell>
   )
 }

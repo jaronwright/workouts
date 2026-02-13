@@ -64,13 +64,16 @@ export function CalendarGrid({
   const isCurrentMonthToday = isSameMonth(currentMonth, today)
   const monthKey = format(currentMonth, 'yyyy-MM')
 
+  const rowCount = Math.ceil(calendarDays.length / 7)
+
   return (
     <div
+      className="flex flex-col flex-1"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {/* Month navigation header */}
-      <div className="flex items-center justify-between px-1 mb-3">
+      <div className="flex items-center justify-between px-1 mb-4">
         <button
           onClick={goToPrevMonth}
           className="p-2 rounded-lg hover:bg-[var(--color-surface-hover)] active:scale-95 transition-all"
@@ -79,7 +82,7 @@ export function CalendarGrid({
         </button>
 
         <div className="flex items-center gap-2">
-          <h2 className="text-base font-bold text-[var(--color-text)]">
+          <h2 className="text-lg font-bold text-[var(--color-text)]">
             {format(currentMonth, 'MMMM yyyy')}
           </h2>
           {!isCurrentMonthToday && (
@@ -113,7 +116,8 @@ export function CalendarGrid({
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={monthKey}
-          className="grid grid-cols-7 gap-px"
+          className="grid grid-cols-7 gap-1.5 flex-1"
+          style={{ gridTemplateRows: `repeat(${rowCount}, 1fr)` }}
           initial={prefersReduced ? false : { opacity: 0, x: slideDirection * 40 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: slideDirection * -40 }}
