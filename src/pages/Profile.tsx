@@ -16,7 +16,7 @@ import { PasswordStrengthIndicator } from '@/components/auth/PasswordStrengthInd
 import { validatePassword } from '@/utils/validation'
 import { deleteUserAccount } from '@/services/profileService'
 import { staggerContainer, staggerChild } from '@/config/animationConfig'
-import { Calendar, Shield, Mail, ChevronDown, ChevronUp, LogOut, Sun, Moon as MoonIcon, Monitor, Dumbbell, Trophy, Flame, Star, ArrowLeftRight, ArrowUpDown, Heart, MessageSquarePlus, Bug, Lightbulb, Pencil, Check, X } from 'lucide-react'
+import { Calendar, Shield, Mail, ChevronDown, ChevronUp, LogOut, Sun, Moon as MoonIcon, Monitor, Dumbbell, Trophy, Flame, Star, ArrowLeftRight, ArrowUpDown, Heart, MessageSquarePlus, Bug, Lightbulb, Pencil, Check, X, Eye, EyeOff } from 'lucide-react'
 import { AvatarUpload } from '@/components/profile/AvatarUpload'
 import { OnboardingWizard } from '@/components/onboarding'
 import { NotificationSettings } from '@/components/profile/NotificationSettings'
@@ -542,6 +542,64 @@ export function ProfilePage() {
         {/* Notification Settings */}
         <motion.div variants={staggerChild}>
           <NotificationSettings />
+        </motion.div>
+
+        {/* Privacy Section */}
+        <motion.div variants={staggerChild}>
+          <Card>
+            <CardContent className="py-4 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-violet-500/20 rounded-full flex items-center justify-center">
+                  {profile?.hide_weight_details ? (
+                    <EyeOff className="w-5 h-5 text-violet-500" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-violet-500" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-[var(--color-text)]">Privacy</h3>
+                  <p className="text-sm text-[var(--color-text-muted)]">Control what others see</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between py-2">
+                <div className="flex-1 pr-4">
+                  <p className="text-sm font-medium text-[var(--color-text)]">Hide weight details</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                    Others will see your exercises but not weights
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    updateProfile(
+                      { hide_weight_details: !profile?.hide_weight_details },
+                      {
+                        onSuccess: () => success(profile?.hide_weight_details ? 'Weights now visible' : 'Weights hidden from community'),
+                        onError: () => showError('Failed to update privacy setting')
+                      }
+                    )
+                  }}
+                  className={`
+                    relative w-11 h-6 rounded-full transition-colors duration-200
+                    ${profile?.hide_weight_details
+                      ? 'bg-[var(--color-primary)]'
+                      : 'bg-[var(--color-border)]'
+                    }
+                  `}
+                  role="switch"
+                  aria-checked={profile?.hide_weight_details || false}
+                >
+                  <span
+                    className={`
+                      absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm
+                      transition-transform duration-200
+                      ${profile?.hide_weight_details ? 'translate-x-5' : 'translate-x-0'}
+                    `}
+                  />
+                </button>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Security Section */}

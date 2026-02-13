@@ -10,8 +10,9 @@ import { useSessionReview } from '@/hooks/useReview'
 import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
 import { getWorkoutDisplayName, getWeightsStyleByName } from '@/config/workoutConfig'
 import {
-  Clock, CheckCircle, Dumbbell, Trash2, Edit2, X, Save, MoreVertical, Share2, Layers, StickyNote
+  Clock, CheckCircle, Dumbbell, Trash2, Edit2, X, Save, MoreVertical, Share2, Layers, StickyNote, Camera
 } from 'lucide-react'
+import { WorkoutPhotos } from '@/components/social/WorkoutPhotos'
 import { useShare } from '@/hooks/useShare'
 import { formatSessionShareText } from '@/utils/shareFormatters'
 import { supabase } from '@/services/supabase'
@@ -533,6 +534,17 @@ export function SessionDetailPage() {
           {review && (
             <div className="px-4 mb-4">
               <ReviewSummaryCard review={review} />
+            </div>
+          )}
+
+          {/* Photos */}
+          {data.session.completed_at && (
+            <div className="px-4 mb-4">
+              <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5">
+                <Camera className="w-3 h-3" />
+                Photos
+              </h3>
+              <WorkoutPhotos sessionId={sessionId} />
             </div>
           )}
 

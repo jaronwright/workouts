@@ -5,7 +5,8 @@ import { Modal, Button } from '@/components/ui'
 import { ReviewSummaryCard } from '@/components/review/ReviewSummaryCard'
 import { supabase } from '@/services/supabase'
 import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
-import { Clock, MapPin, Timer, CheckCircle, Circle, Trash2, Share2, Zap, Activity, StickyNote } from 'lucide-react'
+import { Clock, MapPin, Timer, CheckCircle, Circle, Trash2, Share2, Zap, Activity, StickyNote, Camera } from 'lucide-react'
+import { WorkoutPhotos } from '@/components/social/WorkoutPhotos'
 import { useShare } from '@/hooks/useShare'
 import { useTemplateSessionReview } from '@/hooks/useReview'
 import { formatCardioShareText } from '@/utils/shareFormatters'
@@ -214,6 +215,17 @@ export function CardioSessionDetailPage() {
         {review && (
           <div className="px-4 mb-4">
             <ReviewSummaryCard review={review} />
+          </div>
+        )}
+
+        {/* Photos */}
+        {session.completed_at && (
+          <div className="px-4 mb-4">
+            <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5">
+              <Camera className="w-3 h-3" />
+              Photos
+            </h3>
+            <WorkoutPhotos templateSessionId={sessionId} />
           </div>
         )}
 

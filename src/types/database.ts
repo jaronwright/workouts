@@ -840,6 +840,99 @@ export interface Database {
           created_at?: string
         }
       }
+      activity_reactions: {
+        Row: {
+          id: string
+          user_id: string
+          session_id: string | null
+          template_session_id: string | null
+          reaction_type: 'fire' | 'strong' | 'props' | 'impressive'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          session_id?: string | null
+          template_session_id?: string | null
+          reaction_type: 'fire' | 'strong' | 'props' | 'impressive'
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          session_id?: string | null
+          template_session_id?: string | null
+          reaction_type?: 'fire' | 'strong' | 'props' | 'impressive'
+          created_at?: string
+        }
+      }
+      workout_photos: {
+        Row: {
+          id: string
+          user_id: string
+          session_id: string | null
+          template_session_id: string | null
+          photo_url: string
+          caption: string | null
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          session_id?: string | null
+          template_session_id?: string | null
+          photo_url: string
+          caption?: string | null
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          session_id?: string | null
+          template_session_id?: string | null
+          photo_url?: string
+          caption?: string | null
+          sort_order?: number
+          created_at?: string
+        }
+      }
+      community_notifications: {
+        Row: {
+          id: string
+          recipient_id: string
+          actor_id: string
+          notification_type: 'reaction' | 'photo_reaction'
+          reaction_id: string | null
+          session_id: string | null
+          template_session_id: string | null
+          is_read: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          recipient_id: string
+          actor_id: string
+          notification_type: 'reaction' | 'photo_reaction'
+          reaction_id?: string | null
+          session_id?: string | null
+          template_session_id?: string | null
+          is_read?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          recipient_id?: string
+          actor_id?: string
+          notification_type?: 'reaction' | 'photo_reaction'
+          reaction_id?: string | null
+          session_id?: string | null
+          template_session_id?: string | null
+          is_read?: boolean
+          created_at?: string
+        }
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

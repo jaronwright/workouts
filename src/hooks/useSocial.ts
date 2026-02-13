@@ -2,14 +2,25 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   getSocialFeed,
   toggleWorkoutPublic,
-  type SocialWorkout
+  getPublicProfile,
 } from '@/services/socialService'
+import type { FeedWorkout, PublicProfile } from '@/types/community'
+import { FEED_STALE_TIME } from '@/config/communityConfig'
 
 export function useSocialFeed(limit = 20) {
-  return useQuery<SocialWorkout[]>({
+  return useQuery<FeedWorkout[]>({
     queryKey: ['social-feed', limit],
     queryFn: () => getSocialFeed(limit),
-    staleTime: 1000 * 60 * 2 // 2 minutes
+    staleTime: FEED_STALE_TIME,
+  })
+}
+
+export function usePublicProfile(userId: string | null) {
+  return useQuery<PublicProfile | null>({
+    queryKey: ['public-profile', userId],
+    queryFn: () => (userId ? getPublicProfile(userId) : null),
+    enabled: !!userId,
+    staleTime: FEED_STALE_TIME,
   })
 }
 
@@ -23,6 +34,6 @@ export function useToggleWorkoutPublic() {
       queryClient.invalidateQueries({ queryKey: ['social-feed'] })
       queryClient.invalidateQueries({ queryKey: ['user-sessions'] })
       queryClient.invalidateQueries({ queryKey: ['user-template-workouts'] })
-    }
+    },
   })
 }

@@ -22,7 +22,9 @@ import {
   MobilityWorkoutPage,
   MobilityDurationPickerPage,
   RestDayPage,
-  CommunityPage
+  CommunityPage,
+  PublicProfilePage,
+  PublicSessionDetailPage
 } from '@/pages'
 
 const queryClient = new QueryClient({
@@ -126,6 +128,30 @@ function AnimatedRoutes() {
           element={
             <ProtectedRoute>
               <PageWrapper><CommunityPage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community/profile/:userId"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><PublicProfilePage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community/session/:sessionId"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><PublicSessionDetailPage /></PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community/cardio/:sessionId"
+          element={
+            <ProtectedRoute>
+              <PageWrapper><PublicSessionDetailPage /></PageWrapper>
             </ProtectedRoute>
           }
         />

@@ -11,6 +11,8 @@ export interface UserProfile {
   cycle_start_date: string | null
   timezone: string | null
   theme: string | null
+  hide_weight_details: boolean
+  community_onboarded: boolean
   created_at: string
   updated_at: string
 }
@@ -24,6 +26,8 @@ export interface UpdateProfileData {
   cycle_start_date?: string | null
   timezone?: string | null
   theme?: string | null
+  hide_weight_details?: boolean
+  community_onboarded?: boolean
 }
 
 export async function getProfile(userId: string): Promise<UserProfile | null> {
