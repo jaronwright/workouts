@@ -6,16 +6,12 @@ import {
   getMobilityCategories,
   getUserSchedule,
   getScheduleDayWorkouts,
-  getScheduleDay,
   deleteScheduleDay,
   saveScheduleDayWorkouts,
-  upsertScheduleDay,
   clearUserSchedule,
   initializeDefaultSchedule,
-  getTodaysScheduledWorkout,
   type WorkoutTemplate,
   type ScheduleDay,
-  type UpdateScheduleDayData,
   type ScheduleWorkoutItem,
 } from '../scheduleService'
 
@@ -377,35 +373,6 @@ describe('scheduleService', () => {
   })
 
   // =========================================================================
-  // getScheduleDay (legacy)
-  // =========================================================================
-  describe('getScheduleDay', () => {
-    it('returns first workout of the day', async () => {
-      const workouts = [
-        makeScheduleDay({ id: 's1', day_number: 2, sort_order: 0 }),
-        makeScheduleDay({ id: 's2', day_number: 2, sort_order: 1 }),
-      ]
-      queueResponse(workouts)
-
-      const result = await getScheduleDay('user-1', 2)
-      expect(result).not.toBeNull()
-      expect(result!.id).toBe('s1')
-    })
-
-    it('returns null when no workouts exist for that day', async () => {
-      queueResponse([])
-      const result = await getScheduleDay('user-1', 5)
-      expect(result).toBeNull()
-    })
-
-    it('returns null on error (empty array from getScheduleDayWorkouts)', async () => {
-      queueError('DB error')
-      const result = await getScheduleDay('user-1', 1)
-      expect(result).toBeNull()
-    })
-  })
-
-  // =========================================================================
   // deleteScheduleDay
   // =========================================================================
   describe('deleteScheduleDay', () => {
@@ -688,107 +655,6 @@ describe('scheduleService', () => {
   })
 
   // =========================================================================
-  // upsertScheduleDay (legacy wrapper)
-  // =========================================================================
-  describe('upsertScheduleDay', () => {
-    it('saves rest day when is_rest_day is true', async () => {
-      // Delete succeeds
-      queueResponse(null)
-      // Insert rest day succeeds
-      const restDay = makeScheduleDay({ is_rest_day: true, workout_day_id: null })
-      queueResponse([restDay])
-
-      const data: UpdateScheduleDayData = { is_rest_day: true }
-      const result = await upsertScheduleDay('user-1', 1, data)
-      expect(result).not.toBeNull()
-      expect(result!.is_rest_day).toBe(true)
-    })
-
-    it('saves weights workout when workout_day_id provided', async () => {
-      // Delete succeeds
-      queueResponse(null)
-      // Insert weights
-      const saved = makeScheduleDay({ workout_day_id: 'day-1' })
-      queueResponse([saved])
-
-      const data: UpdateScheduleDayData = { workout_day_id: 'day-1', is_rest_day: false }
-      const result = await upsertScheduleDay('user-1', 1, data)
-      expect(result).not.toBeNull()
-      expect(result!.workout_day_id).toBe('day-1')
-    })
-
-    it('saves template workout when template_id provided', async () => {
-      // Delete succeeds
-      queueResponse(null)
-      // Insert cardio template
-      const saved = makeScheduleDay({ template_id: 'template-1', workout_day_id: null })
-      queueResponse([saved])
-
-      const data: UpdateScheduleDayData = { template_id: 'template-1', is_rest_day: false }
-      const result = await upsertScheduleDay('user-1', 1, data)
-      expect(result).not.toBeNull()
-      expect(result!.template_id).toBe('template-1')
-    })
-
-    it('inserts rest day when no data provided', async () => {
-      // Delete succeeds, then empty workouts triggers rest day insert
-      queueResponse(null)
-      // Insert rest day
-      const restDay = makeScheduleDay({ is_rest_day: true, workout_day_id: null, template_id: null })
-      queueResponse([restDay])
-
-      const data: UpdateScheduleDayData = {}
-      const result = await upsertScheduleDay('user-1', 1, data)
-      expect(result).not.toBeNull()
-      expect(result!.is_rest_day).toBe(true)
-    })
-
-    it('returns null when save returns empty array', async () => {
-      // Delete succeeds
-      queueResponse(null)
-      // Insert returns empty
-      queueResponse([])
-
-      const data: UpdateScheduleDayData = { is_rest_day: true }
-      const result = await upsertScheduleDay('user-1', 1, data)
-      expect(result).toBeNull()
-    })
-
-    it('prioritizes is_rest_day over workout_day_id', async () => {
-      // Delete succeeds
-      queueResponse(null)
-      // Insert rest day
-      const restDay = makeScheduleDay({ is_rest_day: true, workout_day_id: null })
-      queueResponse([restDay])
-
-      const data: UpdateScheduleDayData = {
-        is_rest_day: true,
-        workout_day_id: 'day-1',
-      }
-      const result = await upsertScheduleDay('user-1', 1, data)
-      expect(result).not.toBeNull()
-      expect(result!.is_rest_day).toBe(true)
-    })
-
-    it('prioritizes workout_day_id over template_id', async () => {
-      // Delete succeeds
-      queueResponse(null)
-      // Insert weights
-      const saved = makeScheduleDay({ workout_day_id: 'day-1', template_id: null })
-      queueResponse([saved])
-
-      const data: UpdateScheduleDayData = {
-        is_rest_day: false,
-        workout_day_id: 'day-1',
-        template_id: 'template-1',
-      }
-      const result = await upsertScheduleDay('user-1', 1, data)
-      expect(result).not.toBeNull()
-      expect(result!.workout_day_id).toBe('day-1')
-    })
-  })
-
-  // =========================================================================
   // clearUserSchedule
   // =========================================================================
   describe('clearUserSchedule', () => {
@@ -976,35 +842,6 @@ describe('scheduleService', () => {
   })
 
   // =========================================================================
-  // getTodaysScheduledWorkout (legacy)
-  // =========================================================================
-  describe('getTodaysScheduledWorkout', () => {
-    it('returns first workout for the current cycle day', async () => {
-      const workouts = [
-        makeScheduleDay({ id: 's1', day_number: 5 }),
-        makeScheduleDay({ id: 's2', day_number: 5, sort_order: 1 }),
-      ]
-      queueResponse(workouts)
-
-      const result = await getTodaysScheduledWorkout('user-1', 5)
-      expect(result).not.toBeNull()
-      expect(result!.id).toBe('s1')
-    })
-
-    it('returns null when no workouts for today', async () => {
-      queueResponse([])
-      const result = await getTodaysScheduledWorkout('user-1', 7)
-      expect(result).toBeNull()
-    })
-
-    it('returns null on error', async () => {
-      queueError('Connection lost')
-      const result = await getTodaysScheduledWorkout('user-1', 1)
-      expect(result).toBeNull()
-    })
-  })
-
-  // =========================================================================
   // Type definitions (preserved from original tests)
   // =========================================================================
   describe('type definitions', () => {
@@ -1048,29 +885,6 @@ describe('scheduleService', () => {
       expect(scheduleDay.day_number).toBe(1)
       expect(scheduleDay.is_rest_day).toBe(false)
       expect(scheduleDay.workout_day?.name).toBe('Push')
-    })
-
-    it('UpdateScheduleDayData type supports rest day', () => {
-      const restDayData: UpdateScheduleDayData = {
-        is_rest_day: true,
-      }
-      expect(restDayData.is_rest_day).toBe(true)
-    })
-
-    it('UpdateScheduleDayData type supports workout day', () => {
-      const workoutData: UpdateScheduleDayData = {
-        workout_day_id: 'day-1',
-        is_rest_day: false,
-      }
-      expect(workoutData.workout_day_id).toBe('day-1')
-    })
-
-    it('UpdateScheduleDayData type supports template', () => {
-      const templateData: UpdateScheduleDayData = {
-        template_id: 'template-1',
-        is_rest_day: false,
-      }
-      expect(templateData.template_id).toBe('template-1')
     })
 
     it('ScheduleWorkoutItem supports all types', () => {

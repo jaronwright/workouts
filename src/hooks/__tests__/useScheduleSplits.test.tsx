@@ -12,16 +12,13 @@ vi.mock('@/stores/authStore', () => ({
 
 vi.mock('@/services/scheduleService', () => ({
   getUserSchedule: vi.fn(),
-  getScheduleDay: vi.fn(),
   getScheduleDayWorkouts: vi.fn(),
-  upsertScheduleDay: vi.fn(),
   saveScheduleDayWorkouts: vi.fn(),
   deleteScheduleDay: vi.fn(),
   initializeDefaultSchedule: vi.fn(),
   clearUserSchedule: vi.fn(),
   getWorkoutTemplates: vi.fn(),
   getWorkoutTemplatesByType: vi.fn(),
-  getTodaysScheduledWorkout: vi.fn(),
 }))
 
 describe('useSchedule hooks - workout splits', () => {

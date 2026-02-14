@@ -2,19 +2,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/authStore'
 import {
   getUserSchedule,
-  getScheduleDay,
   getScheduleDayWorkouts,
-  upsertScheduleDay,
   saveScheduleDayWorkouts,
   deleteScheduleDay,
   initializeDefaultSchedule,
   clearUserSchedule,
   getWorkoutTemplates,
   getWorkoutTemplatesByType,
-  getTodaysScheduledWorkout,
   type ScheduleDay,
   type WorkoutTemplate,
-  type UpdateScheduleDayData,
   type ScheduleWorkoutItem
 } from '@/services/scheduleService'
 
@@ -42,16 +38,6 @@ export function useUserSchedule() {
   })
 }
 
-export function useScheduleDay(dayNumber: number) {
-  const user = useAuthStore((s) => s.user)
-
-  return useQuery<ScheduleDay | null>({
-    queryKey: ['schedule-day', user?.id, dayNumber],
-    queryFn: () => getScheduleDay(user!.id, dayNumber),
-    enabled: !!user?.id
-  })
-}
-
 export function useScheduleDayWorkouts(dayNumber: number) {
   const user = useAuthStore((s) => s.user)
 
@@ -59,32 +45,6 @@ export function useScheduleDayWorkouts(dayNumber: number) {
     queryKey: ['schedule-day-workouts', user?.id, dayNumber],
     queryFn: () => getScheduleDayWorkouts(user!.id, dayNumber),
     enabled: !!user?.id
-  })
-}
-
-export function useTodaysWorkout(currentCycleDay: number) {
-  const user = useAuthStore((s) => s.user)
-
-  return useQuery<ScheduleDay | null>({
-    queryKey: ['todays-workout', user?.id, currentCycleDay],
-    queryFn: () => getTodaysScheduledWorkout(user!.id, currentCycleDay),
-    enabled: !!user?.id && currentCycleDay > 0
-  })
-}
-
-export function useUpsertScheduleDay() {
-  const queryClient = useQueryClient()
-  const user = useAuthStore((s) => s.user)
-
-  return useMutation({
-    mutationFn: ({ dayNumber, data }: { dayNumber: number; data: UpdateScheduleDayData }) =>
-      upsertScheduleDay(user!.id, dayNumber, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-schedule'] })
-      queryClient.invalidateQueries({ queryKey: ['schedule-day'] })
-      queryClient.invalidateQueries({ queryKey: ['schedule-day-workouts'] })
-      queryClient.invalidateQueries({ queryKey: ['todays-workout'] })
-    }
   })
 }
 

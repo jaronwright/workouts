@@ -113,7 +113,6 @@ export function ProfilePage() {
 
   const [displayName, setDisplayName] = useState('')
   const [isEditingName, setIsEditingName] = useState(false)
-  const [, setSaved] = useState(false)
 
   // Security section state
   const [newPassword, setNewPassword] = useState('')
@@ -164,10 +163,8 @@ export function ProfilePage() {
       },
       {
         onSuccess: () => {
-          setSaved(true)
           setIsEditingName(false)
           success('Profile saved')
-          setTimeout(() => setSaved(false), 2000)
         },
         onError: () => {
           showError('Failed to save profile')
@@ -199,7 +196,6 @@ export function ProfilePage() {
       success('Password updated successfully')
       setNewPassword('')
       setConfirmPassword('')
-      setSecurityExpanded(false)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update password'
       showError(message)
@@ -231,7 +227,6 @@ export function ProfilePage() {
       await updateEmail(newEmail)
       success('Confirmation email sent! Check your new email to confirm the change.')
       setNewEmail('')
-      setEmailExpanded(false)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update email'
       showError(message)

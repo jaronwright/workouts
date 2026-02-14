@@ -12,9 +12,7 @@ vi.mock('@/stores/authStore', () => ({
 // Mock the schedule service
 vi.mock('@/services/scheduleService', () => ({
   getUserSchedule: vi.fn().mockResolvedValue([]),
-  getScheduleDay: vi.fn().mockResolvedValue(null),
   getScheduleDayWorkouts: vi.fn().mockResolvedValue([]),
-  upsertScheduleDay: vi.fn().mockResolvedValue({}),
   saveScheduleDayWorkouts: vi.fn().mockResolvedValue([]),
   deleteScheduleDay: vi.fn().mockResolvedValue(undefined),
   initializeDefaultSchedule: vi.fn().mockResolvedValue([]),
@@ -23,7 +21,6 @@ vi.mock('@/services/scheduleService', () => ({
     { id: 'template-1', name: 'Swimming', type: 'cardio', category: 'swim', description: null, icon: null, duration_minutes: 30, workout_day_id: null, created_at: '2024-01-01T00:00:00Z' },
   ]),
   getWorkoutTemplatesByType: vi.fn().mockResolvedValue([]),
-  getTodaysScheduledWorkout: vi.fn().mockResolvedValue(null),
 }))
 
 import { useAuthStore } from '@/stores/authStore'
@@ -32,10 +29,7 @@ import {
   useUserSchedule,
   useWorkoutTemplates,
   useWorkoutTemplatesByType,
-  useScheduleDay,
   useScheduleDayWorkouts,
-  useTodaysWorkout,
-  useUpsertScheduleDay,
   useSaveScheduleDayWorkouts,
   useDeleteScheduleDay,
   useInitializeSchedule,
@@ -166,100 +160,6 @@ describe('useUserSchedule', () => {
     await waitFor(() => {
       expect(scheduleService.getUserSchedule).toHaveBeenCalledWith('specific-user-456')
     })
-  })
-})
-
-// ============================================
-// useScheduleDay
-// ============================================
-
-describe('useScheduleDay', () => {
-  let queryClient: QueryClient
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-    queryClient = createQueryClient()
-  })
-
-  it('does not fetch when no user is authenticated', () => {
-    mockNoUser()
-
-    const wrapper = createWrapper(queryClient)
-    const { result } = renderHook(() => useScheduleDay(1), { wrapper })
-
-    expect(result.current.fetchStatus).toBe('idle')
-    expect(scheduleService.getScheduleDay).not.toHaveBeenCalled()
-  })
-
-  it('fetches schedule day for authenticated user', async () => {
-    mockAuthenticatedUser()
-    const dayData = {
-      id: 'schedule-1',
-      user_id: 'user-123',
-      day_number: 3,
-      template_id: null,
-      workout_day_id: 'day-3',
-      is_rest_day: false,
-      sort_order: 0,
-      created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z',
-    }
-    vi.mocked(scheduleService.getScheduleDay).mockResolvedValue(dayData as scheduleService.ScheduleDay)
-
-    const wrapper = createWrapper(queryClient)
-    const { result } = renderHook(() => useScheduleDay(3), { wrapper })
-
-    await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-    })
-
-    expect(scheduleService.getScheduleDay).toHaveBeenCalledWith('user-123', 3)
-    expect(result.current.data?.day_number).toBe(3)
-  })
-})
-
-// ============================================
-// useTodaysWorkout
-// ============================================
-
-describe('useTodaysWorkout', () => {
-  let queryClient: QueryClient
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-    queryClient = createQueryClient()
-  })
-
-  it('does not fetch when no user is authenticated', () => {
-    mockNoUser()
-
-    const wrapper = createWrapper(queryClient)
-    const { result } = renderHook(() => useTodaysWorkout(1), { wrapper })
-
-    expect(result.current.fetchStatus).toBe('idle')
-  })
-
-  it('does not fetch when cycle day is 0', () => {
-    mockAuthenticatedUser()
-
-    const wrapper = createWrapper(queryClient)
-    const { result } = renderHook(() => useTodaysWorkout(0), { wrapper })
-
-    expect(result.current.fetchStatus).toBe('idle')
-  })
-
-  it('fetches when user is present and cycle day > 0', async () => {
-    mockAuthenticatedUser()
-    vi.mocked(scheduleService.getTodaysScheduledWorkout).mockResolvedValue(null)
-
-    const wrapper = createWrapper(queryClient)
-    const { result } = renderHook(() => useTodaysWorkout(3), { wrapper })
-
-    await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-    })
-
-    expect(scheduleService.getTodaysScheduledWorkout).toHaveBeenCalledWith('user-123', 3)
   })
 })
 
@@ -419,63 +319,6 @@ describe('useClearSchedule', () => {
     }
 
     expect(invalidateSpy).not.toHaveBeenCalled()
-  })
-})
-
-// ============================================
-// useUpsertScheduleDay
-// ============================================
-
-describe('useUpsertScheduleDay', () => {
-  let queryClient: QueryClient
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-    queryClient = createQueryClient()
-    mockAuthenticatedUser()
-  })
-
-  it('provides mutation function', () => {
-    const wrapper = createWrapper(queryClient)
-    const { result } = renderHook(() => useUpsertScheduleDay(), { wrapper })
-
-    expect(result.current.mutate).toBeDefined()
-    expect(typeof result.current.mutate).toBe('function')
-  })
-
-  it('calls upsertScheduleDay with user ID and correct arguments', async () => {
-    vi.mocked(scheduleService.upsertScheduleDay).mockResolvedValue(null)
-
-    const wrapper = createWrapper(queryClient)
-    const { result } = renderHook(() => useUpsertScheduleDay(), { wrapper })
-
-    await result.current.mutateAsync({
-      dayNumber: 5,
-      data: { workout_day_id: 'day-1', is_rest_day: false },
-    })
-
-    expect(scheduleService.upsertScheduleDay).toHaveBeenCalledWith('user-123', 5, {
-      workout_day_id: 'day-1',
-      is_rest_day: false,
-    })
-  })
-
-  it('invalidates schedule queries on success', async () => {
-    vi.mocked(scheduleService.upsertScheduleDay).mockResolvedValue(null)
-    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
-
-    const wrapper = createWrapper(queryClient)
-    const { result } = renderHook(() => useUpsertScheduleDay(), { wrapper })
-
-    await result.current.mutateAsync({
-      dayNumber: 1,
-      data: { is_rest_day: true },
-    })
-
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['user-schedule'] })
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['schedule-day'] })
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['schedule-day-workouts'] })
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['todays-workout'] })
   })
 })
 

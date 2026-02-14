@@ -37,13 +37,6 @@ export interface ScheduleDay {
   } | null
 }
 
-export interface UpdateScheduleDayData {
-  template_id?: string | null
-  workout_day_id?: string | null
-  is_rest_day?: boolean
-  sort_order?: number
-}
-
 export interface ScheduleWorkoutItem {
   type: 'rest' | 'weights' | 'cardio' | 'mobility'
   id?: string // workout_day_id or template_id
@@ -165,12 +158,6 @@ export async function getScheduleDayWorkouts(userId: string, dayNumber: number):
   return toScheduleDays(data)
 }
 
-// Legacy function for backwards compatibility - returns first workout
-export async function getScheduleDay(userId: string, dayNumber: number): Promise<ScheduleDay | null> {
-  const workouts = await getScheduleDayWorkouts(userId, dayNumber)
-  return workouts[0] || null
-}
-
 export async function deleteScheduleDay(userId: string, dayNumber: number): Promise<void> {
   const { error } = await supabase
     .from('user_schedules')
@@ -265,26 +252,6 @@ export async function saveScheduleDayWorkouts(
   return toScheduleDays(data)
 }
 
-// Legacy upsert function - now wraps saveScheduleDayWorkouts for single workout
-export async function upsertScheduleDay(
-  userId: string,
-  dayNumber: number,
-  data: UpdateScheduleDayData
-): Promise<ScheduleDay | null> {
-  let workoutItems: ScheduleWorkoutItem[] = []
-
-  if (data.is_rest_day) {
-    workoutItems = [{ type: 'rest' }]
-  } else if (data.workout_day_id) {
-    workoutItems = [{ type: 'weights', id: data.workout_day_id }]
-  } else if (data.template_id) {
-    workoutItems = [{ type: 'cardio', id: data.template_id }]
-  }
-
-  const result = await saveScheduleDayWorkouts(userId, dayNumber, workoutItems)
-  return result[0] || null
-}
-
 // Clear all schedule entries for a user
 export async function clearUserSchedule(userId: string): Promise<void> {
   const { error } = await supabase
@@ -333,7 +300,3 @@ export async function initializeDefaultSchedule(userId: string, planId?: string)
   return toScheduleDays(data)
 }
 
-// Legacy function - returns first workout
-export async function getTodaysScheduledWorkout(userId: string, currentCycleDay: number): Promise<ScheduleDay | null> {
-  return getScheduleDay(userId, currentCycleDay)
-}
