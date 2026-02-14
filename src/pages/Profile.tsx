@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Button, Input, Modal, ThemePicker, CollapsibleSection } from '@/components/ui'
-import { StaggerList, StaggerItem, AnimatedNumber, ScaleIn } from '@/components/motion'
+import { FadeIn, StaggerList, StaggerItem, AnimatedNumber, ScaleIn } from '@/components/motion'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useCycleDay } from '@/hooks/useCycleDay'
 import { formatCycleStartDate } from '@/utils/cycleDay'
@@ -304,118 +304,147 @@ export function ProfilePage() {
   return (
     <AppShell title="Profile" showBack hideNav>
       <StaggerList className="pb-[var(--space-8)]">
-        {/* ── HERO PROFILE AREA ── */}
+        {/* ── PLAYER CARD HERO ── */}
         <StaggerItem>
-          <div className="relative px-[var(--space-6)] pt-[var(--space-8)] pb-[var(--space-6)] bg-[var(--color-surface)]">
-            {/* Warm glow behind avatar */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{ background: 'var(--gradient-warm-glow)' }}
-            />
-            <div className="relative flex flex-col items-center text-center">
-              <ScaleIn>
-                <div className="w-20 h-20">
-                  <AvatarUpload />
-                </div>
-              </ScaleIn>
+          <FadeIn direction="up">
+            <div className="relative px-[var(--space-5)] pt-[var(--space-6)] pb-[var(--space-5)]">
+              {/* Warm glow behind avatar */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: 'var(--gradient-warm-glow)' }}
+              />
 
-              <div className="mt-[var(--space-4)]">
-                {isEditingName ? (
-                  <div className="flex items-center gap-[var(--space-2)] justify-center">
-                    <input
-                      type="text"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSave()
-                        if (e.key === 'Escape') {
+              {/* Avatar + Name row — left-aligned for editorial feel */}
+              <div className="relative flex items-center gap-[var(--space-5)]">
+                <ScaleIn>
+                  <div className="w-20 h-20 shrink-0">
+                    <AvatarUpload />
+                  </div>
+                </ScaleIn>
+
+                <div className="flex-1 min-w-0">
+                  {isEditingName ? (
+                    <div className="flex items-center gap-[var(--space-2)]">
+                      <input
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSave()
+                          if (e.key === 'Escape') {
+                            setDisplayName(profile?.display_name || '')
+                            setIsEditingName(false)
+                          }
+                        }}
+                        autoFocus
+                        className="text-[clamp(1.75rem,7vw,2.25rem)] font-bold text-[var(--color-text)] bg-transparent border-b-2 border-[var(--color-primary)] outline-none w-full"
+                        style={{ fontFamily: 'var(--font-heading)' }}
+                        placeholder="Enter your name"
+                      />
+                      <button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="p-1 rounded-[var(--radius-sm)] shrink-0 hover:bg-[var(--color-success-muted)]"
+                        style={{ color: 'var(--color-success)' }}
+                        aria-label="Save name"
+                      >
+                        <Check className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => {
                           setDisplayName(profile?.display_name || '')
                           setIsEditingName(false)
-                        }
-                      }}
-                      autoFocus
-                      className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] bg-transparent border-b-2 border-[var(--color-primary)] outline-none text-center"
-                      style={{ fontFamily: 'var(--font-heading)' }}
-                      placeholder="Enter your name"
-                    />
+                        }}
+                        className="p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] rounded-[var(--radius-sm)] shrink-0"
+                        aria-label="Cancel editing"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ) : (
                     <button
-                      onClick={handleSave}
-                      disabled={isSaving}
-                      className="p-1 rounded-[var(--radius-sm)] shrink-0 hover:bg-[var(--color-success-muted)]"
-                      style={{ color: 'var(--color-success)' }}
-                      aria-label="Save name"
+                      onClick={() => setIsEditingName(true)}
+                      className="flex items-center gap-[var(--space-2)] group text-left"
                     >
-                      <Check className="w-5 h-5" />
+                      <h2
+                        className="text-[clamp(1.75rem,7vw,2.25rem)] text-[var(--color-text)] truncate"
+                        style={{ fontFamily: 'var(--font-heading)', fontWeight: 800 }}
+                      >
+                        {displayName || 'No name set'}
+                        <span className="text-[var(--color-primary)]">.</span>
+                      </h2>
+                      <Pencil className="w-3.5 h-3.5 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                     </button>
-                    <button
-                      onClick={() => {
-                        setDisplayName(profile?.display_name || '')
-                        setIsEditingName(false)
-                      }}
-                      className="p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] rounded-[var(--radius-sm)] shrink-0"
-                      aria-label="Cancel editing"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setIsEditingName(true)}
-                    className="flex items-center gap-[var(--space-2)] group"
+                  )}
+                  <p className="text-[var(--text-sm)] text-[var(--color-text-muted)] mt-[var(--space-1)] truncate">{user?.email}</p>
+                </div>
+              </div>
+
+              {/* ── TROPHY STATS ── */}
+              <div className="relative flex gap-[var(--space-3)] mt-[var(--space-5)]">
+                {/* Total workouts */}
+                <div
+                  className="flex-1 bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]"
+                >
+                  <AnimatedNumber
+                    value={lifetimeStats.totalWorkouts}
+                    className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
+                  />
+                  <p
+                    className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
+                    style={{ letterSpacing: 'var(--tracking-widest)' }}
                   >
-                    <h2
-                      className="text-[var(--text-2xl)] text-[var(--color-text)]"
-                      style={{ fontFamily: 'var(--font-heading)', fontWeight: 'var(--weight-bold)' }}
-                    >
-                      {displayName || 'No name set'}
-                    </h2>
-                    <Pencil className="w-3.5 h-3.5 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                  </button>
-                )}
-                <p className="text-[var(--text-sm)] text-[var(--color-text-muted)] mt-[var(--space-1)]">{user?.email}</p>
-              </div>
-            </div>
-          </div>
-        </StaggerItem>
+                    total
+                  </p>
+                </div>
 
-        {/* ── STAT CHIPS ── */}
-        <StaggerItem>
-          <div className="flex gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-4)] overflow-x-auto">
-            <div className="flex items-center gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] rounded-[var(--radius-xl)] bg-[var(--color-surface)]" style={{ minWidth: 'fit-content' }}>
-              <Trophy className="w-4 h-4 shrink-0" style={{ color: 'var(--color-accent)' }} />
-              <div>
-                <AnimatedNumber value={lifetimeStats.totalWorkouts} className="font-mono-stats text-[var(--text-lg)] font-bold text-[var(--color-text)] block" />
-                <span className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-wider)]">Total</span>
-              </div>
-            </div>
+                {/* Best streak — yellow glow */}
+                <div
+                  className="flex-1 bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]"
+                  style={lifetimeStats.longestStreak > 0 ? { boxShadow: '0 0 16px rgba(232, 255, 0, 0.08)', borderColor: 'rgba(232, 255, 0, 0.15)' } : undefined}
+                >
+                  <AnimatedNumber
+                    value={lifetimeStats.longestStreak}
+                    className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
+                  />
+                  <p
+                    className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
+                    style={{ letterSpacing: 'var(--tracking-widest)' }}
+                  >
+                    best streak
+                  </p>
+                </div>
 
-            <div className="flex items-center gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] rounded-[var(--radius-xl)] bg-[var(--color-surface)]" style={{ minWidth: 'fit-content' }}>
-              <Flame className="w-4 h-4 shrink-0" style={{ color: 'var(--color-primary)' }} />
-              <div>
-                <AnimatedNumber value={lifetimeStats.longestStreak} className="font-mono-stats text-[var(--text-lg)] font-bold text-[var(--color-text)] block" />
-                <span className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-wider)]">Best Streak</span>
+                {/* Favorite */}
+                <div
+                  className="flex-1 bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]"
+                >
+                  <p className="text-[var(--text-sm)] font-bold text-[var(--color-text)] font-mono-stats truncate leading-none">{lifetimeStats.favoriteType}</p>
+                  <p
+                    className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
+                    style={{ letterSpacing: 'var(--tracking-widest)' }}
+                  >
+                    favorite
+                  </p>
+                </div>
               </div>
             </div>
-
-            <div className="flex items-center gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] rounded-[var(--radius-xl)] bg-[var(--color-surface)]" style={{ minWidth: 'fit-content' }}>
-              <Star className="w-4 h-4 shrink-0" style={{ color: 'var(--color-tertiary)' }} />
-              <div>
-                <p className="font-mono-stats text-[var(--text-sm)] font-bold text-[var(--color-text)] truncate max-w-24">{lifetimeStats.favoriteType}</p>
-                <span className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-wider)]">Favorite</span>
-              </div>
-            </div>
-          </div>
+          </FadeIn>
         </StaggerItem>
 
         {/* ── WORKOUT SPLIT ── */}
         <StaggerItem>
           <div className="px-[var(--space-4)] pt-[var(--space-4)]">
-            <h3
-              className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-widest)] mb-[var(--space-4)]"
-              style={{ fontWeight: 'var(--weight-semibold)' }}
-            >
-              Workout Split — {currentSplitName}
-            </h3>
+            <div className="flex items-center gap-[var(--space-2)] mb-[var(--space-4)]">
+              <div className="w-1 h-4 rounded-full" style={{ backgroundColor: 'var(--color-primary)' }} />
+              <h3
+                className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase"
+                style={{ letterSpacing: 'var(--tracking-widest)', fontWeight: 600 }}
+              >
+                Workout Split
+              </h3>
+              <span className="text-[var(--text-xs)] text-[var(--color-primary)] font-semibold ml-auto">{currentSplitName}</span>
+            </div>
 
             <div className="grid grid-cols-2 gap-[var(--space-2)]">
               {([
@@ -438,6 +467,7 @@ export function ProfilePage() {
                         : 'bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)]'
                       }
                     `}
+                    style={isActive ? { boxShadow: '0 0 16px rgba(232, 255, 0, 0.06)' } : undefined}
                   >
                     <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
                     <span className={`text-[var(--text-sm)] font-medium ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
