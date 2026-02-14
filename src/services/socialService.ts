@@ -8,11 +8,29 @@ import type {
   FeedUserProfile,
   PublicProfile,
   PaginatedFeed,
+  FeedMode,
 } from '@/types/community'
+import { getFollowingIds } from './followService'
 
 // ─── Social Feed ─────────────────────────────────────
 
-export async function getSocialFeed(limit = 20, cursor?: string): Promise<PaginatedFeed> {
+export async function getSocialFeed(
+  limit = 20,
+  cursor?: string,
+  feedMode: FeedMode = 'discover',
+  currentUserId?: string
+): Promise<PaginatedFeed> {
+  // For 'following' mode, get the list of followed user IDs
+  let followingUserIds: string[] | null = null
+  if (feedMode === 'following' && currentUserId) {
+    followingUserIds = await getFollowingIds(currentUserId)
+    // Include own workouts in following feed
+    followingUserIds.push(currentUserId)
+    if (followingUserIds.length === 0) {
+      return { items: [], nextCursor: null }
+    }
+  }
+
   // Fetch weights sessions with cursor-based pagination
   let weightsQuery = supabase
     .from('workout_sessions')
@@ -28,6 +46,9 @@ export async function getSocialFeed(limit = 20, cursor?: string): Promise<Pagina
     .eq('is_public', true)
     .not('completed_at', 'is', null)
 
+  if (followingUserIds) {
+    weightsQuery = weightsQuery.in('user_id', followingUserIds)
+  }
   if (cursor) {
     weightsQuery = weightsQuery.lt('completed_at', cursor)
   }
@@ -58,6 +79,9 @@ export async function getSocialFeed(limit = 20, cursor?: string): Promise<Pagina
     .eq('is_public', true)
     .not('completed_at', 'is', null)
 
+  if (followingUserIds) {
+    templateQuery = templateQuery.in('user_id', followingUserIds)
+  }
   if (cursor) {
     templateQuery = templateQuery.lt('completed_at', cursor)
   }

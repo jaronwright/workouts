@@ -96,9 +96,38 @@ export interface PaginatedFeed {
   nextCursor: string | null
 }
 
+// ─── Social Graph Types ─────────────────────────────
+
+export type FeedMode = 'following' | 'discover'
+
+export interface FollowUser {
+  id: string
+  display_name: string | null
+  avatar_url: string | null
+  selected_plan_id: string | null
+}
+
+export interface FollowCounts {
+  followers: number
+  following: number
+}
+
+export interface ActivityComment {
+  id: string
+  user_id: string
+  session_id: string | null
+  template_session_id: string | null
+  content: string
+  created_at: string
+  user_profile: {
+    display_name: string | null
+    avatar_url: string | null
+  } | null
+}
+
 // ─── Notification Types ──────────────────────────────
 
-export type NotificationType = 'reaction' | 'photo_reaction'
+export type NotificationType = 'reaction' | 'photo_reaction' | 'comment' | 'new_follower'
 
 export interface CommunityNotification {
   id: string

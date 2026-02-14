@@ -27,10 +27,31 @@ function getNotificationText(notification: CommunityNotification): string {
     return `${actorName} reacted ${reactionConfig.emoji} to your photo`
   }
 
+  if (notification.notification_type === 'comment') {
+    return `${actorName} commented on your workout`
+  }
+
+  if (notification.notification_type === 'new_follower') {
+    return `${actorName} started following you`
+  }
+
   return `${actorName} interacted with your workout`
 }
 
+function getNotificationBadge(notification: CommunityNotification): string | null {
+  if (notification.reaction?.reaction_type) {
+    const config = REACTION_MAP[notification.reaction.reaction_type]
+    return config?.emoji || null
+  }
+  if (notification.notification_type === 'comment') return '💬'
+  if (notification.notification_type === 'new_follower') return '👤'
+  return null
+}
+
 function getNotificationRoute(notification: CommunityNotification): string | null {
+  if (notification.notification_type === 'new_follower') {
+    return `/community/profile/${notification.actor_id}`
+  }
   if (notification.session_id) {
     return `/community/session/${notification.session_id}`
   }
@@ -116,9 +137,7 @@ export function NotificationPanel({ isOpen, onClose, notifications, isLoading }:
                 <div className="divide-y divide-[var(--color-border)]">
                   {notifications.map(notification => {
                     const route = getNotificationRoute(notification)
-                    const reactionConfig = notification.reaction?.reaction_type
-                      ? REACTION_MAP[notification.reaction.reaction_type]
-                      : null
+                    const badge = getNotificationBadge(notification)
 
                     return (
                       <button
@@ -131,7 +150,7 @@ export function NotificationPanel({ isOpen, onClose, notifications, isLoading }:
                           ${!notification.is_read ? 'bg-[var(--color-primary)]/[0.03]' : ''}
                         `}
                       >
-                        {/* Avatar with reaction badge */}
+                        {/* Avatar with notification badge */}
                         <div className="relative flex-shrink-0">
                           <Avatar
                             src={notification.actor_profile?.avatar_url}
@@ -139,9 +158,9 @@ export function NotificationPanel({ isOpen, onClose, notifications, isLoading }:
                             size="md"
                             className="w-10 h-10"
                           />
-                          {reactionConfig && (
+                          {badge && (
                             <span className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-[var(--color-surface)] flex items-center justify-center text-xs shadow-sm border border-[var(--color-border)]">
-                              {reactionConfig.emoji}
+                              {badge}
                             </span>
                           )}
                         </div>

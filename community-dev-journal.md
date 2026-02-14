@@ -85,3 +85,69 @@
 
 ### What's Next
 - Phase 2: Social Graph — user_follows table, comments, feed tabs (Following/Discover), user discovery
+
+---
+
+## Iteration 2: Phase 2 — Social Graph
+
+**Date**: 2026-02-14
+**Phase**: 2 (Social Graph) — Tasks 2A, 2B, 2C, 2D, 2E, 2F
+**Driver**: DIEGO (backend) + JIN (frontend) + ALEX (UX)
+
+### What Was Implemented
+
+#### 2A. Database Migration (DIEGO driving)
+- Created `user_follows` table: follower_id, following_id, created_at, unique constraint, self-follow CHECK
+- Created `activity_comments` table: polymorphic FK to both session types (CHECK exactly one), 500 char limit
+- Updated `community_notifications` CHECK constraint to include 'comment', 'new_follower' types
+- Added `bio` column to `user_profiles` (VARCHAR 160)
+- Updated `delete_user_account()` stored procedure to clean up follows and comments
+- Full RLS policies: users follow/unfollow themselves, view any follows, comment on public sessions
+
+#### 2B. Follow Service + Hooks (DIEGO + JIN driving)
+- `followService.ts`: followUser, unfollowUser, getFollowers, getFollowing, getFollowCounts, isFollowing, getFollowingIds, getSuggestedUsers, searchUsers
+- `useFollow.ts`: 8 hooks with optimistic updates on follow/unfollow (instant count increment, instant isFollowing toggle, rollback on error)
+- `getSuggestedUsers` excludes already-followed users
+- `searchUsers` uses case-insensitive ILIKE on display_name, enabled only when query >= 2 chars
+
+#### 2C. Comment Service + Hooks (DIEGO + JIN driving)
+- `commentService.ts`: addComment, deleteComment, getCommentsForSession, getCommentCount
+- `useComments.ts`: useComments, useAddComment (fires notification), useDeleteComment
+- Comments include batch profile fetching for avatar/display_name
+- Polymorphic FK pattern matches existing reactions approach
+
+#### 2D. Feed Mode Support (DIEGO driving)
+- `getSocialFeed` now accepts `feedMode` and `currentUserId` parameters
+- 'following' mode: fetches user's following IDs, then filters feed to only those users
+- 'discover' mode: shows all public workouts (existing behavior)
+- `useSocialFeed` updated to pass feedMode and user ID through to service
+
+#### 2E. UI Components (JIN + ALEX driving)
+- **FollowButton**: Animated follow/unfollow with Framer Motion AnimatePresence, two sizes (sm/md), hides for own profile
+- **FeedTabs**: Following/Discover segmented control with animated indicator (layoutId), disables Following when count=0
+- **CommentSection**: Full comment list with avatars, relative timestamps, delete own comments, Enter-to-submit input
+- **NotificationPanel**: Extended for 'comment' (💬) and 'new_follower' (👤) notification types with routing
+
+#### 2F. Page Integration (JIN driving)
+- **Community.tsx**: FeedTabs, search bar (Discover only), suggested users horizontal scroll, context-aware empty states, auto-default to Following tab when user has followers
+- **PublicProfile.tsx**: FollowButton, follower/following counts
+- **PublicSessionDetail.tsx**: CommentSection below ReactionBar
+- **Notification routing**: new_follower → profile page, comment → session detail page
+
+### Architecture Decisions
+- **Optimistic updates breadth**: `useFollowUser` optimistically updates isFollowing, followCounts, AND suggested users queries in one mutation
+- **Feed query key strategy**: `['social-feed', feedMode, limit]` allows Following and Discover feeds to cache independently
+- **Reaction updates across modes**: `setQueriesData({ queryKey: ['social-feed'] })` updates ALL feed queries regardless of mode (partial key match)
+- **CommentSection polymorphic props**: Same component works for both session types by passing the appropriate ID prop
+
+### Build/Test Status
+- `npx vite build` ✅ passes clean (2.24s, no type errors)
+- Migration not yet applied (requires `supabase db push` or local reset)
+
+### Ratings
+- Feature completeness: 6/10 (social graph works, but no challenges/badges/PRs yet)
+- Code quality: 8/10 (consistent patterns, proper optimistic updates, clean separation)
+- UX quality: 7/10 (search, suggested users, feed tabs, comments — feels like a real social app)
+
+### What's Next
+- Phase 3: Engagement & Gamification — challenges, badges, personal records, enhanced profiles

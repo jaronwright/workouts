@@ -1,15 +1,19 @@
-import { useParams } from 'react-router-dom'
-import { Flame, Calendar, Trophy, Dumbbell } from 'lucide-react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { Flame, Calendar, Trophy, Dumbbell, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 import { AppShell } from '@/components/layout/AppShell'
 import { Card, CardContent, Avatar } from '@/components/ui'
 import { WorkoutCard } from '@/components/social/WorkoutCard'
+import { FollowButton } from '@/components/social/FollowButton'
 import { usePublicProfile } from '@/hooks/useSocial'
+import { useFollowCounts } from '@/hooks/useFollow'
 import { staggerContainer, staggerChild } from '@/config/animationConfig'
 
 export function PublicProfilePage() {
   const { userId } = useParams<{ userId: string }>()
+  const navigate = useNavigate()
   const { data: profile, isLoading } = usePublicProfile(userId || null)
+  const { data: followCounts } = useFollowCounts(userId || null)
 
   if (isLoading) {
     return (
@@ -67,6 +71,34 @@ export function PublicProfilePage() {
               <span className="text-sm text-[var(--color-text-muted)]">
                 {profile.plan_name}
               </span>
+            </div>
+          )}
+
+          {/* Followers / Following counts */}
+          {followCounts && (
+            <div className="flex items-center gap-4 mt-3">
+              <button
+                onClick={() => navigate(`/community/profile/${userId}`)}
+                className="text-center"
+              >
+                <span className="text-sm font-bold text-[var(--color-text)]">{followCounts.followers}</span>
+                <span className="text-xs text-[var(--color-text-muted)] ml-1">followers</span>
+              </button>
+              <div className="w-px h-4 bg-[var(--color-border)]" />
+              <button
+                onClick={() => navigate(`/community/profile/${userId}`)}
+                className="text-center"
+              >
+                <span className="text-sm font-bold text-[var(--color-text)]">{followCounts.following}</span>
+                <span className="text-xs text-[var(--color-text-muted)] ml-1">following</span>
+              </button>
+            </div>
+          )}
+
+          {/* Follow button */}
+          {userId && (
+            <div className="mt-3">
+              <FollowButton userId={userId} size="md" />
             </div>
           )}
         </motion.div>
@@ -127,6 +159,7 @@ export function PublicProfilePage() {
                 key={workout.id}
                 workout={workout}
                 index={index}
+                onUserClick={(uid) => navigate(`/community/profile/${uid}`)}
               />
             ))}
           </div>

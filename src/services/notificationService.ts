@@ -107,3 +107,41 @@ export async function createReactionNotification(
 
   if (error) console.warn('Error creating notification:', error.message)
 }
+
+export async function createCommentNotification(
+  actorId: string,
+  recipientId: string,
+  sessionId?: string,
+  templateSessionId?: string
+): Promise<void> {
+  if (actorId === recipientId) return
+
+  const { error } = await supabase
+    .from('community_notifications')
+    .insert({
+      recipient_id: recipientId,
+      actor_id: actorId,
+      notification_type: 'comment',
+      session_id: sessionId || null,
+      template_session_id: templateSessionId || null,
+    })
+
+  if (error) console.warn('Error creating comment notification:', error.message)
+}
+
+export async function createFollowNotification(
+  actorId: string,
+  recipientId: string
+): Promise<void> {
+  if (actorId === recipientId) return
+
+  const { error } = await supabase
+    .from('community_notifications')
+    .insert({
+      recipient_id: recipientId,
+      actor_id: actorId,
+      notification_type: 'new_follower',
+    })
+
+  if (error) console.warn('Error creating follow notification:', error.message)
+}

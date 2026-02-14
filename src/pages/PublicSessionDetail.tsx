@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout'
 import { Avatar } from '@/components/ui'
 import { ReactionBar } from '@/components/social/ReactionBar'
+import { CommentSection } from '@/components/social/CommentSection'
 import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
 import { getWorkoutDisplayName, getWeightsStyleByName, getCardioStyle, getMobilityStyle } from '@/config/workoutConfig'
 import { MOOD_MAP, TAG_MAP, DIFFICULTY_LABELS, DIFFICULTY_COLORS } from '@/config/reviewConfig'
@@ -536,6 +537,15 @@ export function PublicSessionDetailPage() {
           {/* Reactions */}
           <div className="px-4">
             <ReactionBar workout={workout} />
+          </div>
+
+          {/* Comments */}
+          <div className="px-4 mt-4">
+            <CommentSection
+              sessionId={isTemplate ? undefined : workout.id}
+              templateSessionId={isTemplate ? workout.id : undefined}
+              workoutOwnerId={workout.user_id}
+            />
           </div>
         </div>
       ) : (
