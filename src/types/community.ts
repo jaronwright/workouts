@@ -166,6 +166,57 @@ export interface PublicProfile {
   recent_workouts: FeedWorkout[]
 }
 
+// ─── Gamification Types ─────────────────────────────
+
+export interface UserBadge {
+  id: string
+  user_id: string
+  badge_key: string
+  earned_at: string
+}
+
+export interface Challenge {
+  id: string
+  title: string
+  description: string
+  challenge_type: 'weekly' | 'monthly' | 'community'
+  target_value: number
+  metric: 'workouts' | 'streak' | 'volume' | 'duration' | 'distance'
+  starts_at: string
+  ends_at: string
+  badge_key: string | null
+  created_at: string
+}
+
+export interface ChallengeParticipant {
+  id: string
+  challenge_id: string
+  user_id: string
+  progress: number
+  completed_at: string | null
+  joined_at: string
+}
+
+export interface ChallengeWithProgress extends Challenge {
+  participant: ChallengeParticipant | null
+  participant_count: number
+}
+
+export interface LeaderboardEntry {
+  user_id: string
+  display_name: string | null
+  avatar_url: string | null
+  value: number
+  rank: number
+}
+
+export interface EnhancedPublicProfile extends PublicProfile {
+  bio: string | null
+  badges: UserBadge[]
+  pr_count: number
+  total_reactions_received: number
+}
+
 // ─── Photo Types ─────────────────────────────────────
 
 export type WorkoutPhoto = Tables<'workout_photos'>

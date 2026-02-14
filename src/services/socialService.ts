@@ -409,7 +409,7 @@ function computeStreakFromDates(dateSet: Set<string>): number {
 }
 
 // Batch streak computation for multiple users (used by the feed)
-async function computeStreaksForUsers(userIds: string[]): Promise<Map<string, number>> {
+export async function computeStreaksForUsers(userIds: string[]): Promise<Map<string, number>> {
   const map = new Map<string, number>()
   if (userIds.length === 0) return map
 

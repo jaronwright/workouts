@@ -5,8 +5,10 @@ import { AppShell } from '@/components/layout/AppShell'
 import { Card, CardContent, Avatar } from '@/components/ui'
 import { WorkoutCard } from '@/components/social/WorkoutCard'
 import { FollowButton } from '@/components/social/FollowButton'
+import { BadgeGrid } from '@/components/social/BadgeGrid'
 import { usePublicProfile } from '@/hooks/useSocial'
 import { useFollowCounts } from '@/hooks/useFollow'
+import { useUserBadges } from '@/hooks/useBadges'
 import { staggerContainer, staggerChild } from '@/config/animationConfig'
 
 export function PublicProfilePage() {
@@ -14,6 +16,7 @@ export function PublicProfilePage() {
   const navigate = useNavigate()
   const { data: profile, isLoading } = usePublicProfile(userId || null)
   const { data: followCounts } = useFollowCounts(userId || null)
+  const { data: badges } = useUserBadges(userId || null)
 
   if (isLoading) {
     return (
@@ -147,6 +150,16 @@ export function PublicProfilePage() {
             </Card>
           </motion.div>
         </motion.div>
+
+        {/* Badges */}
+        {badges && badges.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
+              Badges
+            </p>
+            <BadgeGrid badges={badges} maxDisplay={8} />
+          </div>
+        )}
 
         {/* Recent workouts */}
         {profile.recent_workouts.length > 0 && (

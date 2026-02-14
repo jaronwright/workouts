@@ -151,3 +151,70 @@
 
 ### What's Next
 - Phase 3: Engagement & Gamification — challenges, badges, personal records, enhanced profiles
+
+---
+
+## Iteration 3: Phase 3 — Engagement & Gamification
+
+**Date**: 2026-02-14
+**Phase**: 3 (Engagement & Gamification) — Tasks 3A, 3B, 3C, 3D, 3E
+**Driver**: DIEGO (backend) + JIN (frontend) + SARAH (product)
+
+### What Was Implemented
+
+#### 3A. Database Migration (DIEGO driving)
+- `user_badges` table: badge_key keyed (no FK to definition table — config-driven), unique per user+key, RLS
+- `challenges` table: title, description, type (weekly/monthly/community), target, metric, time range, optional badge reward
+- `challenge_participants` table: progress tracking, completion timestamp, unique per user+challenge, RLS
+- Seeded 4 initial challenges: Week Warrior, Iron Month, Streak Master, Volume King
+- Updated `delete_user_account()` function to clean up gamification data
+
+#### 3B. Badge System (DIEGO + SARAH driving)
+- **badgeConfig.ts**: 22 badge definitions across 6 categories (streak, milestone, social, volume, PR, challenge)
+- 5 rarity tiers: common, uncommon, rare, epic, legendary — each with color + label
+- **badgeService.ts**: `checkAndAwardBadges()` evaluates all conditions in one call with parallel stat fetching
+- Badge conditions: workout milestones (1/10/50/100/500), streak milestones (3/7/14/30/100), social (follow/follower/reaction), volume (10k/25k session), PR count
+- Config-driven: new badges added to badgeConfig.ts without needing migrations
+
+#### 3C. Challenge System (DIEGO driving)
+- **challengeService.ts**: getActiveChallenges, joinChallenge, updateChallengeProgress, refreshChallengeProgress, getChallengeLeaderboard
+- Progress calculation for 5 metric types: workouts, streak, volume, duration, distance
+- Auto-badge-award on challenge completion via the badge_key FK
+- Challenge leaderboard with profile joining
+
+#### 3D. Leaderboard System (DIEGO driving)
+- **leaderboardService.ts**: 4 metrics — streak, workouts this week, workouts this month, volume this month
+- Streak leaderboard uses existing batch streak computation
+- Workout/volume leaderboards query public sessions only (privacy-respecting)
+- All leaderboards return ranked entries with profiles
+
+#### 3E. UI Components (JIN + ALEX driving)
+- **BadgeGrid**: Clickable badge emojis with detail modal (name, rarity, description), rarity color coding
+- **BadgeRow**: Compact inline badge display for profile headers
+- **ChallengeCard**: Progress bar, join button, time remaining, participant count, badge reward display
+- **LeaderboardPanel**: Tabbed metric selector with animated indicator, medal emojis for top 3, "(you)" highlight
+
+#### 3F. Page Integration (JIN driving)
+- **Community.tsx**: Active challenges section + leaderboard panel on Discover tab (hidden during search)
+- **PublicProfile.tsx**: Badge grid below stats, loads via useUserBadges hook
+- Badge check fires on Community page mount (fire-and-forget via useCheckBadges)
+- Exported `computeStreaksForUsers` from socialService for leaderboard use
+
+### Architecture Decisions
+- **Config-driven badges**: Badge definitions live in badgeConfig.ts, not in the database. This means adding badges is a code change, not a migration — faster iteration.
+- **Lazy badge checking**: Badges are checked on Community page load rather than on every action. This avoids slowing down the critical workout completion path.
+- **Dynamic imports**: badgeService/challengeService use `await import()` for socialService to avoid circular deps. Vite warns but it's intentional — the module is already in the main chunk.
+- **Challenge progress is pull-based**: Progress recalculates on demand rather than being pushed on every workout. Simpler, though slightly stale.
+
+### Build/Test Status
+- `npx vite build` ✅ passes clean (2.28s, no type errors)
+- Vite dynamic import warnings are informational only (module already in main chunk)
+- Migration not yet applied
+
+### Ratings
+- Feature completeness: 8/10 (badges, challenges, leaderboards, enhanced profiles — most gamification goals met)
+- Code quality: 8/10 (clean config-driven approach, parallel fetching, proper separation)
+- UX quality: 7/10 (functional but needs motion polish — Phase 4 will add celebrations, animations)
+
+### What's Next
+- Phase 4: Motion, Polish & UX — feed animations, celebration micro-interactions, badge earn celebrations, navigation transitions, performance tuning

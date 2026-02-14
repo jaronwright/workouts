@@ -9,8 +9,12 @@ import { WorkoutCard } from '@/components/social/WorkoutCard'
 import { NotificationPanel } from '@/components/social/NotificationPanel'
 import { FeedTabs } from '@/components/social/FeedTabs'
 import { FollowButton } from '@/components/social/FollowButton'
+import { ChallengeCard } from '@/components/social/ChallengeCard'
+import { LeaderboardPanel } from '@/components/social/LeaderboardPanel'
 import { useSocialFeed } from '@/hooks/useSocial'
 import { useFollowCounts, useSuggestedUsers, useSearchUsers } from '@/hooks/useFollow'
+import { useActiveChallenges, useJoinChallenge } from '@/hooks/useChallenges'
+import { useCheckBadges } from '@/hooks/useBadges'
 import { useCommunityNotifications, useUnreadNotificationCount, useMarkNotificationsRead } from '@/hooks/useCommunityNotifications'
 import { useAuthStore } from '@/stores/authStore'
 import { springPresets } from '@/config/animationConfig'
@@ -65,6 +69,8 @@ export function CommunityPage() {
   const [showSearch, setShowSearch] = useState(false)
   const { data: searchResults } = useSearchUsers(searchQuery)
   const { data: suggestedUsers } = useSuggestedUsers(6)
+  const { data: challenges } = useActiveChallenges()
+  const joinChallenge = useJoinChallenge()
 
   const [showPrivacyModal, setShowPrivacyModal] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
@@ -88,6 +94,12 @@ export function CommunityPage() {
     observer.observe(el)
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // Check for new badges on page load (fire-and-forget)
+  const checkBadges = useCheckBadges()
+  useEffect(() => {
+    if (user) checkBadges.mutate()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Check if user needs onboarding
   useEffect(() => {
@@ -206,6 +218,33 @@ export function CommunityPage() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Challenges (Discover tab) */}
+        {showDiscoverExtras && challenges && challenges.length > 0 && !showSearch && (
+          <div className="space-y-2">
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
+              Active Challenges
+            </p>
+            {challenges.map(challenge => (
+              <ChallengeCard
+                key={challenge.id}
+                challenge={challenge}
+                onJoin={(id) => joinChallenge.mutate(id)}
+                isJoining={joinChallenge.isPending}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Leaderboard (Discover tab) */}
+        {showDiscoverExtras && !showSearch && (
+          <div className="space-y-2">
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
+              Leaderboard
+            </p>
+            <LeaderboardPanel />
           </div>
         )}
 
