@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom'
 import { Home, History, Calendar, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useUnreadNotificationCount } from '@/hooks/useCommunityNotifications'
+import { springPresets } from '@/config/animationConfig'
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
@@ -15,8 +16,16 @@ export function BottomNav() {
 
   return (
     <nav className="flex-shrink-0 z-50 pb-safe">
-      <div className="mx-3 mb-3">
-        <div className="frosted-glass rounded-[var(--radius-xl)] shadow-[var(--shadow-lg)] border border-[rgba(0,0,0,0.05)] dark:border-[rgba(255,255,255,0.06)]">
+      <div className="mx-[var(--space-3)] mb-[var(--space-3)]">
+        <div
+          className="rounded-[var(--radius-xl)] border border-[var(--glass-border)]"
+          style={{
+            background: 'var(--glass-bg)',
+            backdropFilter: 'blur(var(--glass-blur))',
+            WebkitBackdropFilter: 'blur(var(--glass-blur))',
+            boxShadow: 'var(--shadow-lg)',
+          }}
+        >
           <div className="flex items-center justify-around h-16 px-1">
             {navItems.map(({ to, icon: Icon, label, showBadge }) => (
               <NavLink
@@ -39,16 +48,23 @@ export function BottomNav() {
                       {isActive && (
                         <motion.div
                           layoutId="nav-active-pill"
-                          className="absolute inset-0 bg-[var(--color-primary)]/12 rounded-full"
-                          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                          className="absolute inset-0 rounded-full"
+                          style={{ background: 'var(--color-primary-muted)' }}
+                          transition={springPresets.snappy}
                         />
                       )}
-                      <Icon
-                        className="relative w-[18px] h-[18px]"
-                        strokeWidth={isActive ? 2.5 : 1.8}
-                      />
+                      <motion.div
+                        whileTap={{ scale: 0.9 }}
+                        transition={springPresets.snappy}
+                        className="relative"
+                      >
+                        <Icon
+                          className="relative w-[18px] h-[18px]"
+                          strokeWidth={isActive ? 2.5 : 1.8}
+                        />
+                      </motion.div>
                       {showBadge && (unreadCount ?? 0) > 0 && !isActive && (
-                        <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500" />
+                        <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[var(--color-accent)]" />
                       )}
                     </div>
                     <span className={`relative text-[10px] leading-none ${isActive ? 'font-semibold' : 'font-medium'}`}>

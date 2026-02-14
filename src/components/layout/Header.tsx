@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, LogOut } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
+import { PressableButton } from '@/components/motion'
 
 interface HeaderProps {
   title: string
@@ -20,41 +21,41 @@ export function Header({ title, showBack = false, showLogout = false, headerActi
   }
 
   return (
-    <header className="flex-shrink-0 z-40 frosted-glass border-b border-[rgba(0,0,0,0.05)] dark:border-[rgba(255,255,255,0.06)]">
-      <div className="flex items-center justify-between h-14 px-4">
-        <div className="flex items-center gap-2">
+    <header className="flex-shrink-0 z-40 glass">
+      <div className="flex items-center justify-between h-16 px-[var(--space-4)]">
+        <div className="flex items-center gap-[var(--space-2)]">
           {showBack && (
-            <button
+            <PressableButton
               onClick={() => navigate(-1)}
               className="
                 w-9 h-9 flex items-center justify-center
                 text-[var(--color-text-muted)]
                 rounded-[var(--radius-md)]
-                active:scale-95 active:bg-[var(--color-surface-hover)]
-                transition-transform duration-100
+                hover:bg-[var(--color-surface-hover)]
+                transition-colors duration-150
               "
             >
               <ChevronLeft className="w-6 h-6" />
-            </button>
+            </PressableButton>
           )}
-          <h1 className="text-lg font-bold tracking-tight text-[var(--color-text)]">
+          <h1 className="text-[var(--text-lg)] font-bold tracking-[var(--tracking-tight)] text-[var(--color-text)]">
             {title}
           </h1>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-[var(--space-1)]">
           {showLogout && (
-            <button
+            <PressableButton
               onClick={handleLogout}
               className="
                 w-9 h-9 flex items-center justify-center
                 text-[var(--color-text-muted)]
                 rounded-[var(--radius-md)]
-                active:scale-95 active:bg-[var(--color-danger)]/10 active:text-[var(--color-danger)]
-                transition-transform duration-100
+                hover:bg-[var(--color-danger-muted)] hover:text-[var(--color-danger)]
+                transition-colors duration-150
               "
             >
               <LogOut className="w-5 h-5" />
-            </button>
+            </PressableButton>
           )}
           {headerAction}
         </div>

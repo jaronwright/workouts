@@ -1,13 +1,11 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AnimatePresence, motion } from 'motion/react'
 import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/hooks/useTheme'
-import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { ToastProvider } from '@/components/ui'
 import { SyncManager } from '@/components/layout/SyncManager'
-import { pageTransition } from '@/config/animationConfig'
+import { PageTransition } from '@/components/motion'
 import {
   AuthPage,
   AuthCallbackPage,
@@ -76,38 +74,19 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-function PageWrapper({ children }: { children: React.ReactNode }) {
-  const prefersReduced = useReducedMotion()
-
-  if (prefersReduced) {
-    return <>{children}</>
-  }
-
-  return (
-    <motion.div
-      variants={pageTransition}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-    >
-      {children}
-    </motion.div>
-  )
-}
-
 function AnimatedRoutes() {
   const location = useLocation()
   // Use the first path segment as key to avoid re-animating sub-routes
   const pageKey = '/' + (location.pathname.split('/')[1] || '')
 
   return (
-    <AnimatePresence mode="wait">
+    <PageTransition pageKey={pageKey}>
       <Routes location={location} key={pageKey}>
         <Route
           path="/auth"
           element={
             <PublicRoute>
-              <PageWrapper><AuthPage /></PageWrapper>
+              <AuthPage />
             </PublicRoute>
           }
         />
@@ -119,7 +98,7 @@ function AnimatedRoutes() {
           path="/"
           element={
             <ProtectedRoute>
-              <PageWrapper><HomePage /></PageWrapper>
+              <HomePage />
             </ProtectedRoute>
           }
         />
@@ -127,7 +106,7 @@ function AnimatedRoutes() {
           path="/community"
           element={
             <ProtectedRoute>
-              <PageWrapper><CommunityPage /></PageWrapper>
+              <CommunityPage />
             </ProtectedRoute>
           }
         />
@@ -135,7 +114,7 @@ function AnimatedRoutes() {
           path="/community/profile/:userId"
           element={
             <ProtectedRoute>
-              <PageWrapper><PublicProfilePage /></PageWrapper>
+              <PublicProfilePage />
             </ProtectedRoute>
           }
         />
@@ -143,7 +122,7 @@ function AnimatedRoutes() {
           path="/community/session/:sessionId"
           element={
             <ProtectedRoute>
-              <PageWrapper><PublicSessionDetailPage /></PageWrapper>
+              <PublicSessionDetailPage />
             </ProtectedRoute>
           }
         />
@@ -151,7 +130,7 @@ function AnimatedRoutes() {
           path="/community/cardio/:sessionId"
           element={
             <ProtectedRoute>
-              <PageWrapper><PublicSessionDetailPage /></PageWrapper>
+              <PublicSessionDetailPage />
             </ProtectedRoute>
           }
         />
@@ -163,7 +142,7 @@ function AnimatedRoutes() {
           path="/workout/:dayId"
           element={
             <ProtectedRoute>
-              <PageWrapper><WorkoutPage /></PageWrapper>
+              <WorkoutPage />
             </ProtectedRoute>
           }
         />
@@ -171,7 +150,7 @@ function AnimatedRoutes() {
           path="/workout/:dayId/active"
           element={
             <ProtectedRoute>
-              <PageWrapper><WorkoutPage /></PageWrapper>
+              <WorkoutPage />
             </ProtectedRoute>
           }
         />
@@ -179,7 +158,7 @@ function AnimatedRoutes() {
           path="/cardio/:templateId"
           element={
             <ProtectedRoute>
-              <PageWrapper><CardioWorkoutPage /></PageWrapper>
+              <CardioWorkoutPage />
             </ProtectedRoute>
           }
         />
@@ -187,7 +166,7 @@ function AnimatedRoutes() {
           path="/mobility/:category/select"
           element={
             <ProtectedRoute>
-              <PageWrapper><MobilityDurationPickerPage /></PageWrapper>
+              <MobilityDurationPickerPage />
             </ProtectedRoute>
           }
         />
@@ -195,7 +174,7 @@ function AnimatedRoutes() {
           path="/mobility/:templateId"
           element={
             <ProtectedRoute>
-              <PageWrapper><MobilityWorkoutPage /></PageWrapper>
+              <MobilityWorkoutPage />
             </ProtectedRoute>
           }
         />
@@ -203,7 +182,7 @@ function AnimatedRoutes() {
           path="/history"
           element={
             <ProtectedRoute>
-              <PageWrapper><HistoryPage /></PageWrapper>
+              <HistoryPage />
             </ProtectedRoute>
           }
         />
@@ -211,7 +190,7 @@ function AnimatedRoutes() {
           path="/history/:sessionId"
           element={
             <ProtectedRoute>
-              <PageWrapper><SessionDetailPage /></PageWrapper>
+              <SessionDetailPage />
             </ProtectedRoute>
           }
         />
@@ -219,7 +198,7 @@ function AnimatedRoutes() {
           path="/history/cardio/:sessionId"
           element={
             <ProtectedRoute>
-              <PageWrapper><CardioSessionDetailPage /></PageWrapper>
+              <CardioSessionDetailPage />
             </ProtectedRoute>
           }
         />
@@ -227,7 +206,7 @@ function AnimatedRoutes() {
           path="/profile"
           element={
             <ProtectedRoute>
-              <PageWrapper><ProfilePage /></PageWrapper>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />
@@ -235,7 +214,7 @@ function AnimatedRoutes() {
           path="/schedule"
           element={
             <ProtectedRoute>
-              <PageWrapper><SchedulePage /></PageWrapper>
+              <SchedulePage />
             </ProtectedRoute>
           }
         />
@@ -243,13 +222,13 @@ function AnimatedRoutes() {
           path="/rest-day"
           element={
             <ProtectedRoute>
-              <PageWrapper><RestDayPage /></PageWrapper>
+              <RestDayPage />
             </ProtectedRoute>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </AnimatePresence>
+    </PageTransition>
   )
 }
 

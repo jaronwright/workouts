@@ -6,6 +6,7 @@ import { VerificationBanner } from '@/components/auth/VerificationBanner'
 import { OfflineBanner } from './OfflineBanner'
 import { Avatar } from '@/components/ui'
 import { useAvatarUrl } from '@/hooks/useAvatar'
+import { PressableButton } from '@/components/motion'
 
 interface AppShellProps {
   children: ReactNode
@@ -21,13 +22,12 @@ function ProfileHeaderAction() {
   const avatarUrl = useAvatarUrl()
 
   return (
-    <button
+    <PressableButton
       onClick={() => navigate('/profile')}
-      className="rounded-full active:opacity-70 transition-opacity"
-      aria-label="Profile"
+      className="rounded-full transition-opacity"
     >
       <Avatar src={avatarUrl} size="sm" alt="Profile" />
-    </button>
+    </PressableButton>
   )
 }
 
@@ -47,7 +47,7 @@ export function AppShell({
       <VerificationBanner />
       <OfflineBanner />
       <Header title={title} showBack={showBack} showLogout={showLogout} headerAction={resolvedAction} />
-      <main className="flex-1 overflow-y-auto overscroll-contain pb-6">
+      <main className="flex-1 overflow-y-auto overscroll-contain pb-[var(--space-6)]">
         {children}
       </main>
       {!hideNav && <BottomNav />}
