@@ -1,9 +1,26 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { InfiniteData } from '@tanstack/react-query'
 import { addReaction, removeReaction } from '@/services/reactionService'
 import { createReactionNotification } from '@/services/notificationService'
 import { FEED_PAGE_SIZE } from '@/config/communityConfig'
-import type { FeedWorkout, ReactionType } from '@/types/community'
+import type { FeedWorkout, ReactionType, PaginatedFeed } from '@/types/community'
 import { useAuthStore } from '@/stores/authStore'
+
+// Helper: update a workout inside paginated infinite data
+function updateFeedWorkout(
+  old: InfiniteData<PaginatedFeed> | undefined,
+  workoutId: string,
+  updater: (workout: FeedWorkout) => FeedWorkout
+): InfiniteData<PaginatedFeed> | undefined {
+  if (!old) return old
+  return {
+    ...old,
+    pages: old.pages.map(page => ({
+      ...page,
+      items: page.items.map(w => w.id === workoutId ? updater(w) : w),
+    })),
+  }
+}
 
 export function useAddReaction() {
   const queryClient = useQueryClient()
@@ -37,33 +54,28 @@ export function useAddReaction() {
 
       return result
     },
-    // Optimistic update
+    // Optimistic update for infinite query data shape
     onMutate: async ({ workout, reactionType }) => {
       await queryClient.cancelQueries({ queryKey: ['social-feed'] })
-      const previousFeed = queryClient.getQueryData<FeedWorkout[]>(['social-feed', FEED_PAGE_SIZE])
+      const previousFeed = queryClient.getQueryData<InfiniteData<PaginatedFeed>>(['social-feed', FEED_PAGE_SIZE])
 
       if (previousFeed && user) {
-        queryClient.setQueryData<FeedWorkout[]>(['social-feed', FEED_PAGE_SIZE], old => {
-          if (!old) return old
-          return old.map(w => {
-            if (w.id !== workout.id) return w
-            // Remove existing reaction from this user, add new one
-            const filtered = w.reactions.filter(r => r.user_id !== user.id)
-            return {
-              ...w,
-              reactions: [
-                ...filtered,
-                {
-                  id: 'optimistic',
-                  user_id: user.id,
-                  reaction_type: reactionType,
-                  created_at: new Date().toISOString(),
-                  user_profile: null,
-                },
-              ],
-            }
-          })
-        })
+        queryClient.setQueryData<InfiniteData<PaginatedFeed>>(
+          ['social-feed', FEED_PAGE_SIZE],
+          old => updateFeedWorkout(old, workout.id, w => ({
+            ...w,
+            reactions: [
+              ...w.reactions.filter(r => r.user_id !== user.id),
+              {
+                id: 'optimistic',
+                user_id: user.id,
+                reaction_type: reactionType,
+                created_at: new Date().toISOString(),
+                user_profile: null,
+              },
+            ],
+          }))
+        )
       }
 
       return { previousFeed }
@@ -96,19 +108,16 @@ export function useRemoveReaction() {
     },
     onMutate: async ({ workout }) => {
       await queryClient.cancelQueries({ queryKey: ['social-feed'] })
-      const previousFeed = queryClient.getQueryData<FeedWorkout[]>(['social-feed', FEED_PAGE_SIZE])
+      const previousFeed = queryClient.getQueryData<InfiniteData<PaginatedFeed>>(['social-feed', FEED_PAGE_SIZE])
 
       if (previousFeed && user) {
-        queryClient.setQueryData<FeedWorkout[]>(['social-feed', FEED_PAGE_SIZE], old => {
-          if (!old) return old
-          return old.map(w => {
-            if (w.id !== workout.id) return w
-            return {
-              ...w,
-              reactions: w.reactions.filter(r => r.user_id !== user.id),
-            }
-          })
-        })
+        queryClient.setQueryData<InfiniteData<PaginatedFeed>>(
+          ['social-feed', FEED_PAGE_SIZE],
+          old => updateFeedWorkout(old, workout.id, w => ({
+            ...w,
+            reactions: w.reactions.filter(r => r.user_id !== user.id),
+          }))
+        )
       }
 
       return { previousFeed }

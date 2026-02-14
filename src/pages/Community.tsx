@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Users, Bell, RefreshCw } from 'lucide-react'
 import { motion } from 'motion/react'
@@ -21,13 +21,44 @@ import {
 export function CommunityPage() {
   const navigate = useNavigate()
   const user = useAuthStore(s => s.user)
-  const { data: workouts, isLoading, refetch, isRefetching } = useSocialFeed()
+  const {
+    data,
+    isLoading,
+    refetch,
+    isRefetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useSocialFeed()
   const { data: unreadCount } = useUnreadNotificationCount()
   const { data: notifications, isLoading: notificationsLoading } = useCommunityNotifications()
   const markRead = useMarkNotificationsRead()
 
+  // Flatten paginated feed into a single array
+  const workouts = data?.pages.flatMap(p => p.items) ?? []
+
   const [showPrivacyModal, setShowPrivacyModal] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+
+  // Infinite scroll: observe sentinel element to auto-load more
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = loadMoreRef.current
+    if (!el || !hasNextPage) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { rootMargin: '200px' }
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   // Check if user needs onboarding — reading localStorage is a sync side-effect
   useEffect(() => {
@@ -72,7 +103,7 @@ export function CommunityPage() {
   return (
     <AppShell title="Community" headerAction={headerAction}>
       <div className="px-[var(--space-4)] py-[var(--space-4)] space-y-[var(--space-3)] pb-[var(--space-8)]">
-        {/* Pull to refresh button */}
+        {/* Header row with refresh */}
         <div className="flex items-center justify-between">
           <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
             Activity
@@ -97,7 +128,7 @@ export function CommunityPage() {
         )}
 
         {/* Empty state */}
-        {!isLoading && (!workouts || workouts.length === 0) && (
+        {!isLoading && workouts.length === 0 && (
           <FadeIn direction="up">
             <Card variant="outlined">
               <CardContent className="py-[var(--space-12)] text-center">
@@ -116,7 +147,7 @@ export function CommunityPage() {
         )}
 
         {/* Feed */}
-        {!isLoading && workouts && workouts.length > 0 && (
+        {!isLoading && workouts.length > 0 && (
           <StaggerList className="space-y-[var(--space-3)]">
             {workouts.map((workout, index) => (
               <StaggerItem key={workout.id}>
@@ -128,6 +159,22 @@ export function CommunityPage() {
               </StaggerItem>
             ))}
           </StaggerList>
+        )}
+
+        {/* Infinite scroll sentinel */}
+        {hasNextPage && (
+          <div ref={loadMoreRef} className="py-[var(--space-4)] flex justify-center">
+            {isFetchingNextPage && (
+              <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+            )}
+          </div>
+        )}
+
+        {/* End of feed indicator */}
+        {!isLoading && workouts.length > 0 && !hasNextPage && (
+          <p className="text-center text-xs text-[var(--color-text-muted)] py-[var(--space-4)]">
+            You&apos;re all caught up!
+          </p>
         )}
       </div>
 

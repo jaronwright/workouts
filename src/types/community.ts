@@ -89,6 +89,13 @@ export interface FeedWorkout {
   streak_days: number | null
 }
 
+// ─── Paginated Feed ─────────────────────────────────
+
+export interface PaginatedFeed {
+  items: FeedWorkout[]
+  nextCursor: string | null
+}
+
 // ─── Notification Types ──────────────────────────────
 
 export type NotificationType = 'reaction' | 'photo_reaction'

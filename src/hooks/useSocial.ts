@@ -1,16 +1,18 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   getSocialFeed,
   toggleWorkoutPublic,
   getPublicProfile,
 } from '@/services/socialService'
-import type { FeedWorkout, PublicProfile } from '@/types/community'
-import { FEED_STALE_TIME } from '@/config/communityConfig'
+import type { PublicProfile, PaginatedFeed } from '@/types/community'
+import { FEED_STALE_TIME, FEED_PAGE_SIZE } from '@/config/communityConfig'
 
-export function useSocialFeed(limit = 20) {
-  return useQuery<FeedWorkout[]>({
+export function useSocialFeed(limit = FEED_PAGE_SIZE) {
+  return useInfiniteQuery({
     queryKey: ['social-feed', limit],
-    queryFn: () => getSocialFeed(limit),
+    queryFn: ({ pageParam }) => getSocialFeed(limit, pageParam),
+    getNextPageParam: (lastPage: PaginatedFeed) => lastPage.nextCursor ?? undefined,
+    initialPageParam: undefined as string | undefined,
     staleTime: FEED_STALE_TIME,
   })
 }
