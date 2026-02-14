@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'motion/react'
 import { AppShell } from '@/components/layout'
 import { ScheduleDayEditor } from '@/components/schedule'
-import { StaggerList, StaggerItem } from '@/components/motion'
+import { StaggerList, StaggerItem, FadeIn } from '@/components/motion'
 import { useUserSchedule } from '@/hooks/useSchedule'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useCycleDay } from '@/hooks/useCycleDay'
@@ -17,6 +17,19 @@ import {
   getCardioStyle,
   getMobilityStyle
 } from '@/config/workoutConfig'
+
+// Extract muscle group subtitle from raw workout name
+// e.g. "Push (Chest, Shoulders, Triceps)" → "Chest, Shoulders, Triceps"
+function getWorkoutSubtitle(schedule: ScheduleDay): string | null {
+  if (schedule.workout_day?.name) {
+    const match = schedule.workout_day.name.match(/\(([^)]+)\)/)
+    if (match) return match[1]
+  }
+  if (schedule.template?.duration_minutes) {
+    return `~${schedule.template.duration_minutes} min`
+  }
+  return null
+}
 
 function getWorkoutChip(schedule: ScheduleDay) {
   if (schedule.is_rest_day) {
@@ -105,74 +118,86 @@ export function SchedulePage() {
   return (
     <AppShell title="Schedule">
       <div className="pb-[var(--space-8)]">
-        {/* ── WEEK OVERVIEW ── */}
-        <div className="px-[var(--space-4)] pt-[var(--space-4)] pb-[var(--space-6)]">
-          {/* Cycle info */}
-          <div className="flex items-center justify-center gap-[var(--space-2)] mb-[var(--space-4)]">
-            <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]" />
-            <span className="text-[var(--text-xs)] font-medium text-[var(--color-text-muted)]">
-              Day <span className="text-[var(--color-primary)] font-semibold font-mono-stats">{currentCycleDay}</span>
-              <span className="mx-1.5 opacity-40">&middot;</span>
-              {formatCycleStartDate(profile?.cycle_start_date)}
-            </span>
-          </div>
+        {/* ═══ HERO HEADING ═══ */}
+        <FadeIn direction="up">
+          <div className="px-[var(--space-5)] pt-[var(--space-4)] pb-[var(--space-5)]">
+            {/* Large day indicator */}
+            <p
+              className="text-[var(--text-xs)] uppercase font-semibold text-[var(--color-text-muted)] mb-[var(--space-1)]"
+              style={{ letterSpacing: 'var(--tracking-widest)' }}
+            >
+              Current Day
+            </p>
+            <div className="flex items-baseline gap-[var(--space-3)]">
+              <span
+                className="text-[clamp(3rem,12vw,4rem)] font-extrabold font-mono-stats leading-none"
+                style={{ color: 'var(--color-primary)' }}
+              >
+                {currentCycleDay}
+              </span>
+              <span className="text-[var(--text-sm)] text-[var(--color-text-muted)]">
+                of 7 · {formatCycleStartDate(profile?.cycle_start_date)}
+              </span>
+            </div>
 
-          {/* Day selector pills */}
-          <div className="flex justify-center gap-[var(--space-3)]">
-            {[1, 2, 3, 4, 5, 6, 7].map((day) => {
-              const isActive = currentCycleDay === day
-              const daySchedules = schedulesByDay.get(day) || []
-              const firstSchedule = daySchedules[0]
-              const chip = firstSchedule ? getWorkoutChip(firstSchedule) : null
+            {/* Day selector pills — larger, more prominent */}
+            <div className="flex justify-between mt-[var(--space-5)]">
+              {[1, 2, 3, 4, 5, 6, 7].map((day) => {
+                const isActive = currentCycleDay === day
+                const daySchedules = schedulesByDay.get(day) || []
+                const firstSchedule = daySchedules[0]
+                const chip = firstSchedule ? getWorkoutChip(firstSchedule) : null
 
-              return (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => handleDayClick(day)}
-                  className="relative flex flex-col items-center"
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="schedule-day-active"
-                      className="absolute -inset-0.5 rounded-full bg-[var(--color-primary)]"
-                      transition={springPresets.snappy}
-                    />
-                  )}
-                  <div
-                    className={`
-                      relative w-10 h-10 rounded-full flex items-center justify-center
-                      transition-colors duration-150
-                      ${isActive
-                        ? 'text-[var(--color-primary-text)]'
-                        : 'bg-[var(--color-surface)] text-[var(--color-text-muted)]'
-                      }
-                    `}
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => handleDayClick(day)}
+                    className="relative flex flex-col items-center"
                   >
-                    {daySchedules.length > 1 ? (
-                      <span className="text-sm font-bold">{daySchedules.length}</span>
-                    ) : chip?.Icon ? (
-                      <chip.Icon className="w-[18px] h-[18px]" strokeWidth={2} />
-                    ) : (
-                      <span className="text-sm font-semibold">{day}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="schedule-day-active"
+                        className="absolute -inset-1 rounded-full bg-[var(--color-primary)]"
+                        transition={springPresets.snappy}
+                      />
                     )}
-                  </div>
-                </button>
-              )
-            })}
+                    <div
+                      className={`
+                        relative w-11 h-11 rounded-full flex items-center justify-center
+                        transition-colors duration-150
+                        ${isActive
+                          ? 'text-[var(--color-primary-text)]'
+                          : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
+                        }
+                      `}
+                      style={isActive ? { boxShadow: '0 0 12px rgba(232, 255, 0, 0.2)' } : undefined}
+                    >
+                      {daySchedules.length > 1 ? (
+                        <span className="text-sm font-bold">{daySchedules.length}</span>
+                      ) : chip?.Icon ? (
+                        <chip.Icon className="w-[18px] h-[18px]" strokeWidth={2} />
+                      ) : (
+                        <span className="text-sm font-semibold">{day}</span>
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
           </div>
-        </div>
+        </FadeIn>
 
-        {/* ── WORKOUT LIST ── */}
+        {/* ═══ 7-DAY CYCLE LIST ═══ */}
         <div className="px-[var(--space-4)]">
           <h3
-            className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-widest)] mb-[var(--space-4)]"
-            style={{ fontWeight: 'var(--weight-semibold)' }}
+            className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase mb-[var(--space-4)] px-[var(--space-1)]"
+            style={{ letterSpacing: 'var(--tracking-widest)', fontWeight: 600 }}
           >
             7-Day Cycle
           </h3>
 
-          <StaggerList className="space-y-[var(--space-3)]">
+          <StaggerList className="space-y-[var(--space-2)]">
             {[1, 2, 3, 4, 5, 6, 7].map((dayNumber) => {
               const daySchedules = schedulesByDay.get(dayNumber) || []
               const isCurrentDay = currentCycleDay === dayNumber
@@ -182,6 +207,9 @@ export function SchedulePage() {
               // Get the left-edge color from first workout
               const firstChip = daySchedules[0] ? getWorkoutChip(daySchedules[0]) : null
               const edgeColor = hasWorkouts && firstChip ? firstChip.color : undefined
+
+              // Get subtitle (muscle groups or duration)
+              const firstSubtitle = daySchedules[0] ? getWorkoutSubtitle(daySchedules[0]) : null
 
               return (
                 <StaggerItem key={dayNumber}>
@@ -195,6 +223,7 @@ export function SchedulePage() {
                         : 'bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)]'
                       }
                     `}
+                    style={isCurrentDay ? { boxShadow: '0 0 20px rgba(232, 255, 0, 0.06)' } : undefined}
                   >
                     {/* Left edge color indicator */}
                     {edgeColor && (
@@ -204,14 +233,16 @@ export function SchedulePage() {
                       />
                     )}
 
-                    <div className="flex items-center gap-[var(--space-4)] px-[var(--space-5)] py-[var(--space-4)]">
-                      {/* Day Number */}
+                    <div className={`flex items-center gap-[var(--space-4)] px-[var(--space-5)] ${
+                      isCurrentDay ? 'py-[var(--space-5)]' : 'py-[var(--space-4)]'
+                    }`}>
+                      {/* Day Number — bigger for active day */}
                       <div className={`
-                        w-10 h-10 rounded-full flex items-center justify-center shrink-0
-                        font-mono-stats text-[15px] font-bold
+                        rounded-full flex items-center justify-center shrink-0
+                        font-mono-stats font-bold
                         ${isCurrentDay
-                          ? 'bg-[var(--color-primary)] text-[var(--color-primary-text)]'
-                          : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]'
+                          ? 'w-12 h-12 text-[var(--text-base)] bg-[var(--color-primary)] text-[var(--color-primary-text)]'
+                          : 'w-10 h-10 text-[15px] bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]'
                         }
                       `}
                         style={isCurrentDay ? { boxShadow: 'var(--shadow-primary)' } : undefined}
@@ -219,7 +250,7 @@ export function SchedulePage() {
                         {dayNumber}
                       </div>
 
-                      {/* Workout Content */}
+                      {/* Workout Content — with inline subtitles */}
                       <div className="flex-1 min-w-0">
                         {isRestDay ? (
                           <div className="flex items-center gap-[var(--space-3)] text-[var(--color-text-muted)]">
@@ -232,6 +263,7 @@ export function SchedulePage() {
                               const chipData = getWorkoutChip(s)
                               if (!chipData) return null
                               const { Icon, color, label } = chipData
+                              const subtitle = getWorkoutSubtitle(s)
                               return (
                                 <div key={idx} className="flex items-center gap-[var(--space-3)] min-w-0">
                                   <Icon
@@ -239,12 +271,21 @@ export function SchedulePage() {
                                     style={{ color }}
                                     strokeWidth={2}
                                   />
-                                  <span
-                                    className="text-[15px] font-medium truncate"
-                                    style={{ color }}
-                                  >
-                                    {label}
-                                  </span>
+                                  <div className="min-w-0">
+                                    <span
+                                      className={`font-medium truncate block ${
+                                        isCurrentDay ? 'text-[var(--text-base)]' : 'text-[15px]'
+                                      }`}
+                                      style={{ color }}
+                                    >
+                                      {label}
+                                    </span>
+                                    {subtitle && (
+                                      <span className="text-[var(--text-xs)] text-[var(--color-text-muted)] truncate block">
+                                        {subtitle}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               )
                             })}
