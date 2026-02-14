@@ -11,6 +11,7 @@ import { FeedTabs } from '@/components/social/FeedTabs'
 import { FollowButton } from '@/components/social/FollowButton'
 import { ChallengeCard } from '@/components/social/ChallengeCard'
 import { LeaderboardPanel } from '@/components/social/LeaderboardPanel'
+import { BadgeCelebration } from '@/components/social/BadgeCelebration'
 import { useSocialFeed } from '@/hooks/useSocial'
 import { useFollowCounts, useSuggestedUsers, useSearchUsers } from '@/hooks/useFollow'
 import { useActiveChallenges, useJoinChallenge } from '@/hooks/useChallenges'
@@ -74,6 +75,7 @@ export function CommunityPage() {
 
   const [showPrivacyModal, setShowPrivacyModal] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [newBadgeKeys, setNewBadgeKeys] = useState<string[]>([])
 
   // Infinite scroll: observe sentinel element to auto-load more
   const loadMoreRef = useRef<HTMLDivElement>(null)
@@ -95,10 +97,16 @@ export function CommunityPage() {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  // Check for new badges on page load (fire-and-forget)
+  // Check for new badges on page load
   const checkBadges = useCheckBadges()
   useEffect(() => {
-    if (user) checkBadges.mutate()
+    if (user) {
+      checkBadges.mutate(undefined, {
+        onSuccess: (awarded) => {
+          if (awarded.length > 0) setNewBadgeKeys(awarded) // eslint-disable-line react-hooks/set-state-in-effect
+        }
+      })
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Check if user needs onboarding
@@ -371,6 +379,14 @@ export function CommunityPage() {
             </PressableButton>
           </motion.div>
         </div>
+      )}
+
+      {/* Badge Celebration Overlay */}
+      {newBadgeKeys.length > 0 && (
+        <BadgeCelebration
+          badgeKeys={newBadgeKeys}
+          onComplete={() => setNewBadgeKeys([])}
+        />
       )}
     </AppShell>
   )

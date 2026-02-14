@@ -36,7 +36,9 @@ export function FollowButton({ userId, size = 'md' }: FollowButtonProps) {
     <motion.button
       onClick={handleClick}
       disabled={isPending}
-      whileTap={{ scale: 0.95 }}
+      whileTap={{ scale: 0.9 }}
+      animate={isFollowing ? { scale: [1, 1.08, 1] } : {}}
+      transition={{ type: 'spring', stiffness: 400, damping: 15 }}
       className={`
         inline-flex items-center justify-center gap-1.5 font-semibold rounded-full transition-colors
         ${isSm ? 'px-3 py-1 text-xs' : 'px-4 py-2 text-sm'}

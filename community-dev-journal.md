@@ -218,3 +218,45 @@
 
 ### What's Next
 - Phase 4: Motion, Polish & UX — feed animations, celebration micro-interactions, badge earn celebrations, navigation transitions, performance tuning
+
+---
+
+## Iteration 4: Phase 4 — Motion, Polish & UX
+
+**Date**: 2026-02-14
+**Phase**: 4 (Motion & Polish)
+**Driver**: JIN (frontend) + ALEX (UX)
+
+### What Was Implemented
+
+#### 4A. Badge Celebration Overlay (JIN + ALEX driving)
+- Full-screen celebration when user earns new badges
+- Multi-badge support: auto-advances through each badge with 2.5s delay, or tap to skip
+- Per-badge: radial glow in rarity color, emoji scale-up with wiggle rotation, staggered text reveals
+- Backdrop blur + dark overlay creates focus on the achievement
+- Integrated into Community page: checkBadges onSuccess → setNewBadgeKeys → BadgeCelebration renders
+
+#### 4B. Reaction Bar Micro-Interactions (JIN driving)
+- Emoji wiggle animation (scale 1→1.3→1 + rotation) when reaction is active
+- Button pulse (scale 1→1.15→1) on activation with bouncy spring
+- Deeper whileTap (scale 0.85) for more satisfying press feel
+
+#### 4C. Follow Button Enhancement (JIN driving)
+- Subtle pulse (scale 1→1.08→1) when follow state transitions to "Following"
+- Deeper whileTap (scale 0.9) for better tactile feedback
+
+### Architecture Decisions
+- **Celebration as overlay, not toast**: Badge celebrations deserve full attention — toasts are too subtle for a hard-earned achievement
+- **Fire-and-forget badge checking**: The badge check runs on Community page mount. New badges trigger the celebration overlay. No polling or WebSocket needed.
+- **Animation keyframes in Framer Motion**: Using array animation values (e.g., `scale: [1, 1.3, 1]`) instead of CSS keyframes — keeps motion logic co-located with the component
+
+### Build/Test Status
+- `npx vite build` ✅ passes clean (2.27s)
+
+### Ratings
+- Feature completeness: 9/10 (all major features built)
+- Code quality: 8/10 (clean patterns throughout)
+- UX quality: 8/10 (celebration overlay is delightful, micro-interactions feel good)
+
+### What's Next
+- Phase 5: Integration & QA — type safety audit, edge case handling, dead code cleanup, final review
