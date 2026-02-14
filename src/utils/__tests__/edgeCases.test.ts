@@ -2,10 +2,8 @@ import { describe, it, expect } from 'vitest'
 import {
   formatDate,
   formatDuration,
-  formatWeight,
   formatReps,
-  formatRelativeTime,
-  normalizeWorkoutName
+  formatRelativeTime
 } from '../formatters'
 import {
   validatePassword,
@@ -66,33 +64,6 @@ describe('formatDuration edge cases', () => {
 
   it('formats 7200 seconds (2 hours)', () => {
     expect(formatDuration(7200)).toBe('120:00')
-  })
-})
-
-describe('formatWeight edge cases', () => {
-  it('formats very large weights correctly', () => {
-    expect(formatWeight(99999)).toBe('99999 lbs')
-  })
-
-  it('formats very large weights with kg unit', () => {
-    expect(formatWeight(99999, 'kg')).toBe('99999 kg')
-  })
-
-  it('formats weight of 0 with kg', () => {
-    expect(formatWeight(0, 'kg')).toBe('0 kg')
-  })
-
-  it('formats very small decimal weights', () => {
-    expect(formatWeight(0.5)).toBe('0.5 lbs')
-  })
-
-  it('handles negative weight values', () => {
-    // The function does not guard against negative values
-    expect(formatWeight(-10)).toBe('-10 lbs')
-  })
-
-  it('formats weight with many decimal places', () => {
-    expect(formatWeight(132.123456789)).toBe('132.123456789 lbs')
   })
 })
 
@@ -171,31 +142,6 @@ describe('formatRelativeTime edge cases', () => {
 
   it('throws for invalid date string', () => {
     expect(() => formatRelativeTime('invalid')).toThrow()
-  })
-})
-
-describe('normalizeWorkoutName edge cases', () => {
-  it('returns empty string for empty input', () => {
-    expect(normalizeWorkoutName('')).toBe('')
-  })
-
-  it('converts uppercase word with parentheses to title case', () => {
-    expect(normalizeWorkoutName('PUSH (Chest, Shoulders, Triceps)')).toBe(
-      'Push (Chest, Shoulders, Triceps)'
-    )
-  })
-
-  it('does not modify already title-cased names', () => {
-    expect(normalizeWorkoutName('Push Day')).toBe('Push Day')
-  })
-
-  it('handles single uppercase word without parentheses', () => {
-    // No match for regex since there is no parenthesis following
-    expect(normalizeWorkoutName('PUSH')).toBe('PUSH')
-  })
-
-  it('handles name with only parentheses, no leading uppercase word', () => {
-    expect(normalizeWorkoutName('(test)')).toBe('(test)')
   })
 })
 

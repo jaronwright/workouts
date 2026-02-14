@@ -2,11 +2,8 @@ import { describe, it, expect } from 'vitest'
 import {
   formatDate,
   formatTime,
-  formatDateTime,
   formatDuration,
-  formatWeight,
   formatReps,
-  normalizeWorkoutName,
   formatRelativeTime
 } from '../formatters'
 
@@ -36,13 +33,6 @@ describe('formatTime', () => {
   })
 })
 
-describe('formatDateTime', () => {
-  it('formats date and time together', () => {
-    const result = formatDateTime('2024-03-15T09:30:00Z')
-    expect(result).toMatch(/Mar 15, 2024 \d{1,2}:\d{2}\s(AM|PM)/i)
-  })
-})
-
 describe('formatDuration', () => {
   it('formats 0 seconds correctly', () => {
     expect(formatDuration(0)).toBe('0:00')
@@ -65,32 +55,6 @@ describe('formatDuration', () => {
   })
 })
 
-describe('formatWeight', () => {
-  it('formats weight with lbs suffix', () => {
-    expect(formatWeight(135)).toBe('135 lbs')
-  })
-
-  it('formats decimal weights', () => {
-    expect(formatWeight(132.5)).toBe('132.5 lbs')
-  })
-
-  it('returns "—" for null weight', () => {
-    expect(formatWeight(null)).toBe('—')
-  })
-
-  it('formats zero weight', () => {
-    expect(formatWeight(0)).toBe('0 lbs')
-  })
-
-  it('formats weight with kg suffix', () => {
-    expect(formatWeight(60, 'kg')).toBe('60 kg')
-  })
-
-  it('formats zero weight with kg', () => {
-    expect(formatWeight(0, 'kg')).toBe('0 kg')
-  })
-})
-
 describe('formatReps', () => {
   it('formats positive reps', () => {
     expect(formatReps(10)).toBe('10')
@@ -102,32 +66,6 @@ describe('formatReps', () => {
 
   it('formats zero reps', () => {
     expect(formatReps(0)).toBe('0')
-  })
-})
-
-describe('normalizeWorkoutName', () => {
-  it('converts "PUSH (Chest, Shoulders, Triceps)" to title case first word', () => {
-    expect(normalizeWorkoutName('PUSH (Chest, Shoulders, Triceps)')).toBe('Push (Chest, Shoulders, Triceps)')
-  })
-
-  it('converts "PULL (Back, Biceps, Rear Delts)" to title case', () => {
-    expect(normalizeWorkoutName('PULL (Back, Biceps, Rear Delts)')).toBe('Pull (Back, Biceps, Rear Delts)')
-  })
-
-  it('converts "LEGS (Quads, Hamstrings, Calves)" to title case', () => {
-    expect(normalizeWorkoutName('LEGS (Quads, Hamstrings, Calves)')).toBe('Legs (Quads, Hamstrings, Calves)')
-  })
-
-  it('returns unchanged for already title-case names', () => {
-    expect(normalizeWorkoutName('Push Day')).toBe('Push Day')
-  })
-
-  it('returns unchanged for lowercase names without parens', () => {
-    expect(normalizeWorkoutName('push')).toBe('push')
-  })
-
-  it('handles empty string', () => {
-    expect(normalizeWorkoutName('')).toBe('')
   })
 })
 
@@ -216,26 +154,6 @@ describe('formatTime - edge cases', () => {
     const date = new Date(2024, 0, 1, 1, 0, 0)
     const result = formatTime(date)
     expect(result).toBe('1:00 AM')
-  })
-})
-
-describe('formatDateTime - edge cases', () => {
-  it('formats a Date object', () => {
-    const date = new Date(2024, 0, 1, 14, 30, 0) // Jan 1, 2024 2:30 PM local
-    const result = formatDateTime(date)
-    expect(result).toBe('Jan 1, 2024 2:30 PM')
-  })
-
-  it('formats midnight local time', () => {
-    const date = new Date(2024, 5, 15, 0, 0, 0) // June 15 midnight local
-    const result = formatDateTime(date)
-    expect(result).toBe('Jun 15, 2024 12:00 AM')
-  })
-
-  it('formats end of day local time', () => {
-    const date = new Date(2024, 11, 31, 23, 59, 0) // Dec 31 11:59 PM local
-    const result = formatDateTime(date)
-    expect(result).toBe('Dec 31, 2024 11:59 PM')
   })
 })
 
@@ -333,48 +251,6 @@ describe('formatDuration - edge cases', () => {
   })
 })
 
-describe('formatWeight - edge cases', () => {
-  it('uses lbs as default unit when not specified', () => {
-    expect(formatWeight(100)).toBe('100 lbs')
-  })
-
-  it('formats negative weight', () => {
-    expect(formatWeight(-5)).toBe('-5 lbs')
-  })
-
-  it('formats negative weight with kg', () => {
-    expect(formatWeight(-10, 'kg')).toBe('-10 kg')
-  })
-
-  it('formats very large weight', () => {
-    expect(formatWeight(99999)).toBe('99999 lbs')
-  })
-
-  it('formats very small decimal weight', () => {
-    expect(formatWeight(0.25, 'kg')).toBe('0.25 kg')
-  })
-
-  it('formats NaN weight', () => {
-    expect(formatWeight(NaN)).toBe('NaN lbs')
-  })
-
-  it('formats Infinity weight', () => {
-    expect(formatWeight(Infinity)).toBe('Infinity lbs')
-  })
-
-  it('formats negative Infinity weight', () => {
-    expect(formatWeight(-Infinity, 'kg')).toBe('-Infinity kg')
-  })
-
-  it('formats weight with many decimal places', () => {
-    expect(formatWeight(132.123456789)).toBe('132.123456789 lbs')
-  })
-
-  it('formats zero weight with explicit lbs', () => {
-    expect(formatWeight(0, 'lbs')).toBe('0 lbs')
-  })
-})
-
 describe('formatReps - edge cases', () => {
   it('formats negative reps', () => {
     expect(formatReps(-1)).toBe('-1')
@@ -409,76 +285,3 @@ describe('formatReps - edge cases', () => {
   })
 })
 
-describe('normalizeWorkoutName - edge cases', () => {
-  it('handles single uppercase letter with parenthesized content', () => {
-    expect(normalizeWorkoutName('A (Arms)')).toBe('A (Arms)')
-  })
-
-  it('handles two-letter uppercase word with parens', () => {
-    expect(normalizeWorkoutName('AB (Abs, Back)')).toBe('Ab (Abs, Back)')
-  })
-
-  it('returns unchanged for all uppercase without parentheses', () => {
-    expect(normalizeWorkoutName('PUSH')).toBe('PUSH')
-  })
-
-  it('returns unchanged for lowercase with parentheses', () => {
-    expect(normalizeWorkoutName('push (chest)')).toBe('push (chest)')
-  })
-
-  it('returns unchanged for mixed case without matching pattern', () => {
-    expect(normalizeWorkoutName('Push')).toBe('Push')
-  })
-
-  it('handles name with no space before parenthesis', () => {
-    expect(normalizeWorkoutName('PUSH(Chest)')).toBe('Push(Chest)')
-  })
-
-  it('handles name with multiple spaces before parenthesis', () => {
-    expect(normalizeWorkoutName('PUSH  (Chest)')).toBe('Push  (Chest)')
-  })
-
-  it('handles name with special characters in parentheses', () => {
-    expect(normalizeWorkoutName('CORE (Abs & Obliques!)')).toBe('Core (Abs & Obliques!)')
-  })
-
-  it('handles name with numbers in parentheses', () => {
-    expect(normalizeWorkoutName('DAY (Phase 1)')).toBe('Day (Phase 1)')
-  })
-
-  it('handles name that is just an uppercase word with empty parens', () => {
-    expect(normalizeWorkoutName('TEST ()')).toBe('Test ()')
-  })
-
-  it('handles name with nested parentheses', () => {
-    expect(normalizeWorkoutName('UPPER (Chest (Heavy), Back)')).toBe('Upper (Chest (Heavy), Back)')
-  })
-
-  it('returns unchanged for name starting with number', () => {
-    expect(normalizeWorkoutName('3DAY (Full Body)')).toBe('3DAY (Full Body)')
-  })
-
-  it('returns unchanged for name with leading whitespace', () => {
-    // Leading whitespace means the regex ^([A-Z]+) won't match
-    expect(normalizeWorkoutName(' PUSH (Chest)')).toBe(' PUSH (Chest)')
-  })
-
-  it('returns unchanged for mixed case first word with parens', () => {
-    expect(normalizeWorkoutName('Push (Chest, Shoulders)')).toBe('Push (Chest, Shoulders)')
-  })
-
-  it('handles single character uppercase word with parens', () => {
-    // 'X' followed by space and parens
-    expect(normalizeWorkoutName('X (Cross Training)')).toBe('X (Cross Training)')
-  })
-
-  it('does not modify content inside parentheses', () => {
-    const result = normalizeWorkoutName('LEGS (QUADS, HAMSTRINGS)')
-    expect(result).toBe('Legs (QUADS, HAMSTRINGS)')
-  })
-
-  it('handles name with tab before parens', () => {
-    // \s* in regex matches tabs too
-    expect(normalizeWorkoutName('PUSH\t(Chest)')).toBe('Push\t(Chest)')
-  })
-})

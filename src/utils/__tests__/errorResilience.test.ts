@@ -19,7 +19,7 @@ import {
   getCategoryLabel,
   CATEGORY_DEFAULTS
 } from '@/config/workoutConfig'
-import { formatDuration, formatWeight } from '@/utils/formatters'
+import { formatDuration, formatReps } from '@/utils/formatters'
 import { convertWeight, formatWeightWithUnit } from '@/stores/settingsStore'
 
 // ──────────────────────────────────────────────────────
@@ -178,9 +178,8 @@ describe('Falsy value handling (nullish coalescing)', () => {
     expect(duration || null).toBe(null)  // || converts 0 to null (bug pattern!)
   })
 
-  it('0 weight and duration format correctly (not treated as null)', () => {
-    expect(formatWeight(0)).toBe('0 lbs')
-    expect(formatWeight(0, 'kg')).toBe('0 kg')
+  it('0 reps and duration format correctly (not treated as null)', () => {
+    expect(formatReps(0)).toBe('0')
     expect(formatDuration(0)).toBe('0:00')
   })
 
