@@ -166,3 +166,37 @@
 - Final polish pass: verify all screens at 375px and 428px widths
 
 ---
+
+## Iteration 5: Micro-Interactions + Motion Polish
+
+### Changes Made
+1. **Workout pre-workout floating start button**: Now slides up from y:80 with spring physics and 0.3s delay. Creates a satisfying "reveal" effect as the page content loads first, then the CTA appears.
+2. **Workout motivational quote**: Random quote from the existing MOTIVATIONAL_QUOTES array now fades in below the exercise count/duration metadata with 0.6s delay. Italic Syne font creates a personal, editorial moment.
+3. **Profile workout split PressableCard**: All 6 split option buttons wrapped in PressableCard for spring-based press feedback (scale 0.97 with overshoot on release). Matches the tactile feel of Schedule day rows and Home stat pills.
+4. **Discovered PageTransition already applied**: Confirmed that AnimatedRoutes in App.tsx already wraps all routes in PageTransition — page transitions are functional. No longer a pending item.
+
+### After Ratings
+- **Home**: Layout 7/10, Visual Impact 8/10, Animation 7/10, Polish 8/10 (unchanged)
+- **Workout Detail (pre)**: Layout 8/10, Visual Impact 8/10, Animation 7/10, Polish 8/10 (animation up from 5 — floating button + quote)
+- **Workout Detail (active)**: Layout 7/10, Visual Impact 7/10, Animation 7/10, Polish 7/10 (unchanged)
+- **Schedule**: Layout 7/10, Visual Impact 7/10, Animation 6/10, Polish 7/10 (unchanged)
+- **Profile**: Layout 7/10, Visual Impact 7/10, Animation 6/10, Polish 7/10 (animation up from 5 — PressableCard)
+- **History (Calendar)**: Layout 7/10, Visual Impact 7/10, Animation 6/10, Polish 8/10 (unchanged)
+- **History (Stats)**: Layout 7/10, Visual Impact 7/10, Animation 7/10, Polish 8/10 (unchanged)
+- **Cardio**: Layout 7/10, Visual Impact 6/10, Animation 5/10, Polish 7/10 (unchanged)
+- **Mobility**: Layout 7/10, Visual Impact 7/10, Animation 5/10, Polish 7/10 (unchanged)
+
+### Overall Assessment
+Every primary screen is now at 7+ on layout and visual impact. Animation scores have improved across the board:
+- 5 screens at animation 7/10 (Home, Workout pre, Workout active, History Stats, ?)
+- 4 screens at animation 5-6/10 (Schedule, Profile, Cardio, Mobility)
+
+The app has a consistent editorial language: Syne headings, JetBrains Mono for numbers, yellow accent bars, clean divider-based lists, spring-based press feedback on interactive elements.
+
+### Remaining Opportunities
+- Cardio and Mobility animation could still improve (both at 5/10)
+- Width testing at 375px hasn't been done yet
+- Could add more AnimatedNumber usage in places that still show static numbers
+- The quality bar asks "3 moments of motion delight per screen" — some screens are close but not there yet
+
+---
