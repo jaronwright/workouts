@@ -101,11 +101,14 @@ export function WorkoutSelectPage() {
           <Card highlight>
             <CardContent className="py-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
+                <div
+                  className="w-12 h-12 rounded-[var(--radius-lg)] flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg, var(--color-success), #10b981)' }}
+                >
                   <Play className="w-6 h-6 text-white ml-0.5" fill="white" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs font-semibold text-green-500 uppercase tracking-wide">
+                  <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-success)' }}>
                     In Progress
                   </p>
                   <p className="text-base font-bold text-[var(--color-text)]">
