@@ -240,35 +240,36 @@ export function CardioWorkoutPage() {
   return (
     <AppShell title={template.name} showBack hideNav>
       <div className="p-[var(--space-4)] space-y-[var(--space-5)]">
-        {/* Template info card */}
+        {/* Editorial hero */}
         <FadeIn direction="up">
-          <Card>
-            <CardContent className="py-[var(--space-5)] flex items-center gap-[var(--space-4)]">
-              <div
-                className={`w-14 h-14 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center`}
-                style={{ boxShadow: 'var(--shadow-sm)' }}
+          <div className="flex items-center gap-[var(--space-4)]">
+            <div
+              className={`w-14 h-14 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center shrink-0`}
+              style={{ boxShadow: 'var(--shadow-sm)' }}
+            >
+              <Icon className="w-7 h-7 text-white" strokeWidth={2.5} />
+            </div>
+            <div>
+              <h2
+                className="text-[clamp(1.75rem,8vw,2.5rem)] font-extrabold text-[var(--color-text)]"
+                style={{ fontFamily: 'var(--font-heading)', lineHeight: 'var(--leading-tight)' }}
               >
-                <Icon className="w-7 h-7 text-white" strokeWidth={2.5} />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-[var(--color-text)]">
-                  {template.name}
-                </h2>
-                <p className="text-sm text-[var(--color-text-muted)]">
-                  {lastSession ? (
-                    <>
-                      Last: {lastSession.duration_minutes ? `${lastSession.duration_minutes} min` : ''}
-                      {lastSession.duration_minutes && lastSession.distance_value ? ' · ' : ''}
-                      {lastSession.distance_value ? `${lastSession.distance_value} ${lastSession.distance_unit || ''}` : ''}
-                      {!lastSession.duration_minutes && !lastSession.distance_value ? 'Completed' : ''}
-                    </>
-                  ) : (
-                    'No previous sessions'
-                  )}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+                {template.name}
+              </h2>
+              <p className="text-[var(--text-sm)] text-[var(--color-text-muted)]">
+                {lastSession ? (
+                  <>
+                    Last: {lastSession.duration_minutes ? `${lastSession.duration_minutes} min` : ''}
+                    {lastSession.duration_minutes && lastSession.distance_value ? ' · ' : ''}
+                    {lastSession.distance_value ? `${lastSession.distance_value} ${lastSession.distance_unit || ''}` : ''}
+                    {!lastSession.duration_minutes && !lastSession.distance_value ? 'Completed' : ''}
+                  </>
+                ) : (
+                  'No previous sessions'
+                )}
+              </p>
+            </div>
+          </div>
         </FadeIn>
 
         {/* Metric toggle */}
@@ -301,7 +302,7 @@ export function CardioWorkoutPage() {
             {currentMode.slider ? (
               <div className="space-y-4">
                 <div className="text-center">
-                  <span className="text-5xl font-bold text-[var(--color-text)] tabular-nums">
+                  <span className="text-5xl font-bold text-[var(--color-text)] tabular-nums font-mono-stats">
                     {sliderValue.toLocaleString()}
                   </span>
                   <span className="text-base text-[var(--color-text-muted)] ml-2">{currentMode.unit}</span>
@@ -335,7 +336,7 @@ export function CardioWorkoutPage() {
                   placeholder="0"
                   value={value}
                   onChange={(e) => setValue(e.target.value)}
-                  className="w-32 text-center text-5xl font-bold bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-[var(--radius-lg)] py-4 text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-offset-1 tabular-nums"
+                  className="w-32 text-center text-5xl font-bold bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-[var(--radius-lg)] py-4 text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-offset-1 tabular-nums font-mono-stats"
                   style={{ '--tw-ring-color': style.color } as React.CSSProperties}
                 />
                 <span className="text-base font-medium text-[var(--color-text-muted)]">{currentMode.unit}</span>
@@ -368,7 +369,7 @@ export function CardioWorkoutPage() {
               {/* Timer display */}
               {(sessionId || elapsedSeconds > 0) && (
                 <div className="text-center mb-4">
-                  <span className="text-4xl font-bold text-[var(--color-text)] tabular-nums">
+                  <span className="text-4xl font-bold text-[var(--color-text)] tabular-nums font-mono-stats">
                     {formatTime(elapsedSeconds)}
                   </span>
                 </div>
