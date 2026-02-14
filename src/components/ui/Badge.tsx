@@ -9,10 +9,10 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-  scheduled: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
-  missed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  inProgress: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  completed: 'bg-[var(--color-success-muted)] text-[var(--color-success)]',
+  scheduled: 'bg-[var(--color-info-muted)] text-[var(--color-info)]',
+  missed: 'bg-[var(--color-danger-muted)] text-[var(--color-danger)]',
+  inProgress: 'bg-[var(--color-warning-muted)] text-[var(--color-warning)]',
 }
 
 export function Badge({ variant, children, className = '' }: BadgeProps) {

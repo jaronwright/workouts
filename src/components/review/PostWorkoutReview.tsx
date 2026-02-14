@@ -130,8 +130,8 @@ export function PostWorkoutReview({ onComplete }: PostWorkoutReviewProps) {
                   animate={{ scale: [0, 1.3, 1] }}
                   transition={{ type: 'spring', stiffness: 300, damping: 15 }}
                 >
-                  <div className="w-20 h-20 rounded-full bg-emerald-500/15 flex items-center justify-center mb-4">
-                    <Sparkles className="w-10 h-10 text-emerald-500" />
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'var(--color-success-muted)' }}>
+                    <Sparkles className="w-10 h-10" style={{ color: 'var(--color-success)' }} />
                   </div>
                 </motion.div>
                 <motion.p

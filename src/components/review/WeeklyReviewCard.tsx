@@ -36,7 +36,7 @@ export function WeeklyReviewCard({ weekStart }: WeeklyReviewCardProps) {
   const ratingColor = RATING_COLORS[Math.round(summary.averageRating)] || RATING_COLORS[3]
   const moodTrendIcon =
     summary.moodImprovement > 0.2 ? (
-      <TrendingUp className="w-4 h-4 text-emerald-500" />
+      <TrendingUp className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
     ) : summary.moodImprovement < -0.2 ? (
       <TrendingDown className="w-4 h-4 text-red-500" />
     ) : (

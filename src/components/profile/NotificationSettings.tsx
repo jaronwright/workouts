@@ -58,11 +58,11 @@ export function NotificationSettings() {
     <Card>
       <CardContent className="py-4 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-violet-500/20 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-[var(--color-primary-muted)] rounded-full flex items-center justify-center">
             {isSubscribed ? (
-              <Bell className="w-5 h-5 text-violet-500" />
+              <Bell className="w-5 h-5 text-[var(--color-primary)]" />
             ) : (
-              <BellOff className="w-5 h-5 text-violet-500" />
+              <BellOff className="w-5 h-5 text-[var(--color-primary)]" />
             )}
           </div>
           <div className="flex-1">
