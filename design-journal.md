@@ -105,3 +105,29 @@
 - Empty states still generic
 
 ---
+
+## Iteration 3: Motion Polish + Mobility + Grain Texture
+
+### Changes Made
+1. **PressableCard on Schedule rows**: All 7 day rows in the schedule now have press feedback (scale 0.97 on tap with spring overshoot)
+2. **Mobility editorial hero**: Transformed from centered Card layout to editorial hero with Syne heading, icon alongside, metadata row, divider-based exercise checklist with JetBrains Mono details
+3. **Grain texture overlay**: Added SVG fractal noise at 2.5% opacity to body::after — adds subtle depth and tactility to all dark surfaces
+4. **Removed Card wrappers from Mobility exercises**: Clean divider style matching the Workout Detail pattern
+
+### After Ratings
+- **Home**: Layout 7/10, Visual Impact 8/10, Animation 6/10, Polish 8/10
+- **Workout Detail (pre)**: Layout 8/10, Visual Impact 8/10, Animation 5/10, Polish 8/10
+- **Workout Detail (active)**: Layout 7/10, Visual Impact 7/10, Animation 7/10, Polish 7/10
+- **Schedule**: Layout 7/10, Visual Impact 7/10, Animation 6/10, Polish 7/10 (animation up — PressableCard)
+- **Profile**: Layout 7/10, Visual Impact 7/10, Animation 5/10, Polish 7/10
+- **History**: Layout 6/10, Visual Impact 6/10, Animation 6/10, Polish 7/10
+- **Cardio**: Layout 7/10, Visual Impact 6/10, Animation 5/10, Polish 7/10
+- **Mobility**: Layout 7/10, Visual Impact 7/10, Animation 5/10, Polish 7/10 (up from ~4/3/4/5)
+
+### What Still Needs Work
+- PageTransition on route changes (requires router-level change)
+- More AnimatedNumber usage on stat displays
+- History calendar could use subtle improvements
+- Empty states still generic across the app
+
+---
