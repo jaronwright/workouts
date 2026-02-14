@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, within } from '@/test/utils'
 import userEvent from '@testing-library/user-event'
@@ -161,6 +162,35 @@ vi.mock('@/components/ui', () => ({
       {value}
     </span>
   ),
+  ThemePicker: () => (
+    <div data-testid="theme-picker">
+      <button onClick={() => mockSetTheme('light')}>Light</button>
+      <button onClick={() => mockSetTheme('dark')}>Dark</button>
+      <button onClick={() => mockSetTheme('system')}>System</button>
+    </div>
+  ),
+  CollapsibleSection: ({
+    children,
+    title,
+    defaultExpanded = false,
+    onToggle,
+  }: {
+    children: React.ReactNode
+    title: string
+    icon?: unknown
+    iconColor?: string
+    subtitle?: string
+    defaultExpanded?: boolean
+    onToggle?: (expanded: boolean) => void
+  }) => {
+    const [open, setOpen] = useState(defaultExpanded)
+    return (
+      <div data-testid={`section-${title.toLowerCase()}`}>
+        <button onClick={() => { const next = !open; setOpen(next); onToggle?.(next) }}>{title}</button>
+        {open && children}
+      </div>
+    )
+  },
 }))
 
 vi.mock('@/components/auth/PasswordStrengthIndicator', () => ({
@@ -361,6 +391,8 @@ vi.mock('lucide-react', () => {
     Pencil: icon,
     Check: icon,
     X: icon,
+    Eye: icon,
+    EyeOff: icon,
   }
 })
 

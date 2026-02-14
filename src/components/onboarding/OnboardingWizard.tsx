@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
-import { Button } from '@/components/ui'
+import { Button, ThemePicker } from '@/components/ui'
 import { useWorkoutTemplates, useSaveScheduleDayWorkouts, useClearSchedule } from '@/hooks/useSchedule'
 import { useWorkoutDays, useWorkoutPlans } from '@/hooks/useWorkoutPlan'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useUploadAvatar, useAvatarUrl } from '@/hooks/useAvatar'
 import { OnboardingDayRow, type DaySelection } from './OnboardingDayRow'
-import { ChevronDown, ChevronLeft, ChevronRight, HelpCircle, RefreshCw, Calendar, Dumbbell, ArrowUp, User, Camera, Sparkles, Sun, Moon, Monitor } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, HelpCircle, RefreshCw, Calendar, Dumbbell, ArrowUp, User, Camera, Sparkles } from 'lucide-react'
 import { WEIGHTS_CONFIG } from '@/config/workoutConfig'
 import {
   PPL_PLAN_ID,
@@ -15,7 +15,6 @@ import {
   ARNOLD_SPLIT_PLAN_ID,
   GLUTE_HYPERTROPHY_PLAN_ID,
 } from '@/config/planConstants'
-import { useTheme } from '@/hooks/useTheme'
 import type { ScheduleWorkoutItem } from '@/services/scheduleService'
 
 interface OnboardingWizardProps {
@@ -44,7 +43,6 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   const { mutateAsync: clearSchedule } = useClearSchedule()
   const { mutateAsync: uploadAvatar } = useUploadAvatar()
   const currentAvatarUrl = useAvatarUrl()
-  const { theme, setTheme } = useTheme()
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(initialStep)
   const [selectedPlanId, setSelectedPlanId] = useState<string>(initialPlanId || profile?.selected_plan_id || PPL_PLAN_ID)
@@ -387,12 +385,50 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
   if (!isOpen) return null
 
-  const pplPlan = plans?.find(p => p.id === PPL_PLAN_ID)
-  const ulPlan = plans?.find(p => p.id === UPPER_LOWER_PLAN_ID)
-  const fbPlan = plans?.find(p => p.id === FULL_BODY_PLAN_ID)
-  const broPlan = plans?.find(p => p.id === BRO_SPLIT_PLAN_ID)
-  const arnoldPlan = plans?.find(p => p.id === ARNOLD_SPLIT_PLAN_ID)
-  const glutePlan = plans?.find(p => p.id === GLUTE_HYPERTROPHY_PLAN_ID)
+  const SPLIT_OPTIONS = [
+    {
+      id: PPL_PLAN_ID, key: 'ppl', fallbackName: 'Push / Pull / Legs',
+      gradient: 'from-red-500 to-orange-500', Icon: Dumbbell,
+      desc: 'Best for focused muscle group training, 5-6 days/week.',
+      detail: 'Separates pushing movements (chest, shoulders, triceps), pulling movements (back, biceps), and legs into dedicated days. This lets you hit each muscle group with higher volume while giving them plenty of time to recover before the next session.',
+      tags: [{ key: 'push', label: 'Push' }, { key: 'pull', label: 'Pull' }, { key: 'legs', label: 'Legs' }],
+    },
+    {
+      id: UPPER_LOWER_PLAN_ID, key: 'ul', fallbackName: 'Upper / Lower',
+      gradient: 'from-blue-500 to-purple-500', Icon: ArrowUp,
+      desc: 'Simple and balanced, great for beginners or 3-4 days/week.',
+      detail: "Alternates between upper body and lower body sessions, so you train your full body every two workouts. It's straightforward to follow and gives each half of your body a full day to recover between sessions.",
+      tags: [{ key: 'upper', label: 'Upper' }, { key: 'lower', label: 'Lower' }],
+    },
+    {
+      id: FULL_BODY_PLAN_ID, key: 'fb', fallbackName: 'Full Body',
+      gradient: 'from-emerald-500 to-teal-500', Icon: Dumbbell,
+      desc: '5 unique full-body workouts \u2014 pick any 3 per week.',
+      detail: 'Each session trains every major muscle group with different exercises and rep ranges. Pick any 3 of the 5 workouts per week. Great for balanced development and flexible scheduling.',
+      tags: ['full body a', 'full body b', 'full body c', 'full body d', 'full body e'].map(k => ({ key: k, label: k.replace('full body ', 'FB ').toUpperCase() })),
+    },
+    {
+      id: BRO_SPLIT_PLAN_ID, key: 'bro', fallbackName: 'Bro Split',
+      gradient: 'from-red-500 to-purple-500', Icon: Dumbbell,
+      desc: 'Chest \u00B7 Back \u00B7 Legs \u00B7 Shoulders \u00B7 Arms \u2014 5 days per week.',
+      detail: 'Each day focuses on one muscle group with high volume. This classic bodybuilding approach lets you fully fatigue each body part before giving it a full week to recover.',
+      tags: ['chest', 'back', 'legs', 'shoulders', 'arms'].map(k => ({ key: k, label: k.charAt(0).toUpperCase() + k.slice(1) })),
+    },
+    {
+      id: ARNOLD_SPLIT_PLAN_ID, key: 'arnold', fallbackName: 'Arnold Split',
+      gradient: 'from-rose-500 to-fuchsia-500', Icon: Dumbbell,
+      desc: 'Chest & Back \u00B7 Shoulders & Arms \u00B7 Legs \u2014 6-day cycle.',
+      detail: "Inspired by Arnold Schwarzenegger's training philosophy. Pairs opposing muscle groups (chest with back, shoulders with arms) for high-volume supersets. The 3-day cycle repeats twice per week with one rest day.",
+      tags: ['chest & back', 'shoulders & arms', 'legs'].map(k => ({ key: k, label: k.split(' ').map(w => w === '&' ? '&' : w.charAt(0).toUpperCase() + w.slice(1)).join(' ') })),
+    },
+    {
+      id: GLUTE_HYPERTROPHY_PLAN_ID, key: 'glute', fallbackName: 'Glute Hypertrophy',
+      gradient: 'from-pink-500 to-rose-500', Icon: Dumbbell,
+      desc: '3 Lower / 2 Upper \u00B7 5 days \u2014 lower body focused with glute emphasis.',
+      detail: 'Based on the Strong Curves approach. Three dedicated lower-body days target glutes from every angle \u2014 posterior chain, quads, and isolation pump work \u2014 while two upper-body days maintain balanced strength and posture.',
+      tags: ['lower a', 'upper a', 'lower b', 'upper b', 'lower c'].map(k => ({ key: k, label: k.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') })),
+    },
+  ] as const
 
   // Back button logic — always navigate through all steps
   const handleBack = () => {
@@ -523,58 +559,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                 <p className="text-sm text-[var(--color-text-muted)]">Choose your theme preference</p>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setTheme('light')}
-                  className={`
-                    flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
-                    ${theme === 'light'
-                      ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
-                      : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
-                    }
-                  `}
-                >
-                  <Sun className={`w-6 h-6 ${theme === 'light' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
-                  <span className={`text-sm font-medium ${theme === 'light' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
-                    Light
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setTheme('dark')}
-                  className={`
-                    flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
-                    ${theme === 'dark'
-                      ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
-                      : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
-                    }
-                  `}
-                >
-                  <Moon className={`w-6 h-6 ${theme === 'dark' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
-                  <span className={`text-sm font-medium ${theme === 'dark' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
-                    Dark
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setTheme('system')}
-                  className={`
-                    flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
-                    ${theme === 'system'
-                      ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
-                      : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
-                    }
-                  `}
-                >
-                  <Monitor className={`w-6 h-6 ${theme === 'system' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
-                  <span className={`text-sm font-medium ${theme === 'system' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
-                    System
-                  </span>
-                </button>
-              </div>
+              <ThemePicker />
             </div>
           </div>
         ) : step === 2 ? (
@@ -592,336 +577,63 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
             {/* Split Options */}
             <div className="space-y-3">
-              {/* PPL Card */}
-              <button
-                type="button"
-                onClick={() => handleSelectPlan(PPL_PLAN_ID)}
-                className={`
-                  w-full rounded-2xl p-5 text-left transition-all duration-200
-                  border-2 bg-[var(--color-surface)]
-                  ${selectedPlanId === PPL_PLAN_ID
-                    ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/30'
-                    : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]'
-                  }
-                `}
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center flex-shrink-0">
-                    <Dumbbell className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-[var(--color-text)]">
-                      {pplPlan?.name || 'Push / Pull / Legs'}
-                    </h3>
-                    <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                      Best for focused muscle group training, 5-6 days/week.{' '}
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); setExpandedSplit(expandedSplit === 'ppl' ? null : 'ppl') }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setExpandedSplit(expandedSplit === 'ppl' ? null : 'ppl') } }}
-                        className="text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
-                      >
-                        {expandedSplit === 'ppl' ? 'Less' : 'See more'}
-                      </span>
-                    </p>
-                    {expandedSplit === 'ppl' && (
-                      <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mt-1">
-                        Separates pushing movements (chest, shoulders, triceps), pulling movements (back, biceps), and legs into dedicated days. This lets you hit each muscle group with higher volume while giving them plenty of time to recover before the next session.
-                      </p>
-                    )}
-                    <div className="flex gap-2 mt-3">
-                      <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG.push.bgColor, color: WEIGHTS_CONFIG.push.color }}>Push</span>
-                      <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG.pull.bgColor, color: WEIGHTS_CONFIG.pull.color }}>Pull</span>
-                      <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG.legs.bgColor, color: WEIGHTS_CONFIG.legs.color }}>Legs</span>
+              {SPLIT_OPTIONS.map(({ id, key, fallbackName, gradient, Icon, desc, detail, tags }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => handleSelectPlan(id)}
+                  className={`
+                    w-full rounded-2xl p-5 text-left transition-all duration-200
+                    border-2 bg-[var(--color-surface)]
+                    ${selectedPlanId === id
+                      ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/30'
+                      : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]'
+                    }
+                  `}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center flex-shrink-0`}>
+                      <Icon className="w-6 h-6 text-white" />
                     </div>
-                  </div>
-                  {selectedPlanId === PPL_PLAN_ID && (
-                    <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Upper/Lower Card */}
-              <button
-                type="button"
-                onClick={() => handleSelectPlan(UPPER_LOWER_PLAN_ID)}
-                className={`
-                  w-full rounded-2xl p-5 text-left transition-all duration-200
-                  border-2 bg-[var(--color-surface)]
-                  ${selectedPlanId === UPPER_LOWER_PLAN_ID
-                    ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/30'
-                    : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]'
-                  }
-                `}
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
-                    <ArrowUp className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-[var(--color-text)]">
-                      {ulPlan?.name || 'Upper / Lower'}
-                    </h3>
-                    <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                      Simple and balanced, great for beginners or 3-4 days/week.{' '}
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); setExpandedSplit(expandedSplit === 'ul' ? null : 'ul') }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setExpandedSplit(expandedSplit === 'ul' ? null : 'ul') } }}
-                        className="text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
-                      >
-                        {expandedSplit === 'ul' ? 'Less' : 'See more'}
-                      </span>
-                    </p>
-                    {expandedSplit === 'ul' && (
-                      <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mt-1">
-                        Alternates between upper body and lower body sessions, so you train your full body every two workouts. It's straightforward to follow and gives each half of your body a full day to recover between sessions.
-                      </p>
-                    )}
-                    <div className="flex gap-2 mt-3">
-                      <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG.upper.bgColor, color: WEIGHTS_CONFIG.upper.color }}>Upper</span>
-                      <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG.lower.bgColor, color: WEIGHTS_CONFIG.lower.color }}>Lower</span>
-                    </div>
-                  </div>
-                  {selectedPlanId === UPPER_LOWER_PLAN_ID && (
-                    <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Full Body Card */}
-              <button
-                type="button"
-                onClick={() => handleSelectPlan(FULL_BODY_PLAN_ID)}
-                className={`
-                  w-full rounded-2xl p-5 text-left transition-all duration-200
-                  border-2 bg-[var(--color-surface)]
-                  ${selectedPlanId === FULL_BODY_PLAN_ID
-                    ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/30'
-                    : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]'
-                  }
-                `}
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center flex-shrink-0">
-                    <Dumbbell className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-[var(--color-text)]">
-                      {fbPlan?.name || 'Full Body'}
-                    </h3>
-                    <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                      5 unique full-body workouts — pick any 3 per week.{' '}
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); setExpandedSplit(expandedSplit === 'fb' ? null : 'fb') }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setExpandedSplit(expandedSplit === 'fb' ? null : 'fb') } }}
-                        className="text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
-                      >
-                        {expandedSplit === 'fb' ? 'Less' : 'See more'}
-                      </span>
-                    </p>
-                    {expandedSplit === 'fb' && (
-                      <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mt-1">
-                        Each session trains every major muscle group with different exercises and rep ranges. Pick any 3 of the 5 workouts per week. Great for balanced development and flexible scheduling.
-                      </p>
-                    )}
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {['full body a', 'full body b', 'full body c', 'full body d', 'full body e'].map(key => (
-                        <span key={key} className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG[key].bgColor, color: WEIGHTS_CONFIG[key].color }}>
-                          {key.replace('full body ', 'FB ').toUpperCase()}
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-[var(--color-text)]">
+                        {plans?.find(p => p.id === id)?.name || fallbackName}
+                      </h3>
+                      <p className="text-sm text-[var(--color-text-muted)] mt-1">
+                        {desc}{' '}
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => { e.stopPropagation(); setExpandedSplit(expandedSplit === key ? null : key) }}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setExpandedSplit(expandedSplit === key ? null : key) } }}
+                          className="text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
+                        >
+                          {expandedSplit === key ? 'Less' : 'See more'}
                         </span>
-                      ))}
-                    </div>
-                  </div>
-                  {selectedPlanId === FULL_BODY_PLAN_ID && (
-                    <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Bro Split Card */}
-              <button
-                type="button"
-                onClick={() => handleSelectPlan(BRO_SPLIT_PLAN_ID)}
-                className={`
-                  w-full rounded-2xl p-5 text-left transition-all duration-200
-                  border-2 bg-[var(--color-surface)]
-                  ${selectedPlanId === BRO_SPLIT_PLAN_ID
-                    ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/30'
-                    : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]'
-                  }
-                `}
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-purple-500 flex items-center justify-center flex-shrink-0">
-                    <Dumbbell className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-[var(--color-text)]">
-                      {broPlan?.name || 'Bro Split'}
-                    </h3>
-                    <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                      Chest · Back · Legs · Shoulders · Arms — 5 days per week.{' '}
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); setExpandedSplit(expandedSplit === 'bro' ? null : 'bro') }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setExpandedSplit(expandedSplit === 'bro' ? null : 'bro') } }}
-                        className="text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
-                      >
-                        {expandedSplit === 'bro' ? 'Less' : 'See more'}
-                      </span>
-                    </p>
-                    {expandedSplit === 'bro' && (
-                      <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mt-1">
-                        Each day focuses on one muscle group with high volume. This classic bodybuilding approach lets you fully fatigue each body part before giving it a full week to recover.
                       </p>
+                      {expandedSplit === key && (
+                        <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mt-1">
+                          {detail}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {tags.map(tag => (
+                          <span key={tag.key} className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG[tag.key].bgColor, color: WEIGHTS_CONFIG[tag.key].color }}>
+                            {tag.label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    {selectedPlanId === id && (
+                      <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
                     )}
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {(['chest', 'back', 'legs', 'shoulders', 'arms'] as const).map(key => (
-                        <span key={key} className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG[key].bgColor, color: WEIGHTS_CONFIG[key].color }}>
-                          {key.charAt(0).toUpperCase() + key.slice(1)}
-                        </span>
-                      ))}
-                    </div>
                   </div>
-                  {selectedPlanId === BRO_SPLIT_PLAN_ID && (
-                    <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Arnold Split Card */}
-              <button
-                type="button"
-                onClick={() => handleSelectPlan(ARNOLD_SPLIT_PLAN_ID)}
-                className={`
-                  w-full rounded-2xl p-5 text-left transition-all duration-200
-                  border-2 bg-[var(--color-surface)]
-                  ${selectedPlanId === ARNOLD_SPLIT_PLAN_ID
-                    ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/30'
-                    : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]'
-                  }
-                `}
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
-                    <Dumbbell className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-[var(--color-text)]">
-                      {arnoldPlan?.name || 'Arnold Split'}
-                    </h3>
-                    <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                      Chest & Back · Shoulders & Arms · Legs — 6-day cycle.{' '}
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); setExpandedSplit(expandedSplit === 'arnold' ? null : 'arnold') }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setExpandedSplit(expandedSplit === 'arnold' ? null : 'arnold') } }}
-                        className="text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
-                      >
-                        {expandedSplit === 'arnold' ? 'Less' : 'See more'}
-                      </span>
-                    </p>
-                    {expandedSplit === 'arnold' && (
-                      <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mt-1">
-                        Inspired by Arnold Schwarzenegger's training philosophy. Pairs opposing muscle groups (chest with back, shoulders with arms) for high-volume supersets. The 3-day cycle repeats twice per week with one rest day.
-                      </p>
-                    )}
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {(['chest & back', 'shoulders & arms', 'legs'] as const).map(key => (
-                        <span key={key} className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG[key].bgColor, color: WEIGHTS_CONFIG[key].color }}>
-                          {key.split(' ').map(w => w === '&' ? '&' : w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  {selectedPlanId === ARNOLD_SPLIT_PLAN_ID && (
-                    <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Glute Hypertrophy Card */}
-              <button
-                type="button"
-                onClick={() => handleSelectPlan(GLUTE_HYPERTROPHY_PLAN_ID)}
-                className={`
-                  w-full rounded-2xl p-5 text-left transition-all duration-200
-                  border-2 bg-[var(--color-surface)]
-                  ${selectedPlanId === GLUTE_HYPERTROPHY_PLAN_ID
-                    ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/30'
-                    : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]'
-                  }
-                `}
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center flex-shrink-0">
-                    <Dumbbell className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-[var(--color-text)]">
-                      {glutePlan?.name || 'Glute Hypertrophy'}
-                    </h3>
-                    <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                      3 Lower / 2 Upper · 5 days — lower body focused with glute emphasis.{' '}
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); setExpandedSplit(expandedSplit === 'glute' ? null : 'glute') }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setExpandedSplit(expandedSplit === 'glute' ? null : 'glute') } }}
-                        className="text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
-                      >
-                        {expandedSplit === 'glute' ? 'Less' : 'See more'}
-                      </span>
-                    </p>
-                    {expandedSplit === 'glute' && (
-                      <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mt-1">
-                        Based on the Strong Curves approach. Three dedicated lower-body days target glutes from every angle — posterior chain, quads, and isolation pump work — while two upper-body days maintain balanced strength and posture.
-                      </p>
-                    )}
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {(['lower a', 'upper a', 'lower b', 'upper b', 'lower c'] as const).map(key => (
-                        <span key={key} className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: WEIGHTS_CONFIG[key].bgColor, color: WEIGHTS_CONFIG[key].color }}>
-                          {key.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  {selectedPlanId === GLUTE_HYPERTROPHY_PLAN_ID && (
-                    <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </button>
+                </button>
+              ))}
             </div>
 
             {/* Error Display */}
