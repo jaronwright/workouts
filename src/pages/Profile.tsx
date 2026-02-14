@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Button, Input, Modal, ThemePicker, CollapsibleSection } from '@/components/ui'
-import { FadeIn, StaggerList, StaggerItem, AnimatedNumber, ScaleIn, PressableCard } from '@/components/motion'
+import { FadeIn, FadeInOnScroll, StaggerList, StaggerItem, AnimatedNumber, ScaleIn, PressableCard } from '@/components/motion'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useCycleDay } from '@/hooks/useCycleDay'
 import { formatCycleStartDate } from '@/utils/cycleDay'
@@ -508,6 +508,7 @@ export function ProfilePage() {
 
         {/* ── SETTINGS: PRIVACY ── */}
         <StaggerItem>
+          <FadeInOnScroll direction="up">
           <div className="px-[var(--space-4)] pt-[var(--space-8)]">
             <h3
               className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-widest)] mb-[var(--space-4)]"
@@ -562,10 +563,12 @@ export function ProfilePage() {
               </div>
             </div>
           </div>
+          </FadeInOnScroll>
         </StaggerItem>
 
         {/* ── WORKOUT CYCLE ── */}
         <StaggerItem>
+          <FadeInOnScroll direction="up" delay={0.05}>
           <div className="px-[var(--space-4)] pt-[var(--space-8)]">
             <h3
               className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-widest)] mb-[var(--space-4)]"
@@ -614,17 +617,21 @@ export function ProfilePage() {
               </div>
             </div>
           </div>
+          </FadeInOnScroll>
         </StaggerItem>
 
         {/* Gradient divider */}
         <StaggerItem>
+          <FadeInOnScroll direction="up" delay={0.1}>
           <div className="px-[var(--space-8)] py-[var(--space-2)]">
             <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, var(--color-border-strong), transparent)' }} />
           </div>
+          </FadeInOnScroll>
         </StaggerItem>
 
         {/* ── SECURITY ── */}
         <StaggerItem>
+          <FadeInOnScroll direction="up">
           <div className="px-[var(--space-4)]">
             <CollapsibleSection
               icon={Shield}
@@ -683,10 +690,12 @@ export function ProfilePage() {
               </div>
             </CollapsibleSection>
           </div>
+          </FadeInOnScroll>
         </StaggerItem>
 
         {/* ── EMAIL ── */}
         <StaggerItem>
+          <FadeInOnScroll direction="up" delay={0.05}>
           <div className="px-[var(--space-4)] pt-[var(--space-2)]">
             <CollapsibleSection
               icon={Mail}
@@ -718,10 +727,12 @@ export function ProfilePage() {
               </Button>
             </CollapsibleSection>
           </div>
+          </FadeInOnScroll>
         </StaggerItem>
 
         {/* ── FEEDBACK ── */}
         <StaggerItem>
+          <FadeInOnScroll direction="up" delay={0.1}>
           <div ref={feedbackRef} className="px-[var(--space-4)] pt-[var(--space-2)]">
             <CollapsibleSection
               icon={MessageSquarePlus}
@@ -834,17 +845,21 @@ export function ProfilePage() {
               )}
             </CollapsibleSection>
           </div>
+          </FadeInOnScroll>
         </StaggerItem>
 
         {/* Gradient divider */}
         <StaggerItem>
+          <FadeInOnScroll direction="up">
           <div className="px-[var(--space-8)] py-[var(--space-2)]">
             <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, var(--color-border-strong), transparent)' }} />
           </div>
+          </FadeInOnScroll>
         </StaggerItem>
 
         {/* ── LOG OUT ── */}
         <StaggerItem>
+          <FadeInOnScroll direction="up" delay={0.05}>
           <div className="px-[var(--space-4)] pt-[var(--space-2)]">
             <Button
               variant="secondary"
@@ -855,6 +870,7 @@ export function ProfilePage() {
               Log Out
             </Button>
           </div>
+          </FadeInOnScroll>
         </StaggerItem>
       </StaggerList>
 

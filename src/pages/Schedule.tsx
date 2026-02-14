@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'motion/react'
 import { AppShell } from '@/components/layout'
 import { ScheduleDayEditor } from '@/components/schedule'
-import { StaggerList, StaggerItem, FadeIn, PressableCard } from '@/components/motion'
+import { StaggerList, StaggerItem, FadeIn, FadeInOnScroll, PressableCard } from '@/components/motion'
 import { useUserSchedule } from '@/hooks/useSchedule'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useCycleDay } from '@/hooks/useCycleDay'
@@ -129,12 +129,14 @@ export function SchedulePage() {
               Current Day
             </p>
             <div className="flex items-baseline gap-[var(--space-3)]">
-              <span
-                className="text-[clamp(3rem,12vw,4rem)] font-extrabold font-mono-stats leading-none"
+              <motion.span
+                animate={{ scale: [1, 1.03, 1], opacity: [0.85, 1, 0.85] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                className="text-[clamp(3rem,12vw,4rem)] font-extrabold font-mono-stats leading-none inline-block"
                 style={{ color: 'var(--color-primary)' }}
               >
                 {currentCycleDay}
-              </span>
+              </motion.span>
               <span className="text-[var(--text-sm)] text-[var(--color-text-muted)]">
                 of 7 · {formatCycleStartDate(profile?.cycle_start_date)}
               </span>
@@ -189,6 +191,7 @@ export function SchedulePage() {
         </FadeIn>
 
         {/* ═══ 7-DAY CYCLE LIST ═══ */}
+        <FadeInOnScroll direction="up">
         <div className="px-[var(--space-4)]">
           <h3
             className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase mb-[var(--space-4)] px-[var(--space-1)]"
@@ -308,6 +311,7 @@ export function SchedulePage() {
             })}
           </StaggerList>
         </div>
+        </FadeInOnScroll>
       </div>
 
       {/* Day Editor */}

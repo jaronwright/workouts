@@ -372,7 +372,12 @@ export function CardioWorkoutPage() {
               {/* Timer display */}
               {(sessionId || elapsedSeconds > 0) && (
                 <div className="text-center mb-4">
-                  <span className="text-4xl font-bold text-[var(--color-text)] tabular-nums font-mono-stats">
+                  <span
+                    className={`font-bold text-[var(--color-text)] tabular-nums font-mono-stats ${
+                      isRunning ? 'text-5xl' : 'text-4xl'
+                    }`}
+                    style={isRunning ? { textShadow: `0 0 24px ${style.color}40` } : undefined}
+                  >
                     {formatTime(elapsedSeconds)}
                   </span>
                 </div>
