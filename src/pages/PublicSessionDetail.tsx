@@ -159,7 +159,7 @@ async function fetchExerciseSets(sessionId: string): Promise<FeedExerciseSet[]> 
     .select(`
       id, session_id, plan_exercise_id, set_number,
       reps_completed, weight_used, completed,
-      plan_exercise:plan_exercises(name, weight_unit)
+      plan_exercise:plan_exercises(name, weight_unit, reps_unit)
     `)
     .eq('session_id', sessionId)
     .eq('completed', true)
@@ -176,7 +176,7 @@ async function fetchExerciseSets(sessionId: string): Promise<FeedExerciseSet[]> 
       reps_completed: s.reps_completed,
       weight_used: s.weight_used,
       completed: s.completed,
-      plan_exercise: (pe as { name: string; weight_unit: 'lbs' | 'kg' }) || { name: 'Unknown', weight_unit: 'lbs' as const },
+      plan_exercise: (pe as { name: string; weight_unit: 'lbs' | 'kg'; reps_unit: string }) || { name: 'Unknown', weight_unit: 'lbs' as const, reps_unit: 'reps' },
     }
   })
 }

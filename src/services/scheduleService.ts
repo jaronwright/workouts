@@ -189,9 +189,32 @@ export async function saveScheduleDayWorkouts(
     throw new Error(`Failed to clear existing schedule: ${deleteError instanceof Error ? deleteError.message : String(deleteError)}`)
   }
 
-  // If no workouts selected, just clear the day (don't insert anything)
+  // If no workouts selected, insert a rest day so the day remains represented
+  // in the schedule (prevents triggering onboarding from an empty schedule)
   if (workouts.length === 0) {
-    return []
+    const { data, error } = await supabase
+      .from('user_schedules')
+      .insert({
+        user_id: userId,
+        day_number: dayNumber,
+        is_rest_day: true,
+        template_id: null,
+        workout_day_id: null
+      })
+      .select(`
+        *,
+        template:workout_templates(*),
+        workout_day:workout_days(id, name, day_number)
+      `)
+
+    if (error) {
+      console.error('Failed to insert rest day:', error)
+      throw new Error(`Failed to save rest day: ${error.message}`)
+    }
+    return (data || []).map(d => ({
+      ...d,
+      sort_order: d.sort_order ?? 0
+    })) as ScheduleDay[]
   }
 
   // If rest day explicitly selected, insert rest entry

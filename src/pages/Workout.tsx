@@ -134,17 +134,20 @@ export function WorkoutPage() {
     )
   }
 
-  const handleExerciseComplete = (exerciseId: string, reps: number | null, weight: number | null) => {
+  const handleExerciseComplete = (exerciseId: string, reps: number | null, weight: number | null, plannedSets: number) => {
     if (!activeSession) return
-    // Log a single set to mark the exercise as complete
+    // Log all planned sets for the exercise (not just one)
     // Network errors are handled by the hook (returns optimistic set, queues for sync)
-    logSet({
-      sessionId: activeSession.id,
-      planExerciseId: exerciseId,
-      setNumber: 1,
-      repsCompleted: reps,
-      weightUsed: weight
-    })
+    const setCount = Math.max(1, plannedSets || 1)
+    for (let i = 1; i <= setCount; i++) {
+      logSet({
+        sessionId: activeSession.id,
+        planExerciseId: exerciseId,
+        setNumber: i,
+        repsCompleted: reps,
+        weightUsed: weight
+      })
+    }
   }
 
   const handleExerciseUncomplete = (exerciseId: string) => {
@@ -338,7 +341,7 @@ export function WorkoutPage() {
                     exercise={exercise}
                     completedSets={completedSets[exercise.id] || []}
                     onExerciseComplete={(reps, weight) =>
-                      handleExerciseComplete(exercise.id, reps, weight)
+                      handleExerciseComplete(exercise.id, reps, weight, exercise.sets || 1)
                     }
                     onExerciseUncomplete={() => handleExerciseUncomplete(exercise.id)}
                   />
@@ -359,7 +362,7 @@ export function WorkoutPage() {
                     exercise={exercise}
                     completedSets={completedSets[exercise.id] || []}
                     onExerciseComplete={(reps, weight) =>
-                      handleExerciseComplete(exercise.id, reps, weight)
+                      handleExerciseComplete(exercise.id, reps, weight, exercise.sets || 1)
                     }
                     onExerciseUncomplete={() => handleExerciseUncomplete(exercise.id)}
                   />
