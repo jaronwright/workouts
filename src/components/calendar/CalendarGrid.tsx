@@ -73,22 +73,25 @@ export function CalendarGrid({
       onTouchEnd={handleTouchEnd}
     >
       {/* Month navigation header */}
-      <div className="flex items-center justify-between px-1 mb-4">
+      <div className="flex items-center justify-between px-1 mb-[var(--space-4)]">
         <button
           onClick={goToPrevMonth}
-          className="p-2 rounded-lg hover:bg-[var(--color-surface-hover)] active:scale-95 transition-all"
+          className="p-2 rounded-[var(--radius-lg)] hover:bg-[var(--color-surface-hover)] active:scale-95 transition-all"
         >
           <ChevronLeft className="w-5 h-5 text-[var(--color-text-muted)]" />
         </button>
 
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-bold text-[var(--color-text)]">
+        <div className="flex items-center gap-[var(--space-2)]">
+          <h2
+            className="text-[var(--text-lg)] font-bold text-[var(--color-text)]"
+            style={{ fontFamily: 'var(--font-heading)' }}
+          >
             {format(currentMonth, 'MMMM yyyy')}
           </h2>
           {!isCurrentMonthToday && (
             <button
               onClick={goToToday}
-              className="text-xs font-medium text-[var(--color-primary)] px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)]/20 transition-colors"
+              className="text-[var(--text-xs)] font-medium text-[var(--color-primary)] px-2 py-0.5 rounded-full bg-[var(--color-primary-muted)] hover:bg-[var(--color-primary-muted)] transition-colors"
             >
               Today
             </button>
@@ -97,7 +100,7 @@ export function CalendarGrid({
 
         <button
           onClick={goToNextMonth}
-          className="p-2 rounded-lg hover:bg-[var(--color-surface-hover)] active:scale-95 transition-all"
+          className="p-2 rounded-[var(--radius-lg)] hover:bg-[var(--color-surface-hover)] active:scale-95 transition-all"
         >
           <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)]" />
         </button>
@@ -106,7 +109,11 @@ export function CalendarGrid({
       {/* Day-of-week headers */}
       <div className="grid grid-cols-7 mb-1">
         {DAY_HEADERS.map((day, i) => (
-          <div key={i} className="text-center text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider py-1">
+          <div
+            key={i}
+            className="text-center text-[10px] font-semibold text-[var(--color-text-muted)] uppercase py-1"
+            style={{ letterSpacing: 'var(--tracking-wider)' }}
+          >
             {day}
           </div>
         ))}

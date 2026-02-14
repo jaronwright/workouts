@@ -21,6 +21,14 @@ function getSessionStyle(session: UnifiedSession): WorkoutStyle {
   return getCardioStyle(session.category)
 }
 
+// Ember-intensity backgrounds based on session count (contribution graph style)
+function getEmberIntensity(sessionCount: number): string {
+  if (sessionCount === 0) return 'transparent'
+  if (sessionCount === 1) return 'rgba(232, 93, 44, 0.12)'
+  if (sessionCount === 2) return 'rgba(232, 93, 44, 0.25)'
+  return 'rgba(232, 93, 44, 0.40)'
+}
+
 export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellProps) {
   const { projected, sessions, hasCompletedSession, isToday, isFuture, isCurrentMonth, dayOfMonth } = day
   const prefersReduced = useReducedMotion()
@@ -55,15 +63,15 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
     bgCircleColor = sessionStyle.bgColor
   }
 
-  // Cell background and opacity based on state
+  // Cell background: use ember intensity for completed sessions (contribution graph)
+  const completedCount = sessions.filter(s => s.completed_at).length
   let cellBg = 'transparent'
   let iconOpacity = 1
 
   if (!isCurrentMonth) {
     iconOpacity = 0.3
   } else if (hasCompletedSession) {
-    // Completed: subtle workout-type tint on cell
-    cellBg = `${iconColor}0D`
+    cellBg = getEmberIntensity(completedCount)
   } else if (isRest) {
     iconOpacity = 0.5
   } else if (isFuture && !isToday) {
@@ -79,16 +87,16 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
     <button
       onClick={() => onSelect(day)}
       className={`
-        relative flex flex-col items-center justify-center gap-1 rounded-2xl
+        relative flex flex-col items-center justify-center gap-1 rounded-[var(--radius-lg)]
         transition-all duration-150 h-full
         ${!isCurrentMonth ? 'opacity-25' : ''}
-        ${isSelected && !isToday ? 'ring-2 ring-[var(--color-primary)] bg-[var(--color-primary)]/5' : ''}
+        ${isSelected && !isToday ? 'ring-2 ring-[var(--color-primary)] bg-[var(--color-primary-muted)]' : ''}
         ${isSelected && isToday ? 'ring-2 ring-[var(--color-primary)]' : ''}
         active:scale-95
       `}
       style={{ backgroundColor: !isSelected ? cellBg : undefined }}
     >
-      {/* Day number — Apple-style filled circle for today */}
+      {/* Day number — filled ember circle for today */}
       {isToday ? (
         <span className="w-7 h-7 flex items-center justify-center rounded-full bg-[var(--color-primary)] text-[var(--color-primary-text)] text-sm font-bold leading-none">
           {dayOfMonth}
@@ -108,7 +116,7 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center"
             style={{
-              background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))',
+              background: 'linear-gradient(135deg, var(--color-primary-muted), rgba(212, 168, 75, 0.15))',
               opacity: iconOpacity
             }}
           >
@@ -129,7 +137,7 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
               style={{ color: iconColor }}
             />
           </div>
-          {/* Today pulse ring — inside relative container so it aligns with icon */}
+          {/* Today pulse ring */}
           {isToday && showProjectedIcon && !isRest && !hasCompletedSession && isCurrentMonth && !prefersReduced && (
             <motion.div
               className="absolute inset-0 w-8 h-8 rounded-full border-2 border-[var(--color-primary)]"
@@ -142,9 +150,9 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
         <div className="w-8 h-8" />
       )}
 
-      {/* Green completion dot */}
+      {/* Completion dot — ember-tinted */}
       {hasCompletedSession && isCurrentMonth && (
-        <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-success)]" />
+        <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)]" />
       )}
 
       {/* Missed workout indicator dot */}

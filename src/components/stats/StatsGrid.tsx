@@ -42,7 +42,7 @@ function StatWidget({ info, className, children }: { info: string; className?: s
   return (
     <motion.div
       variants={staggerChild}
-      className={`relative overflow-hidden rounded-xl bg-[var(--color-surface)] p-4 ${className ?? ''}`}
+      className={`relative overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-surface)] p-4 ${className ?? ''}`}
       onClick={() => flipped && setFlipped(false)}
     >
       {/* Always rendered so widget keeps its natural height */}
@@ -67,7 +67,7 @@ function StatWidget({ info, className, children }: { info: string; className?: s
   )
 }
 
-/* ── Animated Conic Ring ─────────────────────────── */
+/* -- Animated Conic Ring -------------------------------- */
 function ConicRing({
   value,
   max,
@@ -246,7 +246,7 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
       completionRate * 0.5 + Math.min(currentStreak * 8, 30) + Math.min(perWeek / 5 * 20, 20)
     ))
 
-    // Last 30 days heat map
+    // Last 30 days heat map — ember intensity
     const last30Days = Array.from({ length: 30 }, (_, i) => {
       const date = subDays(new Date(), 29 - i)
       const dateKey = format(date, 'yyyy-MM-dd')
@@ -280,21 +280,30 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
 
   const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
-  const momentumColor = stats.momentumScore <= 33 ? '#EF4444' : stats.momentumScore <= 66 ? '#F59E0B' : '#10B981'
-  const momentumBg = stats.momentumScore <= 33 ? 'rgba(239,68,68,0.15)' : stats.momentumScore <= 66 ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)'
+  // Warm momentum colors using V3 palette
+  const momentumColor = stats.momentumScore <= 33
+    ? 'var(--color-danger)'
+    : stats.momentumScore <= 66
+      ? 'var(--color-warning)'
+      : 'var(--color-success)'
+  const momentumBg = stats.momentumScore <= 33
+    ? 'var(--color-danger-muted)'
+    : stats.momentumScore <= 66
+      ? 'var(--color-warning-muted)'
+      : 'var(--color-success-muted)'
 
   return (
     <motion.div
-      className="px-4 pt-2 pb-6 space-y-3"
+      className="px-[var(--space-4)] pt-[var(--space-2)] pb-[var(--space-6)] space-y-[var(--space-3)]"
       variants={staggerContainer}
       initial={prefersReduced ? false : 'hidden'}
       animate="visible"
     >
-      {/* ── Row 1: Hero Stats (2-column) ─────────────── */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* -- Row 1: Hero Stats (2-column) -- */}
+      <div className="grid grid-cols-2 gap-[var(--space-3)]">
         {/* Momentum Score */}
         <StatWidget info="Fitness momentum based on completion, streak, and frequency" className="flex flex-col items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent" />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-success-muted), transparent)' }} />
           <div className="relative flex flex-col items-center">
             <ConicRing
               value={stats.momentumScore}
@@ -307,10 +316,13 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
             >
               <AnimatedCounter
                 value={stats.momentumScore}
-                className="text-2xl font-black text-[var(--color-text)]"
+                className="text-[var(--text-2xl)] font-black text-[var(--color-text)] font-mono-stats"
               />
             </ConicRing>
-            <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-semibold mt-2">
+            <span
+              className="text-[10px] text-[var(--color-text-muted)] uppercase font-semibold mt-2"
+              style={{ letterSpacing: 'var(--tracking-widest)' }}
+            >
               Momentum
             </span>
           </div>
@@ -318,16 +330,16 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
 
         {/* Current Streak */}
         <StatWidget info="Current and best consecutive workout streak" className="flex flex-col items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent" />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-primary-muted), transparent)' }} />
           <div className="relative flex flex-col items-center">
             {stats.isAtBest ? (
-              <Crown className="w-6 h-6 text-orange-500 mb-1" />
+              <Crown className="w-6 h-6 mb-1" style={{ color: 'var(--color-accent)' }} />
             ) : (
-              <Flame className="w-6 h-6 text-orange-500 mb-1" />
+              <Flame className="w-6 h-6 mb-1" style={{ color: 'var(--color-primary)' }} />
             )}
             <AnimatedCounter
               value={stats.currentStreak}
-              className="text-3xl font-black text-[var(--color-text)]"
+              className="text-[var(--text-3xl)] font-black text-[var(--color-text)] font-mono-stats"
             />
             <span className="text-[11px] text-[var(--color-text-muted)] font-medium mt-0.5">
               Best: {stats.bestStreak}
@@ -336,25 +348,30 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
         </StatWidget>
       </div>
 
-      {/* ── Row 2: 30-Day Heat Map (full-width) ──────── */}
-      <StatWidget info="Activity over the last 30 days. Darker = more sessions." className="w-full">
+      {/* -- Row 2: 30-Day Heat Map (full-width, ember intensity) -- */}
+      <StatWidget info="Activity over the last 30 days. Darker ember = more sessions." className="w-full">
         <div className="relative">
           <div className="flex items-center gap-1.5 mb-3">
-            <Calendar className="w-3.5 h-3.5 text-emerald-500" />
-            <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Last 30 Days</span>
+            <Calendar className="w-3.5 h-3.5" style={{ color: 'var(--color-primary)' }} />
+            <span
+              className="text-[10px] text-[var(--color-text-muted)] uppercase font-medium"
+              style={{ letterSpacing: 'var(--tracking-wide)' }}
+            >
+              Last 30 Days
+            </span>
           </div>
           <div className="grid grid-cols-6 gap-1.5">
             {stats.last30Days.map((day, index) => {
               let bg: string
-              if (day.sessionCount === 0) bg = 'var(--color-surface)'
-              else if (day.sessionCount === 1) bg = 'rgba(16,185,129,0.4)'
-              else if (day.sessionCount === 2) bg = 'rgba(16,185,129,0.7)'
-              else bg = 'rgb(16,185,129)'
+              if (day.sessionCount === 0) bg = 'var(--color-surface-hover)'
+              else if (day.sessionCount === 1) bg = 'rgba(232, 93, 44, 0.25)'
+              else if (day.sessionCount === 2) bg = 'rgba(232, 93, 44, 0.50)'
+              else bg = 'rgba(232, 93, 44, 0.80)'
 
               return (
                 <motion.div
                   key={index}
-                  className={`rounded-sm w-full aspect-square ${
+                  className={`rounded-[var(--radius-sm)] w-full aspect-square ${
                     day.isToday ? 'ring-2 ring-[var(--color-primary)]' : ''
                   }`}
                   style={{ backgroundColor: bg }}
@@ -373,29 +390,37 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
           {/* Legend */}
           <div className="flex items-center justify-end gap-1.5 mt-2">
             <span className="text-[8px] text-[var(--color-text-muted)] font-medium">Less</span>
-            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'var(--color-surface)' }} />
-            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(16,185,129,0.4)' }} />
-            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(16,185,129,0.7)' }} />
-            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgb(16,185,129)' }} />
+            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'var(--color-surface-hover)' }} />
+            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(232, 93, 44, 0.25)' }} />
+            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(232, 93, 44, 0.50)' }} />
+            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(232, 93, 44, 0.80)' }} />
             <span className="text-[8px] text-[var(--color-text-muted)] font-medium">More</span>
           </div>
         </div>
       </StatWidget>
 
-      {/* ── Row 3: Weekly Frequency (full-width) ─────── */}
+      {/* -- Row 3: Weekly Frequency (full-width, ember bars) -- */}
       <StatWidget info="Average workouts per day of week, all history" className="w-full">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent" />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-primary-muted), transparent)' }} />
         <div className="relative">
           <div className="flex items-center gap-1.5 mb-2">
-            <BarChart3 className="w-3.5 h-3.5 text-violet-500" />
-            <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Weekly Frequency</span>
+            <BarChart3 className="w-3.5 h-3.5" style={{ color: 'var(--color-primary)' }} />
+            <span
+              className="text-[10px] text-[var(--color-text-muted)] uppercase font-medium"
+              style={{ letterSpacing: 'var(--tracking-wide)' }}
+            >
+              Weekly Frequency
+            </span>
           </div>
           <div className="flex items-end gap-1.5" style={{ height: 56 }}>
             {stats.dayOfWeekAvg.map((avg, i) => (
               <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
                 <motion.div
-                  className="w-full rounded-t-md bg-violet-500"
-                  style={{ opacity: avg > 0 ? 1 : 0.2 }}
+                  className="w-full rounded-t-[var(--radius-sm)]"
+                  style={{
+                    backgroundColor: 'var(--color-primary)',
+                    opacity: avg > 0 ? 1 : 0.2
+                  }}
                   initial={prefersReduced ? false : { height: 0 }}
                   animate={{ height: avg > 0 ? Math.max((avg / stats.maxDayAvg) * 48, 4) : 3 }}
                   transition={{ type: 'spring', stiffness: 200, damping: 20, delay: i * 0.05 }}
@@ -413,55 +438,64 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
         </div>
       </StatWidget>
 
-      {/* ── Row 4: Medium Stats (2-column) ───────────── */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* -- Row 4: Medium Stats (2-column) -- */}
+      <div className="grid grid-cols-2 gap-[var(--space-3)]">
         {/* Total Time */}
         <StatWidget info="Total time trained this month" className="flex flex-col items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-sky-500/10 to-transparent" />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-info-muted), transparent)' }} />
           <div className="relative flex flex-col items-center">
-            <Clock className="w-5 h-5 text-sky-500 mb-1" />
+            <Clock className="w-5 h-5 mb-1" style={{ color: 'var(--color-info)' }} />
             <div className="flex items-baseline gap-0.5">
               <AnimatedCounter
                 value={stats.totalHours}
-                className="text-2xl font-bold text-[var(--color-text)]"
+                className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats"
               />
-              <span className="text-xs text-[var(--color-text-muted)] font-medium">h</span>
+              <span className="text-[var(--text-xs)] text-[var(--color-text-muted)] font-medium">h</span>
               <AnimatedCounter
                 value={stats.remainingMinutes}
-                className="text-lg font-bold text-[var(--color-text)]"
+                className="text-[var(--text-lg)] font-bold text-[var(--color-text)] font-mono-stats"
               />
-              <span className="text-xs text-[var(--color-text-muted)] font-medium">m</span>
+              <span className="text-[var(--text-xs)] text-[var(--color-text-muted)] font-medium">m</span>
             </div>
-            <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Total Time</span>
+            <span
+              className="text-[10px] text-[var(--color-text-muted)] uppercase font-medium"
+              style={{ letterSpacing: 'var(--tracking-wide)' }}
+            >
+              Total Time
+            </span>
           </div>
         </StatWidget>
 
         {/* Sessions + Per Week */}
         <StatWidget info="Completed sessions and weekly average this month" className="flex flex-col items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent" />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-accent-muted), transparent)' }} />
           <div className="relative flex flex-col items-center">
-            <Hash className="w-5 h-5 text-amber-500 mb-1" />
+            <Hash className="w-5 h-5 mb-1" style={{ color: 'var(--color-accent)' }} />
             <AnimatedCounter
               value={stats.totalSessions}
-              className="text-2xl font-bold text-[var(--color-text)]"
+              className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats"
             />
-            <span className="text-[11px] text-[var(--color-text-muted)] font-medium">
+            <span className="text-[11px] text-[var(--color-text-muted)] font-medium font-mono-stats">
               {stats.perWeek}/wk avg
             </span>
           </div>
         </StatWidget>
       </div>
 
-      {/* ── Row 5: Workout Mix (full-width) ──────────── */}
+      {/* -- Row 5: Workout Mix (full-width) -- */}
       <StatWidget info="Weights / cardio / mobility split this month" className="w-full">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent" />
         <div className="relative">
           <div className="flex items-center gap-1.5 mb-2">
-            <Layers className="w-3.5 h-3.5 text-indigo-500" />
-            <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Workout Mix</span>
+            <Layers className="w-3.5 h-3.5" style={{ color: 'var(--color-weights)' }} />
+            <span
+              className="text-[10px] text-[var(--color-text-muted)] uppercase font-medium"
+              style={{ letterSpacing: 'var(--tracking-wide)' }}
+            >
+              Workout Mix
+            </span>
           </div>
           {/* Stacked horizontal bar */}
-          <div className="h-4 rounded-full overflow-hidden flex bg-[var(--color-text-muted)]/10 mb-2">
+          <div className="h-4 rounded-full overflow-hidden flex bg-[var(--color-surface-hover)] mb-2">
             {stats.mixPcts.weights > 0 && (
               <motion.div
                 className="h-full rounded-full"
@@ -499,106 +533,127 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
             ].map(item => (
               <div key={item.label} className="flex items-center gap-1">
                 <item.Icon className="w-3 h-3" style={{ color: item.color }} />
-                <span className="text-[9px] text-[var(--color-text-muted)] font-medium">{item.pct}%</span>
+                <span className="text-[9px] text-[var(--color-text-muted)] font-medium font-mono-stats">{item.pct}%</span>
               </div>
             ))}
           </div>
         </div>
       </StatWidget>
 
-      {/* ── Row 6: Weekly Target + Completion (2-column) */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* -- Row 6: Weekly Target + Completion (2-column) -- */}
+      <div className="grid grid-cols-2 gap-[var(--space-3)]">
         {/* Weekly Target */}
         <StatWidget info="Workouts done vs planned this week" className="flex flex-col items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent" />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-weights-muted), transparent)' }} />
           <div className="relative flex flex-col items-center">
-            <Target className="w-5 h-5 text-indigo-500 mb-1.5" />
+            <Target className="w-5 h-5 mb-1.5" style={{ color: 'var(--color-weights)' }} />
             <div className="flex gap-1 mb-1.5">
               {Array.from({ length: Math.max(stats.weekScheduled, 1) }).map((_, i) => (
                 <div
                   key={i}
-                  className={`w-2.5 h-2.5 rounded-full ${
-                    i < stats.weekCompleted ? 'bg-indigo-500' : 'bg-indigo-500/20'
-                  }`}
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{
+                    backgroundColor: i < stats.weekCompleted ? 'var(--color-primary)' : 'var(--color-primary-muted)',
+                  }}
                 />
               ))}
             </div>
-            <span className="text-sm font-bold text-[var(--color-text)]">
+            <span className="text-[var(--text-sm)] font-bold text-[var(--color-text)] font-mono-stats">
               {stats.weekCompleted}/{stats.weekScheduled}
             </span>
-            <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">This Week</span>
+            <span
+              className="text-[10px] text-[var(--color-text-muted)] uppercase font-medium"
+              style={{ letterSpacing: 'var(--tracking-wide)' }}
+            >
+              This Week
+            </span>
           </div>
         </StatWidget>
 
         {/* Completion Rate */}
         <StatWidget info="% of scheduled workouts completed this month" className="flex flex-col items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent" />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-success-muted), transparent)' }} />
           <div className="relative flex flex-col items-center">
             <ConicRing
               value={stats.completionRate}
               max={100}
               size={56}
               thickness={5}
-              color="#10B981"
-              bgColor="rgba(16,185,129,0.15)"
+              color="var(--color-success)"
+              bgColor="var(--color-success-muted)"
               prefersReduced={prefersReduced}
             >
               <AnimatedCounter
                 value={stats.completionRate}
-                className="text-lg font-bold text-[var(--color-text)]"
+                className="text-[var(--text-lg)] font-bold text-[var(--color-text)] font-mono-stats"
               />
             </ConicRing>
-            <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-medium mt-1.5">
+            <span
+              className="text-[10px] text-[var(--color-text-muted)] uppercase font-medium mt-1.5"
+              style={{ letterSpacing: 'var(--tracking-widest)' }}
+            >
               Completion
             </span>
           </div>
         </StatWidget>
       </div>
 
-      {/* ── Row 7: Bottom Stats (3-column, smaller) ──── */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* -- Row 7: Bottom Stats (3-column, smaller) -- */}
+      <div className="grid grid-cols-3 gap-[var(--space-2)]">
         {/* Active Days */}
         <StatWidget info="Days with at least one workout" className="flex flex-col items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent" />
           <div className="relative flex flex-col items-center">
-            <CalendarDays className="w-4 h-4 text-blue-500 mb-1" />
+            <CalendarDays className="w-4 h-4 mb-1" style={{ color: 'var(--color-info)' }} />
             <AnimatedCounter
               value={stats.activeDays}
-              className="text-xl font-bold text-[var(--color-text)]"
+              className="text-[var(--text-xl)] font-bold text-[var(--color-text)] font-mono-stats"
             />
-            <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Active Days</span>
+            <span
+              className="text-[10px] text-[var(--color-text-muted)] uppercase font-medium"
+              style={{ letterSpacing: 'var(--tracking-wide)' }}
+            >
+              Active Days
+            </span>
           </div>
         </StatWidget>
 
         {/* Longest Session */}
         <StatWidget info="Longest single session this month" className="flex flex-col items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-rose-500/10 to-transparent" />
           <div className="relative flex flex-col items-center">
-            <Timer className="w-4 h-4 text-rose-500 mb-1" />
+            <Timer className="w-4 h-4 mb-1" style={{ color: 'var(--color-primary)' }} />
             <div className="flex items-baseline gap-0.5">
               {stats.longestHours > 0 && (
                 <>
-                  <span className="text-xl font-bold text-[var(--color-text)]">{stats.longestHours}</span>
+                  <span className="text-[var(--text-xl)] font-bold text-[var(--color-text)] font-mono-stats">{stats.longestHours}</span>
                   <span className="text-[10px] text-[var(--color-text-muted)] font-medium">h</span>
                 </>
               )}
-              <span className="text-xl font-bold text-[var(--color-text)]">{stats.longestMins}</span>
+              <span className="text-[var(--text-xl)] font-bold text-[var(--color-text)] font-mono-stats">{stats.longestMins}</span>
               <span className="text-[10px] text-[var(--color-text-muted)] font-medium">m</span>
             </div>
-            <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Longest</span>
+            <span
+              className="text-[10px] text-[var(--color-text-muted)] uppercase font-medium"
+              style={{ letterSpacing: 'var(--tracking-wide)' }}
+            >
+              Longest
+            </span>
           </div>
         </StatWidget>
 
         {/* Best Streak */}
         <StatWidget info="Best workout streak this month" className="flex flex-col items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent" />
           <div className="relative flex flex-col items-center">
-            <Crown className="w-4 h-4 text-orange-500 mb-1" />
+            <Crown className="w-4 h-4 mb-1" style={{ color: 'var(--color-accent)' }} />
             <AnimatedCounter
               value={stats.bestStreak}
-              className="text-xl font-bold text-[var(--color-text)]"
+              className="text-[var(--text-xl)] font-bold text-[var(--color-text)] font-mono-stats"
             />
-            <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Best Streak</span>
+            <span
+              className="text-[10px] text-[var(--color-text-muted)] uppercase font-medium"
+              style={{ letterSpacing: 'var(--tracking-wide)' }}
+            >
+              Best Streak
+            </span>
           </div>
         </StatWidget>
       </div>
