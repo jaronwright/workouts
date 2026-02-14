@@ -241,25 +241,27 @@ export function HomePage() {
           <section className="mb-[var(--space-6)]">
             <div className="flex gap-[var(--space-3)]">
               {/* Streak — yellow glow when active */}
-              <div
-                className="flex-1 bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]"
-                style={streak > 0 ? { boxShadow: '0 0 16px rgba(232, 255, 0, 0.08)', borderColor: 'rgba(232, 255, 0, 0.15)' } : undefined}
-              >
-                {statsLoading ? (
-                  <div className="h-7 w-8 mx-auto rounded-[var(--radius-sm)] skeleton" />
-                ) : (
-                  <AnimatedNumber
-                    value={streak}
-                    className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
-                  />
-                )}
-                <p
-                  className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
-                  style={{ letterSpacing: 'var(--tracking-widest)' }}
+              <PressableCard onClick={() => navigate('/history')} className="flex-1 cursor-pointer">
+                <div
+                  className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]"
+                  style={streak > 0 ? { boxShadow: '0 0 16px rgba(232, 255, 0, 0.08)', borderColor: 'rgba(232, 255, 0, 0.15)' } : undefined}
                 >
-                  streak
-                </p>
-              </div>
+                  {statsLoading ? (
+                    <div className="h-7 w-8 mx-auto rounded-[var(--radius-sm)] skeleton" />
+                  ) : (
+                    <AnimatedNumber
+                      value={streak}
+                      className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
+                    />
+                  )}
+                  <p
+                    className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
+                    style={{ letterSpacing: 'var(--tracking-widest)' }}
+                  >
+                    streak
+                  </p>
+                </div>
+              </PressableCard>
 
               {/* This Week */}
               <PressableCard onClick={() => navigate('/history')} className="flex-1 cursor-pointer">

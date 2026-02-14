@@ -72,38 +72,43 @@ export function CalendarGrid({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Month navigation header */}
-      <div className="flex items-center justify-between px-1 mb-[var(--space-4)]">
-        <button
-          onClick={goToPrevMonth}
-          className="p-2 rounded-[var(--radius-lg)] hover:bg-[var(--color-surface-hover)] active:scale-95 transition-all"
-        >
-          <ChevronLeft className="w-5 h-5 text-[var(--color-text-muted)]" />
-        </button>
-
-        <div className="flex items-center gap-[var(--space-2)]">
-          <h2
-            className="text-[var(--text-lg)] font-bold text-[var(--color-text)]"
-            style={{ fontFamily: 'var(--font-heading)' }}
-          >
-            {format(currentMonth, 'MMMM yyyy')}
-          </h2>
-          {!isCurrentMonthToday && (
-            <button
-              onClick={goToToday}
-              className="text-[var(--text-xs)] font-medium text-[var(--color-primary)] px-2 py-0.5 rounded-full bg-[var(--color-primary-muted)] hover:bg-[var(--color-primary-muted)] transition-colors"
+      {/* Month navigation — editorial style */}
+      <div className="mb-[var(--space-4)]">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-baseline gap-[var(--space-2)]">
+            <h2
+              className="text-[clamp(1.5rem,6vw,2rem)] font-extrabold text-[var(--color-text)]"
+              style={{ fontFamily: 'var(--font-heading)', lineHeight: 'var(--leading-tight)' }}
             >
-              Today
+              {format(currentMonth, 'MMMM')}
+            </h2>
+            <span className="text-[var(--text-sm)] text-[var(--color-text-muted)] font-medium font-mono-stats">
+              {format(currentMonth, 'yyyy')}
+            </span>
+            {!isCurrentMonthToday && (
+              <button
+                onClick={goToToday}
+                className="text-[var(--text-xs)] font-semibold text-[var(--color-primary)] px-2.5 py-0.5 rounded-full bg-[var(--color-primary-muted)] transition-colors ml-1"
+              >
+                Today
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={goToPrevMonth}
+              className="p-2 rounded-full hover:bg-[var(--color-surface-hover)] active:scale-95 transition-all"
+            >
+              <ChevronLeft className="w-4.5 h-4.5 text-[var(--color-text-muted)]" />
             </button>
-          )}
+            <button
+              onClick={goToNextMonth}
+              className="p-2 rounded-full hover:bg-[var(--color-surface-hover)] active:scale-95 transition-all"
+            >
+              <ChevronRight className="w-4.5 h-4.5 text-[var(--color-text-muted)]" />
+            </button>
+          </div>
         </div>
-
-        <button
-          onClick={goToNextMonth}
-          className="p-2 rounded-[var(--radius-lg)] hover:bg-[var(--color-surface-hover)] active:scale-95 transition-all"
-        >
-          <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)]" />
-        </button>
       </div>
 
       {/* Day-of-week headers */}

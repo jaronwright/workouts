@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { motion, useMotionValue, useTransform, animate as motionAnimate } from 'motion/react'
 import { startOfWeek, endOfWeek, isWithinInterval, differenceInMinutes, parseISO, subDays, format } from 'date-fns'
 import { AnimatedCounter } from '@/components/ui'
+import { FadeInOnScroll } from '@/components/motion'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { staggerContainer, staggerChild } from '@/config/animationConfig'
 import { CATEGORY_DEFAULTS } from '@/config/workoutConfig'
@@ -400,6 +401,7 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
       </StatWidget>
 
       {/* -- Row 3: Weekly Frequency (full-width, ember bars) -- */}
+      <FadeInOnScroll direction="up" delay={0}>
       <StatWidget info="Average workouts per day of week, all history" className="w-full">
         <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-primary-muted), transparent)' }} />
         <div className="relative">
@@ -437,8 +439,10 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
           </div>
         </div>
       </StatWidget>
+      </FadeInOnScroll>
 
       {/* -- Row 4: Medium Stats (2-column) -- */}
+      <FadeInOnScroll direction="up" delay={0.05}>
       <div className="grid grid-cols-2 gap-[var(--space-3)]">
         {/* Total Time */}
         <StatWidget info="Total time trained this month" className="flex flex-col items-center justify-center">
@@ -481,8 +485,10 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
           </div>
         </StatWidget>
       </div>
+      </FadeInOnScroll>
 
       {/* -- Row 5: Workout Mix (full-width) -- */}
+      <FadeInOnScroll direction="up" delay={0.1}>
       <StatWidget info="Weights / cardio / mobility split this month" className="w-full">
         <div className="relative">
           <div className="flex items-center gap-1.5 mb-2">
@@ -539,8 +545,10 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
           </div>
         </div>
       </StatWidget>
+      </FadeInOnScroll>
 
       {/* -- Row 6: Weekly Target + Completion (2-column) -- */}
+      <FadeInOnScroll direction="up" delay={0.15}>
       <div className="grid grid-cols-2 gap-[var(--space-3)]">
         {/* Weekly Target */}
         <StatWidget info="Workouts done vs planned this week" className="flex flex-col items-center justify-center">
@@ -597,8 +605,10 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
           </div>
         </StatWidget>
       </div>
+      </FadeInOnScroll>
 
       {/* -- Row 7: Bottom Stats (3-column, smaller) -- */}
+      <FadeInOnScroll direction="up" delay={0.2}>
       <div className="grid grid-cols-3 gap-[var(--space-2)]">
         {/* Active Days */}
         <StatWidget info="Days with at least one workout" className="flex flex-col items-center justify-center">
@@ -657,6 +667,7 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
           </div>
         </StatWidget>
       </div>
+      </FadeInOnScroll>
     </motion.div>
   )
 }

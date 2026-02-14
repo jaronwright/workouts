@@ -2,10 +2,11 @@ import { useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { startOfMonth, isSameDay } from 'date-fns'
 import { AppShell } from '@/components/layout'
-import { Card, CardContent, BottomSheet } from '@/components/ui'
+import { BottomSheet } from '@/components/ui'
 import { CalendarGrid, SelectedDayPanel } from '@/components/calendar'
 import { StatsGrid } from '@/components/stats'
 import { FadeIn } from '@/components/motion'
+import { ProgressRing } from '@/components/motion'
 import { useCalendarData } from '@/hooks/useCalendarData'
 import { springPresets } from '@/config/animationConfig'
 import { Calendar } from 'lucide-react'
@@ -103,17 +104,32 @@ export function HistoryPage() {
           </motion.div>
         </AnimatePresence>
       ) : (
-        <div className="p-[var(--space-4)]">
-          <FadeIn direction="up">
-            <Card>
-              <CardContent className="py-[var(--space-12)] text-center">
-                <Calendar className="w-12 h-12 text-[var(--color-text-muted)] opacity-50 mx-auto mb-[var(--space-4)]" />
-                <h3 className="text-lg text-[var(--color-text)] mb-1">No workout history</h3>
-                <p className="text-[var(--color-text-muted)]">Start your first workout to see it here!</p>
-              </CardContent>
-            </Card>
-          </FadeIn>
-        </div>
+        <FadeIn direction="up">
+          <div className="flex flex-col items-center justify-center px-[var(--space-6)] pt-[var(--space-12)] pb-[var(--space-8)]">
+            {/* Animated empty ring — pulsing invitation */}
+            <motion.div
+              animate={{ scale: [1, 1.05, 1], opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <ProgressRing
+                progress={0}
+                size={96}
+                strokeWidth={4}
+                color="var(--color-primary)"
+                trackColor="var(--color-border)"
+              />
+            </motion.div>
+            <h3
+              className="text-[clamp(1.25rem,5vw,1.75rem)] font-extrabold text-[var(--color-text)] mt-[var(--space-6)] text-center"
+              style={{ fontFamily: 'var(--font-heading)' }}
+            >
+              No workouts yet<span className="text-[var(--color-primary)]">.</span>
+            </h3>
+            <p className="text-[var(--text-sm)] text-[var(--color-text-muted)] mt-[var(--space-2)] text-center max-w-[240px]">
+              Complete your first workout and it'll show up here
+            </p>
+          </div>
+        </FadeIn>
       )}
 
       {/* BottomSheet stays outside tab content */}
