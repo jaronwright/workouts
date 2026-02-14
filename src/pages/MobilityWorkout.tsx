@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
+import { FadeIn, StaggerList, StaggerItem } from '@/components/motion'
 import { RestTimer } from '@/components/workout'
 import { PostWorkoutReview } from '@/components/review/PostWorkoutReview'
 import { useTemplate, useQuickLogTemplateWorkout } from '@/hooks/useTemplateWorkout'
@@ -99,11 +100,11 @@ export function MobilityWorkoutPage() {
   if (isLoading) {
     return (
       <AppShell title="Loading..." showBack>
-        <div className="p-4 space-y-4">
-          <div className="h-32 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
-          <div className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
-          <div className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
-          <div className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
+        <div className="p-[var(--space-4)] space-y-[var(--space-4)]">
+          <div className="h-32 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
+          <div className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
+          <div className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
+          <div className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
         </div>
       </AppShell>
     )
@@ -121,93 +122,99 @@ export function MobilityWorkoutPage() {
 
   return (
     <AppShell title={template.name} showBack hideNav>
-      <div className="p-4 space-y-4">
+      <div className="p-[var(--space-4)] space-y-[var(--space-4)]">
         {/* Header */}
-        <Card>
-          <CardContent className="py-6 text-center">
-            <div
-              className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
-              style={{ backgroundColor: style.bgColor }}
-            >
-              <Icon className="w-7 h-7" style={{ color: style.color }} />
-            </div>
-            <h2 className="text-lg font-semibold text-[var(--color-text)]">
-              {template.name}
-            </h2>
-            {template.description && (
-              <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                {template.description}
+        <FadeIn direction="up">
+          <Card>
+            <CardContent className="py-[var(--space-6)] text-center">
+              <div
+                className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-[var(--space-3)]"
+                style={{ backgroundColor: style.bgColor }}
+              >
+                <Icon className="w-7 h-7" style={{ color: style.color }} />
+              </div>
+              <h2 className="text-lg font-semibold text-[var(--color-text)]">
+                {template.name}
+              </h2>
+              {template.description && (
+                <p className="text-sm text-[var(--color-text-muted)] mt-1">
+                  {template.description}
+                </p>
+              )}
+              <p className="text-xs text-[var(--color-text-muted)] mt-[var(--space-2)]">
+                ~{template.duration_minutes ?? 15} min &middot; {totalCount} exercises
               </p>
-            )}
-            <p className="text-xs text-[var(--color-text-muted)] mt-2">
-              ~{template.duration_minutes ?? 15} min &middot; {totalCount} exercises
-            </p>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </FadeIn>
 
         <RestTimer />
 
         {/* Exercise List */}
         {allExercises.length > 0 ? (
-          <div className="space-y-2">
+          <StaggerList className="space-y-[var(--space-2)]">
             {allExercises.map((exercise) => {
               const isChecked = checkedExercises.has(exercise.id)
               return (
-                <Card key={exercise.id}>
-                  <button
-                    className="w-full text-left"
-                    onClick={() => toggleExercise(exercise.id)}
-                  >
-                    <CardContent className="py-3 flex items-start gap-3">
-                      {/* Check circle */}
-                      <div
-                        className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                          isChecked
-                            ? 'border-transparent'
-                            : 'border-[var(--color-border)]'
-                        }`}
-                        style={isChecked ? { backgroundColor: style.color } : undefined}
-                      >
-                        {isChecked && <Check className="w-3.5 h-3.5 text-white" />}
-                      </div>
-
-                      {/* Exercise info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <span
-                            className={`font-medium text-sm ${
-                              isChecked
-                                ? 'line-through text-[var(--color-text-muted)]'
-                                : 'text-[var(--color-text)]'
-                            }`}
-                          >
-                            {exercise.name}
-                          </span>
-                          <span className="text-xs text-[var(--color-text-muted)] flex-shrink-0">
-                            {formatExerciseDetail(exercise)}
-                          </span>
+                <StaggerItem key={exercise.id}>
+                  <Card>
+                    <button
+                      className="w-full text-left"
+                      onClick={() => toggleExercise(exercise.id)}
+                    >
+                      <CardContent className="py-[var(--space-3)] flex items-start gap-[var(--space-3)]">
+                        {/* Check circle */}
+                        <div
+                          className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                            isChecked
+                              ? 'border-transparent'
+                              : 'border-[var(--color-border)]'
+                          }`}
+                          style={isChecked ? { backgroundColor: style.color } : undefined}
+                        >
+                          {isChecked && <Check className="w-3.5 h-3.5 text-white" />}
                         </div>
-                        {exercise.notes && (
-                          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                            {exercise.notes}
-                          </p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </button>
-                </Card>
+
+                        {/* Exercise info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline justify-between gap-[var(--space-2)]">
+                            <span
+                              className={`font-medium text-sm ${
+                                isChecked
+                                  ? 'line-through text-[var(--color-text-muted)]'
+                                  : 'text-[var(--color-text)]'
+                              }`}
+                            >
+                              {exercise.name}
+                            </span>
+                            <span className="text-xs text-[var(--color-text-muted)] flex-shrink-0">
+                              {formatExerciseDetail(exercise)}
+                            </span>
+                          </div>
+                          {exercise.notes && (
+                            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                              {exercise.notes}
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </button>
+                  </Card>
+                </StaggerItem>
               )
             })}
-          </div>
+          </StaggerList>
         ) : (
-          <Card>
-            <CardContent className="py-6 text-center text-[var(--color-text-muted)]">
-              No exercises found for this workout.
-            </CardContent>
-          </Card>
+          <FadeIn direction="up">
+            <Card>
+              <CardContent className="py-[var(--space-6)] text-center text-[var(--color-text-muted)]">
+                No exercises found for this workout.
+              </CardContent>
+            </Card>
+          </FadeIn>
         )}
 
-        <div className="pt-4 pb-8">
+        <div className="pt-[var(--space-4)] pb-[var(--space-8)]">
           <Button
             onClick={handleComplete}
             loading={isPending}

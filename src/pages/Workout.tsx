@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { ArrowRight } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
+import { StaggerList, StaggerItem } from '@/components/motion'
 import { CollapsibleSection, ExerciseCard, RestTimer } from '@/components/workout'
 import { PostWorkoutReview } from '@/components/review/PostWorkoutReview'
 import { useWorkoutDay } from '@/hooks/useWorkoutPlan'
@@ -14,6 +15,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useToast } from '@/hooks/useToast'
 import { useWakeLock } from '@/hooks/useWakeLock'
 import { getWorkoutDisplayName } from '@/config/workoutConfig'
+import { springPresets } from '@/config/animationConfig'
 
 const MOTIVATIONAL_QUOTES = [
   "You got this.",
@@ -162,9 +164,9 @@ export function WorkoutPage() {
   if (isLoading) {
     return (
       <AppShell title="Loading..." showBack>
-        <div className="p-4 space-y-4">
+        <div className="p-[var(--space-4)] space-y-[var(--space-4)]">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-32 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
+            <div key={i} className="h-32 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
           ))}
         </div>
       </AppShell>
@@ -184,46 +186,47 @@ export function WorkoutPage() {
   if (!activeSession) {
     return (
       <AppShell title={getWorkoutDisplayName(workoutDay.name)} showBack hideNav>
-        <div className="p-4 space-y-4">
-          <div className="space-y-4">
+        <div className="p-[var(--space-4)] space-y-[var(--space-4)]">
+          <StaggerList className="space-y-[var(--space-4)]">
             {workoutDay.sections.map((section) => {
               const isWarmup = isWarmupSection(section.name)
               const subtitle = section.duration_minutes ? `${section.duration_minutes} min` : undefined
 
               if (isWarmup) {
                 return (
-                  <CollapsibleSection
-                    key={section.id}
-                    title={section.name}
-                    subtitle={subtitle}
-                    defaultOpen={true}
-                  >
-                    {section.exercises.map((exercise) => (
-                      <Card key={exercise.id}>
-                        <CardContent className="py-3">
-                          <p className="font-medium text-[var(--color-text)]">{exercise.name}</p>
-                          <p className="text-sm text-[var(--color-text-muted)]">
-                            {exercise.sets && `${exercise.sets} sets`}
-                            {exercise.reps_min && ` × ${exercise.reps_min}${exercise.reps_max && exercise.reps_max !== exercise.reps_min ? `-${exercise.reps_max}` : ''} ${exercise.reps_unit || 'reps'}`}
-                            {exercise.is_per_side && '/side'}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </CollapsibleSection>
+                  <StaggerItem key={section.id}>
+                    <CollapsibleSection
+                      title={section.name}
+                      subtitle={subtitle}
+                      defaultOpen={true}
+                    >
+                      {section.exercises.map((exercise) => (
+                        <Card key={exercise.id}>
+                          <CardContent className="py-[var(--space-3)]">
+                            <p className="font-medium text-[var(--color-text)]">{exercise.name}</p>
+                            <p className="text-sm text-[var(--color-text-muted)]">
+                              {exercise.sets && `${exercise.sets} sets`}
+                              {exercise.reps_min && ` × ${exercise.reps_min}${exercise.reps_max && exercise.reps_max !== exercise.reps_min ? `-${exercise.reps_max}` : ''} ${exercise.reps_unit || 'reps'}`}
+                              {exercise.is_per_side && '/side'}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </CollapsibleSection>
+                  </StaggerItem>
                 )
               }
 
               return (
-                <div key={section.id}>
-                  <h3 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-2 px-1">
+                <StaggerItem key={section.id}>
+                  <h3 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-[var(--space-2)] px-1">
                     {section.name}
                     {subtitle && ` (${subtitle})`}
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-[var(--space-2)]">
                     {section.exercises.map((exercise) => (
                       <Card key={exercise.id}>
-                        <CardContent className="py-3">
+                        <CardContent className="py-[var(--space-3)]">
                           <p className="font-medium text-[var(--color-text)]">{exercise.name}</p>
                           <p className="text-sm text-[var(--color-text-muted)]">
                             {exercise.sets && `${exercise.sets} sets`}
@@ -234,19 +237,29 @@ export function WorkoutPage() {
                       </Card>
                     ))}
                   </div>
-                </div>
+                </StaggerItem>
               )
             })}
-          </div>
+          </StaggerList>
         </div>
 
         {/* Floating Start Workout button */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 pb-safe bg-[var(--color-bg)]/95 backdrop-blur-sm border-t border-[var(--color-border)]">
+        <div
+          className="fixed bottom-0 left-0 right-0 p-[var(--space-4)] pb-safe border-t"
+          style={{
+            background: 'var(--glass-bg)',
+            backdropFilter: 'blur(var(--glass-blur))',
+            WebkitBackdropFilter: 'blur(var(--glass-blur))',
+            borderColor: 'var(--glass-border)',
+          }}
+        >
           <motion.button
             onClick={handleStart}
             disabled={isStarting || showSplash}
             whileTap={{ scale: 0.97 }}
-            className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-white font-semibold text-lg shadow-lg shadow-emerald-500/25 transition-colors disabled:opacity-70"
+            transition={springPresets.snappy}
+            className="w-full flex items-center justify-center gap-2 px-[var(--space-6)] py-[var(--space-4)] rounded-[var(--radius-xl)] bg-[var(--color-primary)] text-[var(--color-primary-text)] font-semibold text-lg disabled:opacity-70"
+            style={{ boxShadow: 'var(--shadow-primary)' }}
           >
             Start Workout
             <motion.span
@@ -266,7 +279,8 @@ export function WorkoutPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-emerald-500"
+              className="fixed inset-0 z-[100] flex flex-col items-center justify-center"
+              style={{ background: 'var(--color-primary)' }}
             >
               {/* Expanding ring */}
               <motion.div
@@ -287,7 +301,7 @@ export function WorkoutPage() {
                 initial={{ opacity: 0, y: 20, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.3, ease: 'easeOut' }}
-                className="text-white text-3xl font-bold text-center px-8 leading-snug"
+                className="text-[var(--color-primary-text)] text-3xl font-bold text-center px-8 leading-snug"
               >
                 {splashQuote}
               </motion.p>
@@ -319,7 +333,7 @@ export function WorkoutPage() {
   // Active workout session view
   return (
     <AppShell title={getWorkoutDisplayName(workoutDay.name)} showBack hideNav>
-      <div className="p-4 space-y-4">
+      <div className="p-[var(--space-4)] space-y-[var(--space-4)]">
         {/* Rest Timer */}
         <RestTimer />
 
@@ -352,10 +366,10 @@ export function WorkoutPage() {
 
           return (
             <div key={section.id}>
-              <h3 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-3 px-1">
+              <h3 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-[var(--space-3)] px-1">
                 {section.name}
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-[var(--space-3)]">
                 {section.exercises.map((exercise) => (
                   <ExerciseCard
                     key={exercise.id}
@@ -372,7 +386,7 @@ export function WorkoutPage() {
           )
         })}
 
-        <div className="pt-4 pb-8">
+        <div className="pt-[var(--space-4)] pb-[var(--space-8)]">
           <Button
             onClick={handleComplete}
             loading={isCompleting}

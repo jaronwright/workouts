@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
+import { FadeIn, PressableButton } from '@/components/motion'
 import { PostWorkoutReview } from '@/components/review/PostWorkoutReview'
 import {
   useTemplate,
@@ -217,8 +218,8 @@ export function CardioWorkoutPage() {
   if (isLoading) {
     return (
       <AppShell title="Loading..." showBack>
-        <div className="p-4">
-          <div className="h-48 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
+        <div className="p-[var(--space-4)]">
+          <div className="h-48 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
         </div>
       </AppShell>
     )
@@ -238,34 +239,37 @@ export function CardioWorkoutPage() {
 
   return (
     <AppShell title={template.name} showBack hideNav>
-      <div className="p-4 space-y-5">
+      <div className="p-[var(--space-4)] space-y-[var(--space-5)]">
         {/* Template info card */}
-        <Card>
-          <CardContent className="py-5 flex items-center gap-4">
-            <div
-              className={`w-14 h-14 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center shadow-sm`}
-            >
-              <Icon className="w-7 h-7 text-white" strokeWidth={2.5} />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-[var(--color-text)]">
-                {template.name}
-              </h2>
-              <p className="text-sm text-[var(--color-text-muted)]">
-                {lastSession ? (
-                  <>
-                    Last: {lastSession.duration_minutes ? `${lastSession.duration_minutes} min` : ''}
-                    {lastSession.duration_minutes && lastSession.distance_value ? ' · ' : ''}
-                    {lastSession.distance_value ? `${lastSession.distance_value} ${lastSession.distance_unit || ''}` : ''}
-                    {!lastSession.duration_minutes && !lastSession.distance_value ? 'Completed' : ''}
-                  </>
-                ) : (
-                  'No previous sessions'
-                )}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <FadeIn direction="up">
+          <Card>
+            <CardContent className="py-[var(--space-5)] flex items-center gap-[var(--space-4)]">
+              <div
+                className={`w-14 h-14 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center`}
+                style={{ boxShadow: 'var(--shadow-sm)' }}
+              >
+                <Icon className="w-7 h-7 text-white" strokeWidth={2.5} />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[var(--color-text)]">
+                  {template.name}
+                </h2>
+                <p className="text-sm text-[var(--color-text-muted)]">
+                  {lastSession ? (
+                    <>
+                      Last: {lastSession.duration_minutes ? `${lastSession.duration_minutes} min` : ''}
+                      {lastSession.duration_minutes && lastSession.distance_value ? ' · ' : ''}
+                      {lastSession.distance_value ? `${lastSession.distance_value} ${lastSession.distance_unit || ''}` : ''}
+                      {!lastSession.duration_minutes && !lastSession.distance_value ? 'Completed' : ''}
+                    </>
+                  ) : (
+                    'No previous sessions'
+                  )}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </FadeIn>
 
         {/* Metric toggle */}
         {hasToggle && (
@@ -383,19 +387,19 @@ export function CardioWorkoutPage() {
                     Start Timer
                   </Button>
                 ) : isRunning ? (
-                  <button
+                  <PressableButton
                     onClick={handleTimerPause}
                     className="w-14 h-14 bg-[var(--color-warning)] rounded-full flex items-center justify-center text-white"
                   >
                     <Pause className="w-6 h-6" />
-                  </button>
+                  </PressableButton>
                 ) : (
-                  <button
+                  <PressableButton
                     onClick={handleTimerResume}
                     className="w-14 h-14 bg-[var(--color-success)] rounded-full flex items-center justify-center text-white"
                   >
                     <Play className="w-6 h-6 ml-0.5" />
-                  </button>
+                  </PressableButton>
                 )}
               </div>
             </div>

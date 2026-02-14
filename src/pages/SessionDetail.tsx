@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout'
 import { Modal, Button } from '@/components/ui'
+import { FadeIn, StaggerList, StaggerItem, PressableButton } from '@/components/motion'
 import { ReviewSummaryCard } from '@/components/review/ReviewSummaryCard'
 import { useDeleteSession, useUpdateSession, useUpdateSet, useDeleteSet } from '@/hooks/useWorkoutSession'
 import { useSessionReview } from '@/hooks/useReview'
@@ -343,19 +344,19 @@ export function SessionDetailPage() {
       headerAction={
         data && (
           <div className="relative">
-            <button
+            <PressableButton
               onClick={() => setShowActionsMenu(!showActionsMenu)}
-              className="p-2 rounded-lg hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]"
+              className="p-2 rounded-[var(--radius-md)] hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]"
             >
               <MoreVertical className="w-5 h-5" />
-            </button>
+            </PressableButton>
             {showActionsMenu && (
               <>
                 <div
                   className="fixed inset-0 z-40"
                   onClick={() => setShowActionsMenu(false)}
                 />
-                <div className="absolute right-0 top-full mt-1 w-48 bg-[var(--color-surface)] rounded-lg shadow-lg border border-[var(--color-border)] z-50 overflow-hidden">
+                <div className="absolute right-0 top-full mt-1 w-48 bg-[var(--color-surface)] rounded-[var(--radius-lg)] shadow-lg border border-[var(--color-border)] z-50 overflow-hidden">
                   <button
                     onClick={() => {
                       setShowActionsMenu(false)
@@ -401,13 +402,13 @@ export function SessionDetailPage() {
       }
     >
       {isLoading ? (
-        <div className="p-4 space-y-3">
+        <div className="p-[var(--space-4)] space-y-[var(--space-3)]">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 skeleton rounded-2xl" />
+            <div key={i} className="h-24 skeleton rounded-[var(--radius-xl)]" />
           ))}
         </div>
       ) : data ? (
-        <div className="pb-8">
+        <div className="pb-[var(--space-8)]">
           {/* Hero Section — gradient background with workout info */}
           <div className="relative overflow-hidden">
             <div
@@ -416,10 +417,10 @@ export function SessionDetailPage() {
                 background: `linear-gradient(180deg, ${accentColor}15 0%, transparent 100%)`
               }}
             />
-            <div className="relative px-6 pt-4 pb-6 flex flex-col items-center text-center">
+            <FadeIn direction="up" className="relative px-[var(--space-6)] pt-[var(--space-4)] pb-[var(--space-6)] flex flex-col items-center text-center">
               {/* Workout icon */}
               <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3"
+                className="w-16 h-16 rounded-[var(--radius-xl)] flex items-center justify-center mb-[var(--space-3)]"
                 style={{ backgroundColor: `${accentColor}20` }}
               >
                 {workoutStyle?.icon ? (
@@ -436,35 +437,35 @@ export function SessionDetailPage() {
 
               {/* Status */}
               {data.session.completed_at && (
-                <div className="flex items-center gap-1.5 mt-2 text-[var(--color-success)] text-sm font-medium">
+                <div className="flex items-center gap-1.5 mt-[var(--space-2)] text-[var(--color-success)] text-sm font-medium">
                   <CheckCircle className="w-4 h-4" />
                   Completed
                 </div>
               )}
-            </div>
+            </FadeIn>
           </div>
 
           {/* Metrics Row */}
-          <div className="flex justify-around px-4 -mt-1 mb-4">
+          <div className="flex justify-around px-[var(--space-4)] -mt-1 mb-[var(--space-4)]">
             {getDuration() && (
               <div className="flex flex-col items-center">
-                <div className="w-10 h-10 rounded-xl bg-sky-500/15 flex items-center justify-center mb-1.5">
-                  <Clock className="w-5 h-5 text-sky-500" />
+                <div className="w-10 h-10 rounded-[var(--radius-lg)] flex items-center justify-center mb-1.5" style={{ background: 'var(--color-info-muted)' }}>
+                  <Clock className="w-5 h-5 text-[var(--color-info)]" />
                 </div>
                 <span className="text-sm font-bold text-[var(--color-text)]">{getDuration()}</span>
                 <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Duration</span>
               </div>
             )}
             <div className="flex flex-col items-center">
-              <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center mb-1.5">
-                <Layers className="w-5 h-5 text-violet-500" />
+              <div className="w-10 h-10 rounded-[var(--radius-lg)] flex items-center justify-center mb-1.5" style={{ background: 'var(--color-tertiary-muted)' }}>
+                <Layers className="w-5 h-5 text-[var(--color-tertiary)]" />
               </div>
               <span className="text-sm font-bold text-[var(--color-text)]">{sortedExercises.length}</span>
               <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Exercises</span>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center mb-1.5">
-                <Dumbbell className="w-5 h-5 text-amber-500" />
+              <div className="w-10 h-10 rounded-[var(--radius-lg)] flex items-center justify-center mb-1.5" style={{ background: 'var(--color-accent-muted)' }}>
+                <Dumbbell className="w-5 h-5 text-[var(--color-accent)]" />
               </div>
               <span className="text-sm font-bold text-[var(--color-text)]">{data.sets.length}</span>
               <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Sets</span>
@@ -473,8 +474,8 @@ export function SessionDetailPage() {
 
           {/* Notes Section */}
           {isEditingNotes ? (
-            <div className="px-4 mb-4">
-              <div className="bg-[var(--color-surface)] rounded-2xl p-4 space-y-3">
+            <div className="px-[var(--space-4)] mb-[var(--space-4)]">
+              <div className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-[var(--space-4)] space-y-[var(--space-3)]">
                 <textarea
                   value={editedNotes}
                   onChange={(e) => setEditedNotes(e.target.value)}
@@ -504,10 +505,10 @@ export function SessionDetailPage() {
               </div>
             </div>
           ) : data.session.notes ? (
-            <div className="px-4 mb-4">
+            <div className="px-[var(--space-4)] mb-[var(--space-4)]">
               <button
                 onClick={handleStartEditNotes}
-                className="w-full text-left bg-[var(--color-surface)] rounded-2xl p-4 active:scale-[0.98] transition-transform"
+                className="w-full text-left bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-[var(--space-4)] active:scale-[0.98] transition-transform"
               >
                 <div className="flex items-start gap-3">
                   <StickyNote className="w-4 h-4 text-[var(--color-text-muted)] mt-0.5 flex-shrink-0" />
@@ -519,10 +520,10 @@ export function SessionDetailPage() {
               </button>
             </div>
           ) : (
-            <div className="px-4 mb-4">
+            <div className="px-[var(--space-4)] mb-[var(--space-4)]">
               <button
                 onClick={handleStartEditNotes}
-                className="w-full flex items-center justify-center gap-2 py-3 text-sm text-[var(--color-primary)] bg-[var(--color-surface)] rounded-2xl active:scale-[0.98] transition-transform"
+                className="w-full flex items-center justify-center gap-2 py-3 text-sm text-[var(--color-primary)] bg-[var(--color-surface)] rounded-[var(--radius-xl)] active:scale-[0.98] transition-transform"
               >
                 <StickyNote className="w-4 h-4" />
                 Add notes
@@ -532,15 +533,15 @@ export function SessionDetailPage() {
 
           {/* Workout Review */}
           {review && (
-            <div className="px-4 mb-4">
+            <div className="px-[var(--space-4)] mb-[var(--space-4)]">
               <ReviewSummaryCard review={review} />
             </div>
           )}
 
           {/* Photos */}
           {data.session.completed_at && (
-            <div className="px-4 mb-4">
-              <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5">
+            <div className="px-[var(--space-4)] mb-[var(--space-4)]">
+              <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-[var(--space-2)] px-1 flex items-center gap-1.5">
                 <Camera className="w-3 h-3" />
                 Photos
               </h3>
@@ -549,18 +550,19 @@ export function SessionDetailPage() {
           )}
 
           {/* Exercises by Section — iOS grouped list style */}
-          <div className="px-4 space-y-5">
+          <div className="px-[var(--space-4)] space-y-[var(--space-5)]">
+            <StaggerList>
             {Object.entries(sections).map(([sectionName, exercises]) => (
-              <div key={sectionName}>
-                <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 px-1">
+              <StaggerItem key={sectionName}>
+                <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-[var(--space-2)] px-1">
                   {sectionName}
                 </h3>
-                <div className="bg-[var(--color-surface)] rounded-2xl overflow-hidden divide-y divide-[var(--color-border)]">
+                <div className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] overflow-hidden divide-y divide-[var(--color-border)]">
                   {exercises.map(({ exercise, sets }) => (
-                    <div key={exercise.id} className="px-4 py-3">
-                      <div className="flex items-center gap-3">
+                    <div key={exercise.id} className="px-[var(--space-4)] py-[var(--space-3)]">
+                      <div className="flex items-center gap-[var(--space-3)]">
                         <div
-                          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                          className="w-9 h-9 rounded-[var(--radius-lg)] flex items-center justify-center flex-shrink-0"
                           style={{ backgroundColor: `${accentColor}15` }}
                         >
                           <Dumbbell className="w-4 h-4" style={{ color: accentColor }} />
@@ -623,8 +625,9 @@ export function SessionDetailPage() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </StaggerItem>
             ))}
+            </StaggerList>
 
             {sortedExercises.length === 0 && (
               <div className="text-center py-12">

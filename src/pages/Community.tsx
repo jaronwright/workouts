@@ -4,11 +4,13 @@ import { Users, Bell, RefreshCw } from 'lucide-react'
 import { motion } from 'motion/react'
 import { AppShell } from '@/components/layout/AppShell'
 import { Card, CardContent } from '@/components/ui'
+import { FadeIn, StaggerList, StaggerItem, PressableButton } from '@/components/motion'
 import { WorkoutCard } from '@/components/social/WorkoutCard'
 import { NotificationPanel } from '@/components/social/NotificationPanel'
 import { useSocialFeed } from '@/hooks/useSocial'
 import { useCommunityNotifications, useUnreadNotificationCount, useMarkNotificationsRead } from '@/hooks/useCommunityNotifications'
 import { useAuthStore } from '@/stores/authStore'
+import { springPresets } from '@/config/animationConfig'
 import {
   EMPTY_FEED_TITLE,
   EMPTY_FEED_MESSAGE,
@@ -56,38 +58,38 @@ export function CommunityPage() {
 
   // Header action: notification bell (always visible, badge shows unread count)
   const headerAction = (
-    <button
+    <PressableButton
       onClick={handleOpenNotifications}
-      className="relative p-1.5 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
+      className="relative p-1.5 rounded-[var(--radius-md)] hover:bg-[var(--color-surface-hover)] transition-colors"
     >
       <Bell className="w-5 h-5 text-[var(--color-text-muted)]" />
       {(unreadCount ?? 0) > 0 && (
-        <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-red-500" />
+        <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-[var(--color-accent)]" />
       )}
-    </button>
+    </PressableButton>
   )
 
   return (
     <AppShell title="Community" headerAction={headerAction}>
-      <div className="px-4 py-4 space-y-3 pb-8">
+      <div className="px-[var(--space-4)] py-[var(--space-4)] space-y-[var(--space-3)] pb-[var(--space-8)]">
         {/* Pull to refresh button */}
         <div className="flex items-center justify-between">
           <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
             Activity
           </p>
-          <button
+          <PressableButton
             onClick={handleRefresh}
             disabled={isRefetching}
             className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefetching ? 'animate-spin' : ''}`} />
             Refresh
-          </button>
+          </PressableButton>
         </div>
 
         {/* Loading state */}
         {isLoading && (
-          <div className="space-y-3">
+          <div className="space-y-[var(--space-3)]">
             {[0, 1, 2].map(i => (
               <div key={i} className="h-28 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
             ))}
@@ -96,33 +98,36 @@ export function CommunityPage() {
 
         {/* Empty state */}
         {!isLoading && (!workouts || workouts.length === 0) && (
-          <Card variant="outlined">
-            <CardContent className="py-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-[var(--color-primary)]" />
-              </div>
-              <h3 className="text-lg font-semibold text-[var(--color-text)] mb-2">
-                {EMPTY_FEED_TITLE}
-              </h3>
-              <p className="text-sm text-[var(--color-text-muted)] max-w-xs mx-auto leading-relaxed">
-                {EMPTY_FEED_MESSAGE}
-              </p>
-            </CardContent>
-          </Card>
+          <FadeIn direction="up">
+            <Card variant="outlined">
+              <CardContent className="py-[var(--space-12)] text-center">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-[var(--space-4)]" style={{ background: 'var(--color-primary-muted)' }}>
+                  <Users className="w-8 h-8 text-[var(--color-primary)]" />
+                </div>
+                <h3 className="text-lg font-semibold text-[var(--color-text)] mb-[var(--space-2)]">
+                  {EMPTY_FEED_TITLE}
+                </h3>
+                <p className="text-sm text-[var(--color-text-muted)] max-w-xs mx-auto leading-relaxed">
+                  {EMPTY_FEED_MESSAGE}
+                </p>
+              </CardContent>
+            </Card>
+          </FadeIn>
         )}
 
         {/* Feed */}
         {!isLoading && workouts && workouts.length > 0 && (
-          <div className="space-y-3">
+          <StaggerList className="space-y-[var(--space-3)]">
             {workouts.map((workout, index) => (
-              <WorkoutCard
-                key={workout.id}
-                workout={workout}
-                index={index}
-                onUserClick={handleUserClick}
-              />
+              <StaggerItem key={workout.id}>
+                <WorkoutCard
+                  workout={workout}
+                  index={index}
+                  onUserClick={handleUserClick}
+                />
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerList>
         )}
       </div>
 
@@ -144,24 +149,24 @@ export function CommunityPage() {
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="relative bg-[var(--color-surface)] rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)] p-6 mx-4 mb-0 sm:mb-0 max-w-sm w-full"
+            transition={springPresets.smooth}
+            className="relative bg-[var(--color-surface)] rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)] p-[var(--space-6)] mx-[var(--space-4)] mb-0 sm:mb-0 max-w-sm w-full"
           >
-            <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/15 flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-[var(--space-4)]" style={{ background: 'var(--color-primary-muted)' }}>
               <Users className="w-6 h-6 text-[var(--color-primary)]" />
             </div>
-            <h3 className="text-lg font-bold text-[var(--color-text)] text-center mb-2">
+            <h3 className="text-lg font-bold text-[var(--color-text)] text-center mb-[var(--space-2)]">
               {PRIVACY_EXPLAINER_TITLE}
             </h3>
-            <p className="text-sm text-[var(--color-text-muted)] text-center leading-relaxed mb-6">
+            <p className="text-sm text-[var(--color-text-muted)] text-center leading-relaxed mb-[var(--space-6)]">
               {PRIVACY_EXPLAINER_MESSAGE}
             </p>
-            <button
+            <PressableButton
               onClick={() => setShowPrivacyModal(false)}
-              className="w-full py-3 rounded-[var(--radius-lg)] bg-[var(--color-primary)] text-white font-semibold text-sm active:scale-[0.97] transition-transform"
+              className="w-full py-3 rounded-[var(--radius-lg)] bg-[var(--color-primary)] text-[var(--color-primary-text)] font-semibold text-sm"
             >
               Got it
-            </button>
+            </PressableButton>
           </motion.div>
         </div>
       )}
