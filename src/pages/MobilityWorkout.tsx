@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Button } from '@/components/ui'
-import { FadeIn, StaggerList, StaggerItem } from '@/components/motion'
+import { FadeIn, FadeInOnScroll, StaggerList, StaggerItem } from '@/components/motion'
 import { RestTimer } from '@/components/workout'
 import { PostWorkoutReview } from '@/components/review/PostWorkoutReview'
 import { useTemplate, useQuickLogTemplateWorkout } from '@/hooks/useTemplateWorkout'
@@ -225,18 +225,20 @@ export function MobilityWorkoutPage() {
           </FadeIn>
         )}
 
-        <div className="px-[var(--space-4)] pt-[var(--space-4)] pb-[var(--space-8)]">
-          <Button
-            onClick={handleComplete}
-            loading={isPending}
-            disabled={checkedCount === 0}
-            variant="gradient"
-            size="lg"
-            className="w-full"
-          >
-            Complete Workout ({checkedCount}/{totalCount})
-          </Button>
-        </div>
+        <FadeInOnScroll direction="up">
+          <div className="px-[var(--space-4)] pt-[var(--space-4)] pb-[var(--space-8)]">
+            <Button
+              onClick={handleComplete}
+              loading={isPending}
+              disabled={checkedCount === 0}
+              variant="gradient"
+              size="lg"
+              className="w-full"
+            >
+              Complete Workout ({checkedCount}/{totalCount})
+            </Button>
+          </div>
+        </FadeInOnScroll>
       </div>
 
       {/* Post-Workout Review Modal */}

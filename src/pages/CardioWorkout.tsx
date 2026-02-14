@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
-import { FadeIn, PressableButton } from '@/components/motion'
+import { FadeIn, FadeInOnScroll, PressableButton } from '@/components/motion'
 import { PostWorkoutReview } from '@/components/review/PostWorkoutReview'
 import {
   useTemplate,
@@ -297,6 +297,7 @@ export function CardioWorkoutPage() {
         )}
 
         {/* Large input area */}
+        <FadeIn direction="up" delay={0.15}>
         <Card>
           <CardContent className="py-8">
             {currentMode.slider ? (
@@ -344,8 +345,10 @@ export function CardioWorkoutPage() {
             )}
           </CardContent>
         </Card>
+        </FadeIn>
 
         {/* Optional timer section */}
+        <FadeIn direction="up" delay={0.25}>
         <Card>
           <CardContent className="py-0">
             <button
@@ -406,8 +409,10 @@ export function CardioWorkoutPage() {
             </div>
           </CardContent>
         </Card>
+        </FadeIn>
 
         {/* Log workout button */}
+        <FadeIn direction="up" delay={0.35}>
         <Button
           variant="gradient"
           className="w-full"
@@ -417,6 +422,7 @@ export function CardioWorkoutPage() {
         >
           Log Workout
         </Button>
+        </FadeIn>
       </div>
 
       {/* Post-Workout Review Modal */}
