@@ -28,7 +28,6 @@ vi.mock('../supabase', () => ({
 import { supabase } from '../supabase'
 import {
   getProfile,
-  createProfile,
   updateProfile,
   upsertProfile,
   deleteUserAccount,
@@ -234,82 +233,6 @@ describe('profileService', () => {
       expect(result).toEqual(fullProfile)
       expect(result!.theme).toBe('dark')
       expect(result!.selected_plan_id).toBe('00000000-0000-0000-0000-000000000001')
-    })
-  })
-
-  // ────────────────────────────────────────────────────────
-  // createProfile
-  // ────────────────────────────────────────────────────────
-
-  describe('createProfile', () => {
-    it('creates a profile with userId only (no additional data)', async () => {
-      mockResult = { data: baseProfile, error: null }
-
-      const result = await createProfile('user-123')
-
-      expect(supabase.from).toHaveBeenCalledWith('user_profiles')
-      expect(chainable.insert).toHaveBeenCalledWith({ id: 'user-123' })
-      expect(chainable.select).toHaveBeenCalled()
-      expect(chainable.single).toHaveBeenCalled()
-      expect(result).toEqual(baseProfile)
-    })
-
-    it('creates a profile with initial data', async () => {
-      const initialData: UpdateProfileData = {
-        display_name: 'New User',
-        timezone: 'UTC',
-        theme: 'light',
-      }
-      const created: UserProfile = {
-        ...baseProfile,
-        display_name: 'New User',
-        timezone: 'UTC',
-        theme: 'light',
-      }
-      mockResult = { data: created, error: null }
-
-      const result = await createProfile('user-123', initialData)
-
-      expect(chainable.insert).toHaveBeenCalledWith({
-        id: 'user-123',
-        ...initialData,
-      })
-      expect(result).toEqual(created)
-    })
-
-    it('spreads data onto the insert payload with the id', async () => {
-      mockResult = { data: baseProfile, error: null }
-
-      await createProfile('user-abc', { display_name: 'Hello', current_cycle_day: 3 })
-
-      expect(chainable.insert).toHaveBeenCalledWith({
-        id: 'user-abc',
-        display_name: 'Hello',
-        current_cycle_day: 3,
-      })
-    })
-
-    it('throws on database error', async () => {
-      const dbError = { code: '23505', message: 'duplicate key value' }
-      mockResult = { data: null, error: dbError }
-
-      await expect(createProfile('user-123')).rejects.toEqual(dbError)
-    })
-
-    it('throws on unique constraint violation', async () => {
-      const dbError = { code: '23505', message: 'unique_violation: user_profiles_pkey' }
-      mockResult = { data: null, error: dbError }
-
-      await expect(createProfile('existing-user')).rejects.toEqual(dbError)
-    })
-
-    it('handles undefined data parameter gracefully', async () => {
-      mockResult = { data: baseProfile, error: null }
-
-      await createProfile('user-123', undefined)
-
-      // When data is undefined, spread produces no extra keys
-      expect(chainable.insert).toHaveBeenCalledWith({ id: 'user-123' })
     })
   })
 

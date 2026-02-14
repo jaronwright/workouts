@@ -77,10 +77,6 @@ const FALLBACK_DAY_PATTERNS: Record<number, (number | null)[]> = {
   3: [0, 1, 2, null, 0, 1, null],            // PPL (default)
 }
 
-export function getDayName(dayNumber: number): string {
-  return `Day ${dayNumber}`
-}
-
 export async function getWorkoutTemplates(): Promise<WorkoutTemplate[]> {
   const { data, error } = await supabase
     .from('workout_templates')
@@ -335,11 +331,6 @@ export async function initializeDefaultSchedule(userId: string, planId?: string)
 
   if (error) throw error
   return toScheduleDays(data)
-}
-
-// Get all workouts scheduled for the user's current cycle day
-export async function getTodaysScheduledWorkouts(userId: string, currentCycleDay: number): Promise<ScheduleDay[]> {
-  return getScheduleDayWorkouts(userId, currentCycleDay)
 }
 
 // Legacy function - returns first workout

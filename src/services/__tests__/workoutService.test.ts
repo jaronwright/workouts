@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { SessionWithDay, SessionWithSets } from '../workoutService'
+import type { SessionWithDay } from '../workoutService'
 
 // Mock Supabase with inline factory
 vi.mock('../supabase', () => ({

@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
   springs,
-  cardVariants,
-  fadeInVariants,
   pageTransition,
   staggerContainer,
   staggerChild,
@@ -82,81 +80,6 @@ describe('animationConfig', () => {
     })
   })
 
-  describe('cardVariants', () => {
-    it('has hidden and visible states', () => {
-      expect(cardVariants.hidden).toBeDefined()
-      expect(cardVariants.visible).toBeDefined()
-    })
-
-    it('hidden state has zero opacity and positive y offset', () => {
-      const hidden = cardVariants.hidden as { opacity: number; y: number }
-      expect(hidden.opacity).toBe(0)
-      expect(hidden.y).toBeGreaterThan(0)
-    })
-
-    it('visible is a function that accepts a custom index', () => {
-      expect(typeof cardVariants.visible).toBe('function')
-      const visibleFn = cardVariants.visible as (i?: number) => {
-        opacity: number
-        y: number
-        transition: { delay: number }
-      }
-      const result = visibleFn(2)
-      expect(result.opacity).toBe(1)
-      expect(result.y).toBe(0)
-      expect(result.transition.delay).toBe(2 * 0.06)
-    })
-
-    it('visible function defaults to zero delay when no index provided', () => {
-      const visibleFn = cardVariants.visible as (i?: number) => {
-        opacity: number
-        y: number
-        transition: { delay: number }
-      }
-      const result = visibleFn()
-      expect(result.transition.delay).toBe(0)
-    })
-
-    it('visible function uses spring transition', () => {
-      const visibleFn = cardVariants.visible as (i?: number) => {
-        transition: { type: string; stiffness: number; damping: number }
-      }
-      const result = visibleFn(0)
-      expect(result.transition.type).toBe('spring')
-      expect(result.transition.stiffness).toBe(300)
-      expect(result.transition.damping).toBe(30)
-    })
-  })
-
-  describe('fadeInVariants', () => {
-    it('has hidden and visible states', () => {
-      expect(fadeInVariants.hidden).toBeDefined()
-      expect(fadeInVariants.visible).toBeDefined()
-    })
-
-    it('hidden state has zero opacity', () => {
-      const hidden = fadeInVariants.hidden as { opacity: number }
-      expect(hidden.opacity).toBe(0)
-    })
-
-    it('hidden state does not include y offset (pure fade)', () => {
-      const hidden = fadeInVariants.hidden as Record<string, unknown>
-      expect(hidden.y).toBeUndefined()
-    })
-
-    it('visible state has full opacity', () => {
-      const visible = fadeInVariants.visible as { opacity: number }
-      expect(visible.opacity).toBe(1)
-    })
-
-    it('visible state uses duration-based transition (not spring)', () => {
-      const visible = fadeInVariants.visible as {
-        transition: { duration: number }
-      }
-      expect(visible.transition.duration).toBe(0.3)
-    })
-  })
-
   describe('pageTransition', () => {
     it('has initial, animate, and exit states', () => {
       expect(pageTransition.initial).toBeDefined()
@@ -196,16 +119,6 @@ describe('animationConfig', () => {
         transition: { duration: number }
       }
       expect(exit.transition.duration).toBe(0.15)
-    })
-
-    it('exit is faster than fadeIn', () => {
-      const exitDuration = (
-        pageTransition.exit as { transition: { duration: number } }
-      ).transition.duration
-      const fadeInDuration = (
-        fadeInVariants.visible as { transition: { duration: number } }
-      ).transition.duration
-      expect(exitDuration).toBeLessThan(fadeInDuration)
     })
   })
 
@@ -267,18 +180,15 @@ describe('animationConfig', () => {
       expect(visible.transition.damping).toBe(30)
     })
 
-    it('hidden y offset matches cardVariants hidden y offset', () => {
+    it('hidden y offset matches staggerChild offset of 12', () => {
       const staggerHidden = staggerChild.hidden as { y: number }
-      const cardHidden = cardVariants.hidden as { y: number }
-      expect(staggerHidden.y).toBe(cardHidden.y)
+      expect(staggerHidden.y).toBe(12)
     })
   })
 
   describe('consistency across variants', () => {
     it('all hidden states start with opacity 0', () => {
       const variants = [
-        cardVariants,
-        fadeInVariants,
         staggerContainer,
         staggerChild,
       ]
@@ -291,19 +201,6 @@ describe('animationConfig', () => {
     it('pageTransition initial state starts with opacity 0', () => {
       const initial = pageTransition.initial as { opacity: number }
       expect(initial.opacity).toBe(0)
-    })
-
-    it('staggerContainer staggerChildren matches cardVariants delay step', () => {
-      const staggerTiming = (
-        staggerContainer.visible as {
-          transition: { staggerChildren: number }
-        }
-      ).transition.staggerChildren
-      const visibleFn = cardVariants.visible as (i?: number) => {
-        transition: { delay: number }
-      }
-      const delayForIndex1 = visibleFn(1).transition.delay
-      expect(staggerTiming).toBe(delayForIndex1)
     })
   })
 })

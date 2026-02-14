@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
-  getDayName,
   getWorkoutTemplates,
   getWorkoutTemplatesByType,
   getMobilityTemplatesByCategory,
@@ -13,7 +12,6 @@ import {
   upsertScheduleDay,
   clearUserSchedule,
   initializeDefaultSchedule,
-  getTodaysScheduledWorkouts,
   getTodaysScheduledWorkout,
   type WorkoutTemplate,
   type ScheduleDay,
@@ -114,31 +112,6 @@ describe('scheduleService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     responseQueue = []
-  })
-
-  // =========================================================================
-  // getDayName
-  // =========================================================================
-  describe('getDayName', () => {
-    it('returns "Day 1" for day number 1', () => {
-      expect(getDayName(1)).toBe('Day 1')
-    })
-
-    it('returns "Day 7" for day number 7', () => {
-      expect(getDayName(7)).toBe('Day 7')
-    })
-
-    it('returns correct format for all days 1-7', () => {
-      for (let i = 1; i <= 7; i++) {
-        expect(getDayName(i)).toBe(`Day ${i}`)
-      }
-    })
-
-    it('handles day numbers outside 1-7 range', () => {
-      expect(getDayName(0)).toBe('Day 0')
-      expect(getDayName(10)).toBe('Day 10')
-      expect(getDayName(-1)).toBe('Day -1')
-    })
   })
 
   // =========================================================================
@@ -999,45 +972,6 @@ describe('scheduleService', () => {
 
       const result = await initializeDefaultSchedule('user-1')
       expect(result[0].sort_order).toBe(0)
-    })
-  })
-
-  // =========================================================================
-  // getTodaysScheduledWorkouts
-  // =========================================================================
-  describe('getTodaysScheduledWorkouts', () => {
-    it('returns workouts for the current cycle day', async () => {
-      const workouts = [
-        makeScheduleDay({ id: 's1', day_number: 3 }),
-      ]
-      queueResponse(workouts)
-
-      const result = await getTodaysScheduledWorkouts('user-1', 3)
-      expect(result).toHaveLength(1)
-      expect(mockFrom).toHaveBeenCalledWith('user_schedules')
-    })
-
-    it('returns empty array when no workouts scheduled for today', async () => {
-      queueResponse([])
-      const result = await getTodaysScheduledWorkouts('user-1', 7)
-      expect(result).toEqual([])
-    })
-
-    it('returns empty array on error', async () => {
-      queueError('DB error')
-      const result = await getTodaysScheduledWorkouts('user-1', 1)
-      expect(result).toEqual([])
-    })
-
-    it('returns multiple workouts for a day with multiple sessions', async () => {
-      const workouts = [
-        makeScheduleDay({ id: 's1', day_number: 1, sort_order: 0, workout_day_id: 'day-1' }),
-        makeScheduleDay({ id: 's2', day_number: 1, sort_order: 1, template_id: 'template-1', workout_day_id: null }),
-      ]
-      queueResponse(workouts)
-
-      const result = await getTodaysScheduledWorkouts('user-1', 1)
-      expect(result).toHaveLength(2)
     })
   })
 

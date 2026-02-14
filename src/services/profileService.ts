@@ -47,20 +47,6 @@ export async function getProfile(userId: string): Promise<UserProfile | null> {
   return data as UserProfile | null
 }
 
-export async function createProfile(userId: string, data?: UpdateProfileData): Promise<UserProfile> {
-  const { data: profile, error } = await supabase
-    .from('user_profiles')
-    .insert({
-      id: userId,
-      ...data
-    })
-    .select()
-    .single()
-
-  if (error) throw error
-  return profile as UserProfile
-}
-
 export async function updateProfile(userId: string, data: UpdateProfileData): Promise<UserProfile> {
   const { data: profile, error } = await supabase
     .from('user_profiles')

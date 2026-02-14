@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getAvatarPublicUrl, uploadAvatar, removeAvatarFile, removeAllUserAvatars } from '../avatarService'
+import { getAvatarPublicUrl, uploadAvatar, removeAllUserAvatars } from '../avatarService'
 
 // Mock browser-image-compression
 vi.mock('browser-image-compression', () => ({
@@ -86,19 +86,6 @@ describe('avatarService', () => {
       const file = new File(['data'], 'photo.webp', { type: 'image/webp' })
       const path = await uploadAvatar('user-123', file)
       expect(path).toMatch(/^user-123\/avatar-\d+\.webp$/)
-    })
-  })
-
-  describe('removeAvatarFile', () => {
-    it('removes a file by path', async () => {
-      mockRemove.mockResolvedValue({ error: null })
-      await removeAvatarFile('user-123/avatar-1234.webp')
-      expect(mockRemove).toHaveBeenCalledWith(['user-123/avatar-1234.webp'])
-    })
-
-    it('throws on remove error', async () => {
-      mockRemove.mockResolvedValue({ error: new Error('Not found') })
-      await expect(removeAvatarFile('user-123/missing.webp')).rejects.toThrow('Not found')
     })
   })
 

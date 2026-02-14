@@ -46,14 +46,12 @@ import {
   getActiveSession,
   getExerciseHistory,
   getLastWeightForExercise,
-  getSessionWithSets,
   getSessionExerciseDetails,
   deleteWorkoutSession,
   updateExerciseWeightUnit,
   updateWorkoutSession,
   getWorkoutSession,
   deleteExerciseSet,
-  getExerciseSet,
 } from '../workoutService'
 
 // ---------------------------------------------------------------------------
@@ -890,134 +888,6 @@ describe('workoutService (comprehensive)', () => {
     })
   })
 
-  // ─── getSessionWithSets ──────────────────────────────────
-
-  describe('getSessionWithSets', () => {
-    it('returns session with workout_day and exercise_sets', async () => {
-      const session = makeSession({ workout_day: makeDay() })
-      const sets = [makeSet(), makeSet({ id: 'set-2', set_number: 2 })]
-
-      let callNum = 0
-      mockFrom.mockImplementation((table: string) => {
-        callNum++
-        if (table === 'workout_sessions') {
-          return {
-            ...mockChain,
-            select: vi.fn().mockReturnValue({
-              ...mockChain,
-              eq: vi.fn().mockReturnValue({
-                ...mockChain,
-                single: vi.fn().mockReturnValue({
-                  then: (resolve: (v: unknown) => void) => resolve({ data: session, error: null }),
-                }),
-              }),
-            }),
-          }
-        }
-        if (table === 'exercise_sets') {
-          return {
-            ...mockChain,
-            select: vi.fn().mockReturnValue({
-              ...mockChain,
-              eq: vi.fn().mockReturnValue({
-                ...mockChain,
-                order: vi.fn().mockReturnValue({
-                  then: (resolve: (v: unknown) => void) => resolve({ data: sets, error: null }),
-                }),
-              }),
-            }),
-          }
-        }
-        return mockChain
-      })
-
-      const result = await getSessionWithSets('session-1')
-
-      expect(result).toEqual({
-        ...session,
-        exercise_sets: sets,
-      })
-    })
-
-    it('returns null when session not found', async () => {
-      mockFrom.mockImplementation(() => ({
-        ...mockChain,
-        select: vi.fn().mockReturnValue({
-          ...mockChain,
-          eq: vi.fn().mockReturnValue({
-            ...mockChain,
-            single: vi.fn().mockReturnValue({
-              then: (resolve: (v: unknown) => void) => resolve({ data: null, error: null }),
-            }),
-          }),
-        }),
-      }))
-
-      const result = await getSessionWithSets('nonexistent')
-      expect(result).toBeNull()
-    })
-
-    it('throws when session query errors', async () => {
-      mockFrom.mockImplementation(() => ({
-        ...mockChain,
-        select: vi.fn().mockReturnValue({
-          ...mockChain,
-          eq: vi.fn().mockReturnValue({
-            ...mockChain,
-            single: vi.fn().mockReturnValue({
-              then: (resolve: (v: unknown) => void) =>
-                resolve({ data: null, error: makeError('Session fetch failed') }),
-            }),
-          }),
-        }),
-      }))
-
-      await expect(getSessionWithSets('session-1')).rejects.toEqual(
-        expect.objectContaining({ message: 'Session fetch failed' })
-      )
-    })
-
-    it('throws when sets query errors', async () => {
-      const session = makeSession({ workout_day: makeDay() })
-      mockFrom.mockImplementation((table: string) => {
-        if (table === 'workout_sessions') {
-          return {
-            ...mockChain,
-            select: vi.fn().mockReturnValue({
-              ...mockChain,
-              eq: vi.fn().mockReturnValue({
-                ...mockChain,
-                single: vi.fn().mockReturnValue({
-                  then: (resolve: (v: unknown) => void) => resolve({ data: session, error: null }),
-                }),
-              }),
-            }),
-          }
-        }
-        if (table === 'exercise_sets') {
-          return {
-            ...mockChain,
-            select: vi.fn().mockReturnValue({
-              ...mockChain,
-              eq: vi.fn().mockReturnValue({
-                ...mockChain,
-                order: vi.fn().mockReturnValue({
-                  then: (resolve: (v: unknown) => void) =>
-                    resolve({ data: null, error: makeError('Sets fetch failed') }),
-                }),
-              }),
-            }),
-          }
-        }
-        return mockChain
-      })
-
-      await expect(getSessionWithSets('session-1')).rejects.toEqual(
-        expect.objectContaining({ message: 'Sets fetch failed' })
-      )
-    })
-  })
-
   // ─── deleteWorkoutSession ────────────────────────────────
 
   describe('deleteWorkoutSession', () => {
@@ -1234,33 +1104,4 @@ describe('workoutService (comprehensive)', () => {
     })
   })
 
-  // ─── getExerciseSet ──────────────────────────────────────
-
-  describe('getExerciseSet', () => {
-    it('returns an exercise set', async () => {
-      const set = makeSet()
-      resolveSingleWith(set)
-
-      const result = await getExerciseSet('set-1')
-
-      expect(mockFrom).toHaveBeenCalledWith('exercise_sets')
-      expect(mockChain.eq).toHaveBeenCalledWith('id', 'set-1')
-      expect(result).toEqual(set)
-    })
-
-    it('returns null when not found (PGRST116)', async () => {
-      resolveSingleWith(null, { message: 'Not found', code: 'PGRST116', details: '', hint: '' })
-
-      const result = await getExerciseSet('nonexistent')
-      expect(result).toBeNull()
-    })
-
-    it('throws on non-PGRST116 errors', async () => {
-      resolveSingleWith(null, makeError('Unexpected'))
-
-      await expect(getExerciseSet('set-1')).rejects.toEqual(
-        expect.objectContaining({ message: 'Unexpected' })
-      )
-    })
-  })
 })

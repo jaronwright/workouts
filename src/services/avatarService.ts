@@ -43,11 +43,6 @@ export async function uploadAvatar(userId: string, file: File): Promise<string> 
   return filePath
 }
 
-export async function removeAvatarFile(path: string): Promise<void> {
-  const { error } = await supabase.storage.from(BUCKET).remove([path])
-  if (error) throw error
-}
-
 export async function removeAllUserAvatars(userId: string): Promise<void> {
   const { data: files, error: listError } = await supabase.storage
     .from(BUCKET)

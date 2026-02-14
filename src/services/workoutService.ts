@@ -241,35 +241,6 @@ export async function getLastWeightForExercise(userId: string, planExerciseId: s
   return data?.weight_used ?? null
 }
 
-export interface SessionWithSets extends WorkoutSession {
-  workout_day: WorkoutDay | null
-  exercise_sets: ExerciseSet[]
-}
-
-export async function getSessionWithSets(sessionId: string): Promise<SessionWithSets | null> {
-  const { data: session, error: sessionError } = await supabase
-    .from('workout_sessions')
-    .select(SESSION_WITH_DAY_SELECT)
-    .eq('id', sessionId)
-    .single()
-
-  if (sessionError) throw sessionError
-  if (!session) return null
-
-  const { data: sets, error: setsError } = await supabase
-    .from('exercise_sets')
-    .select('*')
-    .eq('session_id', sessionId)
-    .order('created_at')
-
-  if (setsError) throw setsError
-
-  return {
-    ...(session as SessionWithDay),
-    exercise_sets: (sets || []) as ExerciseSet[]
-  }
-}
-
 export async function getSessionExerciseDetails(sessionId: string) {
   // Get all exercise sets for this session
   const { data: sets, error: setsError } = await supabase
@@ -381,16 +352,3 @@ export async function deleteExerciseSet(setId: string): Promise<void> {
   if (error) throw error
 }
 
-export async function getExerciseSet(setId: string): Promise<ExerciseSet | null> {
-  const { data, error } = await supabase
-    .from('exercise_sets')
-    .select('*')
-    .eq('id', setId)
-    .single()
-
-  if (error) {
-    if (error.code === 'PGRST116') return null // Not found
-    throw error
-  }
-  return data as ExerciseSet
-}
