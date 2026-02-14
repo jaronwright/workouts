@@ -72,3 +72,36 @@
 - Need a final polish pass for micro-interactions and consistent spacing
 
 ---
+
+## Iteration 2: Active Workout + Motion Polish
+
+### Changes Made
+1. **RestTimer redesigned**: Replaced linear progress bar with dramatic 160px SVG ProgressRing. Countdown uses JetBrains Mono at `clamp(3rem, 15vw, 4.5rem)`. Yellow play/pause button with glow. "Done!" state pulses with scale animation. Ring animates via spring interpolation.
+2. **Active workout section headers**: Added yellow accent bars to match pre-workout editorial style. Both CollapsibleSection (warm-up) and inline section headers now have the `w-1 h-4` yellow bar + widest tracking.
+3. **CardioWorkout editorial hero**: Workout name now uses Syne heading at `clamp(1.75rem, 8vw, 2.5rem)`. All numeric displays (slider value, input, timer) use `font-mono-stats` (JetBrains Mono).
+4. **WorkoutSelect banner**: Fixed stale Tailwind green colors with design tokens (from iteration 1, noted here for completeness).
+
+### What Looks Better
+- Rest timer is now the most visually dramatic element in the app — circular yellow ring with big mono countdown feels like a fight clock
+- Active workout view has consistent yellow accent bars creating visual rhythm between sections
+- Cardio numbers all in JetBrains Mono for consistent type treatment
+
+### After Ratings
+- **Home**: Layout 7/10, Visual Impact 8/10, Animation 6/10, Polish 7/10 (unchanged)
+- **Workout Detail (pre)**: Layout 8/10, Visual Impact 8/10, Animation 5/10, Polish 8/10 (unchanged)
+- **Workout Detail (active)**: Layout 7/10, Visual Impact 7/10, Animation 7/10, Polish 7/10 (new — up from ~4/3/4/5)
+- **Rest Timer**: Visual Impact 9/10 (dramatic circular ring with spring animation)
+- **Schedule**: Layout 7/10, Visual Impact 7/10, Animation 5/10, Polish 7/10 (unchanged)
+- **Profile**: Layout 7/10, Visual Impact 7/10, Animation 5/10, Polish 7/10 (unchanged)
+- **History**: Layout 6/10, Visual Impact 6/10, Animation 6/10, Polish 7/10 (unchanged)
+- **Cardio**: Layout 7/10, Visual Impact 6/10, Animation 5/10, Polish 7/10 (up from ~5/4/4/5)
+
+### What Still Needs Work
+- PageTransition component not yet applied to route changes
+- PressableCard not yet applied to tappable elements on Home/Schedule
+- AnimatedNumber not yet applied to all stat displays
+- Mobility workout page hasn't been given editorial treatment
+- Could add subtle grain/texture overlay to backgrounds
+- Empty states still generic
+
+---
