@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { ArrowRight } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
-import { StaggerList, StaggerItem } from '@/components/motion'
+import { StaggerList, StaggerItem, FadeIn } from '@/components/motion'
 import { CollapsibleSection, ExerciseCard, RestTimer } from '@/components/workout'
 import { PostWorkoutReview } from '@/components/review/PostWorkoutReview'
 import { useWorkoutDay } from '@/hooks/useWorkoutPlan'
@@ -44,6 +44,27 @@ const MOTIVATIONAL_QUOTES = [
 function isWarmupSection(sectionName: string): boolean {
   const name = sectionName.toLowerCase()
   return name.includes('warm') || name.includes('warmup') || name.includes('warm-up')
+}
+
+// Format sets/reps in compact mono-friendly format: "4×8-10" or "3×15s"
+function formatSetsReps(exercise: {
+  sets?: number | null
+  reps_min?: number | null
+  reps_max?: number | null
+  reps_unit?: string | null
+  is_per_side?: boolean | null
+}): string {
+  const parts: string[] = []
+  if (exercise.sets) parts.push(`${exercise.sets}×`)
+  if (exercise.reps_min) {
+    const range = exercise.reps_max && exercise.reps_max !== exercise.reps_min
+      ? `${exercise.reps_min}-${exercise.reps_max}`
+      : `${exercise.reps_min}`
+    parts.push(range)
+  }
+  if (exercise.reps_unit === 'seconds') parts.push('s')
+  if (exercise.is_per_side) parts.push('/side')
+  return parts.join('')
 }
 
 export function WorkoutPage() {
@@ -183,58 +204,82 @@ export function WorkoutPage() {
     )
   }
 
+  // ─── Compute metadata for pre-workout hero ─────────────────────
+  const totalExercises = workoutDay.sections.reduce((sum, s) => sum + s.exercises.length, 0)
+  const estimatedMinutes = workoutDay.sections.reduce((sum, s) => sum + (s.duration_minutes || 0), 0)
+
+  // ═══════════════════════════════════════════════════════════════
+  // PRE-WORKOUT VIEW — editorial layout with exercise preview
+  // ═══════════════════════════════════════════════════════════════
   if (!activeSession) {
     return (
       <AppShell title={getWorkoutDisplayName(workoutDay.name)} showBack hideNav>
-        <div className="p-[var(--space-4)] space-y-[var(--space-4)]">
-          <StaggerList className="space-y-[var(--space-4)]">
-            {workoutDay.sections.map((section) => {
-              const isWarmup = isWarmupSection(section.name)
-              const subtitle = section.duration_minutes ? `${section.duration_minutes} min` : undefined
+        {/* ═══ EDITORIAL HERO ═══ */}
+        <FadeIn direction="up">
+          <div className="px-[var(--space-5)] pt-[var(--space-4)] pb-[var(--space-6)]">
+            {/* Massive workout name — magazine style */}
+            <h2
+              className="text-[clamp(2.5rem,11vw,3.75rem)] font-extrabold text-[var(--color-text)]"
+              style={{
+                fontFamily: 'var(--font-heading)',
+                lineHeight: 'var(--leading-tight)',
+                letterSpacing: 'var(--tracking-tighter)',
+              }}
+            >
+              {getWorkoutDisplayName(workoutDay.name)}
+            </h2>
+            {/* Metadata row */}
+            <p className="text-[var(--text-sm)] text-[var(--color-text-muted)] mt-[var(--space-2)]">
+              {totalExercises} exercise{totalExercises !== 1 ? 's' : ''}
+              {estimatedMinutes > 0 && ` · ~${estimatedMinutes} min`}
+            </p>
+          </div>
+        </FadeIn>
 
-              if (isWarmup) {
-                return (
-                  <StaggerItem key={section.id}>
-                    <CollapsibleSection
-                      title={section.name}
-                      subtitle={subtitle}
-                      defaultOpen={true}
-                    >
-                      {section.exercises.map((exercise) => (
-                        <Card key={exercise.id}>
-                          <CardContent className="py-[var(--space-3)]">
-                            <p className="font-medium text-[var(--color-text)]">{exercise.name}</p>
-                            <p className="text-sm text-[var(--color-text-muted)]">
-                              {exercise.sets && `${exercise.sets} sets`}
-                              {exercise.reps_min && ` × ${exercise.reps_min}${exercise.reps_max && exercise.reps_max !== exercise.reps_min ? `-${exercise.reps_max}` : ''} ${exercise.reps_unit || 'reps'}`}
-                              {exercise.is_per_side && '/side'}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </CollapsibleSection>
-                  </StaggerItem>
-                )
-              }
+        {/* ═══ EXERCISE LIST — clean divider style ═══ */}
+        <div className="px-[var(--space-5)]">
+          <StaggerList className="space-y-0">
+            {workoutDay.sections.map((section) => {
+              const subtitle = section.duration_minutes ? `${section.duration_minutes} min` : undefined
 
               return (
                 <StaggerItem key={section.id}>
-                  <h3 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-[var(--space-2)] px-1">
-                    {section.name}
-                    {subtitle && ` (${subtitle})`}
-                  </h3>
-                  <div className="space-y-[var(--space-2)]">
+                  {/* Section header with yellow accent bar */}
+                  <div className="flex items-center gap-[var(--space-3)] pt-[var(--space-6)] pb-[var(--space-3)]">
+                    <div
+                      className="w-1 h-4 rounded-full"
+                      style={{ backgroundColor: 'var(--color-primary)' }}
+                    />
+                    <h3
+                      className="text-[var(--text-xs)] font-bold text-[var(--color-text-secondary)] uppercase"
+                      style={{ letterSpacing: 'var(--tracking-widest)' }}
+                    >
+                      {section.name}
+                      {subtitle && (
+                        <span className="font-normal text-[var(--color-text-muted)] ml-2">
+                          ({subtitle})
+                        </span>
+                      )}
+                    </h3>
+                  </div>
+
+                  {/* Exercise rows — no cards, just clean list items */}
+                  <div
+                    className="divide-y"
+                    style={{ '--tw-divide-opacity': '1', borderColor: 'var(--color-border)' } as React.CSSProperties}
+                  >
                     {section.exercises.map((exercise) => (
-                      <Card key={exercise.id}>
-                        <CardContent className="py-[var(--space-3)]">
-                          <p className="font-medium text-[var(--color-text)]">{exercise.name}</p>
-                          <p className="text-sm text-[var(--color-text-muted)]">
-                            {exercise.sets && `${exercise.sets} sets`}
-                            {exercise.reps_min && ` × ${exercise.reps_min}${exercise.reps_max && exercise.reps_max !== exercise.reps_min ? `-${exercise.reps_max}` : ''} ${exercise.reps_unit || 'reps'}`}
-                            {exercise.is_per_side && '/side'}
-                          </p>
-                        </CardContent>
-                      </Card>
+                      <div
+                        key={exercise.id}
+                        className="flex items-center justify-between py-[var(--space-5)]"
+                      >
+                        <p className="text-[var(--text-base)] font-semibold text-[var(--color-text)] flex-1 min-w-0 pr-[var(--space-3)]">
+                          {exercise.name}
+                        </p>
+                        <p className="text-[var(--text-sm)] text-[var(--color-text-secondary)] font-mono-stats shrink-0 tabular-nums">
+                          {formatSetsReps(exercise)}
+                        </p>
+                      </div>
                     ))}
                   </div>
                 </StaggerItem>
@@ -243,7 +288,10 @@ export function WorkoutPage() {
           </StaggerList>
         </div>
 
-        {/* Floating Start Workout button */}
+        {/* Bottom spacer for floating button */}
+        <div className="h-28" />
+
+        {/* ═══ FLOATING START BUTTON ═══ */}
         <div
           className="fixed bottom-0 left-0 right-0 p-[var(--space-4)] pb-safe border-t"
           style={{
@@ -259,7 +307,11 @@ export function WorkoutPage() {
             whileTap={{ scale: 0.97 }}
             transition={springPresets.snappy}
             className="w-full flex items-center justify-center gap-2 px-[var(--space-6)] py-[var(--space-4)] rounded-[var(--radius-xl)] bg-[var(--color-primary)] text-[var(--color-primary-text)] font-semibold text-lg disabled:opacity-70"
-            style={{ boxShadow: 'var(--shadow-primary)' }}
+            style={{
+              boxShadow: 'var(--shadow-primary)',
+              fontFamily: 'var(--font-heading)',
+              letterSpacing: 'var(--tracking-wide)',
+            }}
           >
             Start Workout
             <motion.span
@@ -271,7 +323,7 @@ export function WorkoutPage() {
           </motion.button>
         </div>
 
-        {/* Motivational Splash Screen */}
+        {/* ═══ MOTIVATIONAL SPLASH SCREEN ═══ */}
         <AnimatePresence>
           {showSplash && (
             <motion.div
@@ -302,6 +354,7 @@ export function WorkoutPage() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.3, ease: 'easeOut' }}
                 className="text-[var(--color-primary-text)] text-3xl font-bold text-center px-8 leading-snug"
+                style={{ fontFamily: 'var(--font-heading)' }}
               >
                 {splashQuote}
               </motion.p>
@@ -330,7 +383,9 @@ export function WorkoutPage() {
     )
   }
 
-  // Active workout session view
+  // ═══════════════════════════════════════════════════════════════
+  // ACTIVE WORKOUT VIEW — with exercise cards and rest timer
+  // ═══════════════════════════════════════════════════════════════
   return (
     <AppShell title={getWorkoutDisplayName(workoutDay.name)} showBack hideNav>
       <div className="p-[var(--space-4)] space-y-[var(--space-4)]">
