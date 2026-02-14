@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'motion/react'
 import { AppShell } from '@/components/layout'
 import { ScheduleDayEditor } from '@/components/schedule'
-import { StaggerList, StaggerItem, FadeIn } from '@/components/motion'
+import { StaggerList, StaggerItem, FadeIn, PressableCard } from '@/components/motion'
 import { useUserSchedule } from '@/hooks/useSchedule'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useCycleDay } from '@/hooks/useCycleDay'
@@ -213,11 +213,11 @@ export function SchedulePage() {
 
               return (
                 <StaggerItem key={dayNumber}>
+                  <PressableCard onClick={() => setEditingDay(dayNumber)} className="cursor-pointer">
                   <div
-                    onClick={() => setEditingDay(dayNumber)}
                     className={`
-                      relative rounded-[var(--radius-lg)] cursor-pointer overflow-hidden
-                      transition-all duration-200 active:scale-[0.98]
+                      relative rounded-[var(--radius-lg)] overflow-hidden
+                      transition-colors duration-200
                       ${isCurrentDay
                         ? 'bg-[var(--color-primary-muted)]'
                         : 'bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)]'
@@ -302,6 +302,7 @@ export function SchedulePage() {
                       <ChevronRight className="w-4.5 h-4.5 text-[var(--color-text-muted)] shrink-0 opacity-40" />
                     </div>
                   </div>
+                  </PressableCard>
                 </StaggerItem>
               )
             })}

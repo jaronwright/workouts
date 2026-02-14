@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
-import { Button, Card, CardContent } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { FadeIn, StaggerList, StaggerItem } from '@/components/motion'
 import { RestTimer } from '@/components/workout'
 import { PostWorkoutReview } from '@/components/review/PostWorkoutReview'
@@ -122,99 +122,110 @@ export function MobilityWorkoutPage() {
 
   return (
     <AppShell title={template.name} showBack hideNav>
-      <div className="p-[var(--space-4)] space-y-[var(--space-4)]">
-        {/* Header */}
+      <div className="space-y-[var(--space-4)]">
+        {/* ═══ EDITORIAL HERO ═══ */}
         <FadeIn direction="up">
-          <Card>
-            <CardContent className="py-[var(--space-6)] text-center">
+          <div className="px-[var(--space-5)] pt-[var(--space-4)] pb-[var(--space-2)]">
+            <div className="flex items-center gap-[var(--space-4)]">
               <div
-                className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-[var(--space-3)]"
+                className="w-14 h-14 rounded-[var(--radius-lg)] flex items-center justify-center shrink-0"
                 style={{ backgroundColor: style.bgColor }}
               >
                 <Icon className="w-7 h-7" style={{ color: style.color }} />
               </div>
-              <h2 className="text-lg font-semibold text-[var(--color-text)]">
-                {template.name}
-              </h2>
-              {template.description && (
-                <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                  {template.description}
+              <div>
+                <h2
+                  className="text-[clamp(1.75rem,8vw,2.5rem)] font-extrabold text-[var(--color-text)]"
+                  style={{ fontFamily: 'var(--font-heading)', lineHeight: 'var(--leading-tight)' }}
+                >
+                  {template.name}
+                </h2>
+                <p className="text-[var(--text-sm)] text-[var(--color-text-muted)]">
+                  ~{template.duration_minutes ?? 15} min · {totalCount} exercises
+                  {checkedCount > 0 && (
+                    <span style={{ color: style.color }}> · {checkedCount} done</span>
+                  )}
                 </p>
-              )}
-              <p className="text-xs text-[var(--color-text-muted)] mt-[var(--space-2)]">
-                ~{template.duration_minutes ?? 15} min &middot; {totalCount} exercises
+              </div>
+            </div>
+            {template.description && (
+              <p className="text-[var(--text-sm)] text-[var(--color-text-muted)] mt-[var(--space-3)]">
+                {template.description}
               </p>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         </FadeIn>
 
-        <RestTimer />
+        <div className="px-[var(--space-4)]">
+          <RestTimer />
+        </div>
 
-        {/* Exercise List */}
+        {/* ═══ EXERCISE CHECKLIST — clean divider style ═══ */}
         {allExercises.length > 0 ? (
-          <StaggerList className="space-y-[var(--space-2)]">
-            {allExercises.map((exercise) => {
-              const isChecked = checkedExercises.has(exercise.id)
-              return (
-                <StaggerItem key={exercise.id}>
-                  <Card>
-                    <button
-                      className="w-full text-left"
-                      onClick={() => toggleExercise(exercise.id)}
-                    >
-                      <CardContent className="py-[var(--space-3)] flex items-start gap-[var(--space-3)]">
+          <div className="px-[var(--space-5)]">
+            <StaggerList>
+              <div
+                className="divide-y"
+                style={{ '--tw-divide-opacity': '1', borderColor: 'var(--color-border)' } as React.CSSProperties}
+              >
+                {allExercises.map((exercise) => {
+                  const isChecked = checkedExercises.has(exercise.id)
+                  return (
+                    <StaggerItem key={exercise.id}>
+                      <button
+                        className="w-full text-left py-[var(--space-4)] flex items-center gap-[var(--space-3)]"
+                        onClick={() => toggleExercise(exercise.id)}
+                      >
                         {/* Check circle */}
                         <div
-                          className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                          className={`w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
                             isChecked
-                              ? 'border-transparent'
-                              : 'border-[var(--color-border)]'
+                              ? 'border-transparent scale-110'
+                              : 'border-[var(--color-border-strong)]'
                           }`}
                           style={isChecked ? { backgroundColor: style.color } : undefined}
                         >
-                          {isChecked && <Check className="w-3.5 h-3.5 text-white" />}
+                          {isChecked && <Check className="w-4 h-4 text-white" />}
                         </div>
 
                         {/* Exercise info */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-baseline justify-between gap-[var(--space-2)]">
-                            <span
-                              className={`font-medium text-sm ${
-                                isChecked
-                                  ? 'line-through text-[var(--color-text-muted)]'
-                                  : 'text-[var(--color-text)]'
-                              }`}
-                            >
-                              {exercise.name}
-                            </span>
-                            <span className="text-xs text-[var(--color-text-muted)] flex-shrink-0">
-                              {formatExerciseDetail(exercise)}
-                            </span>
-                          </div>
+                          <span
+                            className={`font-semibold text-[var(--text-base)] block ${
+                              isChecked
+                                ? 'line-through text-[var(--color-text-muted)]'
+                                : 'text-[var(--color-text)]'
+                            }`}
+                          >
+                            {exercise.name}
+                          </span>
                           {exercise.notes && (
-                            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                            <p className="text-[var(--text-xs)] text-[var(--color-text-muted)] mt-0.5 truncate">
                               {exercise.notes}
                             </p>
                           )}
                         </div>
-                      </CardContent>
-                    </button>
-                  </Card>
-                </StaggerItem>
-              )
-            })}
-          </StaggerList>
+
+                        {/* Sets/reps in mono */}
+                        <span className="text-[var(--text-sm)] text-[var(--color-text-secondary)] font-mono-stats shrink-0 tabular-nums">
+                          {formatExerciseDetail(exercise)}
+                        </span>
+                      </button>
+                    </StaggerItem>
+                  )
+                })}
+              </div>
+            </StaggerList>
+          </div>
         ) : (
           <FadeIn direction="up">
-            <Card>
-              <CardContent className="py-[var(--space-6)] text-center text-[var(--color-text-muted)]">
-                No exercises found for this workout.
-              </CardContent>
-            </Card>
+            <div className="px-[var(--space-5)] py-[var(--space-8)] text-center text-[var(--color-text-muted)]">
+              No exercises found for this workout.
+            </div>
           </FadeIn>
         )}
 
-        <div className="pt-[var(--space-4)] pb-[var(--space-8)]">
+        <div className="px-[var(--space-4)] pt-[var(--space-4)] pb-[var(--space-8)]">
           <Button
             onClick={handleComplete}
             loading={isPending}
