@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
 import { Button, Input, Modal, ThemePicker, CollapsibleSection } from '@/components/ui'
-import { FadeIn, StaggerList, StaggerItem, AnimatedNumber, ScaleIn } from '@/components/motion'
+import { FadeIn, StaggerList, StaggerItem, AnimatedNumber, ScaleIn, PressableCard } from '@/components/motion'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useCycleDay } from '@/hooks/useCycleDay'
 import { formatCycleStartDate } from '@/utils/cycleDay'
@@ -457,23 +457,23 @@ export function ProfilePage() {
               ] as const).map(([planId, label, Icon]) => {
                 const isActive = currentSplitId === planId
                 return (
-                  <button
-                    key={planId}
-                    onClick={() => handleSplitChange(planId)}
-                    className={`
-                      flex items-center gap-[var(--space-3)] p-[var(--space-3)] rounded-[var(--radius-md)] transition-all
-                      ${isActive
-                        ? 'bg-[var(--color-primary-muted)] border-l-[3px] border-l-[var(--color-primary)]'
-                        : 'bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)]'
-                      }
-                    `}
-                    style={isActive ? { boxShadow: '0 0 16px rgba(232, 255, 0, 0.06)' } : undefined}
-                  >
-                    <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
-                    <span className={`text-[var(--text-sm)] font-medium ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
-                      {label}
-                    </span>
-                  </button>
+                  <PressableCard key={planId} onClick={() => handleSplitChange(planId)}>
+                    <div
+                      className={`
+                        flex items-center gap-[var(--space-3)] p-[var(--space-3)] rounded-[var(--radius-md)] transition-all
+                        ${isActive
+                          ? 'bg-[var(--color-primary-muted)] border-l-[3px] border-l-[var(--color-primary)]'
+                          : 'bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)]'
+                        }
+                      `}
+                      style={isActive ? { boxShadow: '0 0 16px rgba(232, 255, 0, 0.06)' } : undefined}
+                    >
+                      <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
+                      <span className={`text-[var(--text-sm)] font-medium ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
+                        {label}
+                      </span>
+                    </div>
+                  </PressableCard>
                 )
               })}
             </div>

@@ -233,6 +233,16 @@ export function WorkoutPage() {
               {totalExercises} exercise{totalExercises !== 1 ? 's' : ''}
               {estimatedMinutes > 0 && ` · ~${estimatedMinutes} min`}
             </p>
+            {/* Motivational quote — delayed reveal */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="text-[var(--text-xs)] text-[var(--color-text-muted)] mt-[var(--space-3)] italic"
+              style={{ fontFamily: 'var(--font-heading)' }}
+            >
+              "{splashQuote}"
+            </motion.p>
           </div>
         </FadeIn>
 
@@ -292,7 +302,10 @@ export function WorkoutPage() {
         <div className="h-28" />
 
         {/* ═══ FLOATING START BUTTON ═══ */}
-        <div
+        <motion.div
+          initial={{ y: 80, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ ...springPresets.smooth, delay: 0.3 }}
           className="fixed bottom-0 left-0 right-0 p-[var(--space-4)] pb-safe border-t"
           style={{
             background: 'var(--glass-bg)',
@@ -321,7 +334,7 @@ export function WorkoutPage() {
               <ArrowRight className="w-5 h-5" />
             </motion.span>
           </motion.button>
-        </div>
+        </motion.div>
 
         {/* ═══ MOTIVATIONAL SPLASH SCREEN ═══ */}
         <AnimatePresence>
