@@ -139,3 +139,61 @@ Protected routes require authentication. Full route list:
 - Bottom nav uses `min-w-14 px-2` (not fixed width) so longer labels fit; active state is Material 3-style pill
 - `react-hooks/set-state-in-effect` lint rule requires `/* eslint-disable */` for effects that reset state on open/close
 - Deployed to Vercel with SPA rewrites configured in `vercel.json`
+
+## Design System V2
+
+### Overview
+
+Premium fitness brand design system. All tokens defined as CSS custom properties in `index.css` and mirrored as TypeScript constants in `src/config/designTokens.ts`.
+
+### Typography
+
+- **Headings**: Syne (weights 600-800) — bold, expressive, geometric
+- **Body**: DM Sans (weights 400-700) — clean, highly readable
+- **Loaded via**: Google Fonts `<link>` in `index.html`
+- Headings get `font-family: var(--font-heading)` automatically via `h1-h6` base styles
+- Body text inherits `var(--font-body)` from `<body>`
+- Type scale: `--text-xs` (12px) through `--text-5xl` (48px)
+- Headings: `letter-spacing: var(--tracking-tight)`, `line-height: var(--leading-tight)`
+
+### Color Palette
+
+| Role | Light | Dark | Purpose |
+|------|-------|------|---------|
+| Primary | `#CCFF00` Electric Lime | `#CCFF00` | Primary CTAs, active states, brand identity |
+| Accent | `#FF6B35` Warm Ember | `#FF7F4D` | Secondary actions, warmth, notifications |
+| Tertiary | `#4ECDC4` Cool Teal | `#5BDED5` | Informational, calm, tertiary actions |
+| Weights | `#3B82F6` Electric Blue | `#60A5FA` | Weights workout type |
+| Cardio | `#FF3366` Hot Pink | `#FF5C8A` | Cardio workout type |
+| Mobility | `#34D399` Sage Green | `#4ADE80` | Mobility workout type |
+| Background | `#F7F7F8` | `#0D0D0F` Warm black | Page background |
+| Surface | `#FFFFFF` | `#1A1A1F` | Cards, modals |
+| Surface Elevated | `#FFFFFF` | `#252529` | Elevated cards, dropdowns |
+
+- Primary accent uses dark text (`--color-primary-text: #0D0D0F`) since lime is light
+- Every color has a `*-muted` variant at ~10-15% opacity for subtle backgrounds
+- Status: success (green), warning (amber), danger (red), info (blue)
+
+### Shape & Depth
+
+- **Radius scale**: `--radius-sm` (6px), `--radius-md` (12px), `--radius-lg` (16px), `--radius-xl` (24px), `--radius-2xl` (32px), `--radius-full` (pill)
+- **Shadow scale**: 5 levels (`xs` through `xl`) plus colored shadows (`--shadow-primary`, `--shadow-accent`)
+- **Glass**: `--glass-bg` + `--glass-blur` (16px) for frosted overlays
+
+### Spacing
+
+4px base grid: `--space-1` (4px) through `--space-24` (96px). Use multiples of 4.
+
+### Transitions
+
+- Durations: `--duration-fast` (100ms), `--duration-normal` (200ms), `--duration-slow` (350ms)
+- Easings: `--ease-out` (decelerate), `--ease-in-out` (smooth), `--ease-spring` (bouncy)
+
+### Usage Guidelines
+
+- Use CSS variables (`var(--color-primary)`) in component styles
+- Import from `designTokens.ts` only when you need values in JS (Framer Motion, inline styles, chart colors)
+- Primary buttons: `background: var(--color-primary); color: var(--color-primary-text)`
+- Cards: `background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm)`
+- Text hierarchy: `--color-text` (primary), `--color-text-secondary` (supporting), `--color-text-muted` (tertiary)
+- Headings auto-apply Syne via CSS base styles; no need to set font-family on each heading
