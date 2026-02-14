@@ -421,9 +421,23 @@ export function WorkoutPage() {
 
           return (
             <div key={section.id}>
-              <h3 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-[var(--space-3)] px-1">
-                {section.name}
-              </h3>
+              <div className="flex items-center gap-[var(--space-2)] mb-[var(--space-3)] px-1">
+                <div
+                  className="w-1 h-4 rounded-full"
+                  style={{ backgroundColor: 'var(--color-primary)' }}
+                />
+                <h3
+                  className="text-[var(--text-xs)] font-bold text-[var(--color-text-secondary)] uppercase"
+                  style={{ letterSpacing: 'var(--tracking-widest)' }}
+                >
+                  {section.name}
+                  {subtitle && (
+                    <span className="font-normal text-[var(--color-text-muted)] ml-2">
+                      ({subtitle})
+                    </span>
+                  )}
+                </h3>
+              </div>
               <div className="space-y-[var(--space-3)]">
                 {section.exercises.map((exercise) => (
                   <ExerciseCard

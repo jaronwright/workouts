@@ -1,7 +1,10 @@
 import { useEffect } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
 import { X, Play, Pause, RotateCcw } from 'lucide-react'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { formatDuration } from '@/utils/formatters'
+import { ProgressRing } from '@/components/motion'
+import { springPresets } from '@/config/animationConfig'
 
 const PRESET_TIMES = [
   { seconds: 30, label: '0:30' },
@@ -47,6 +50,7 @@ export function RestTimer() {
     }
   }, [restTimerSeconds, isRestTimerActive])
 
+  // ─── PRESET SELECTOR (idle state) ───
   if (!isRestTimerActive && restTimerSeconds === 0) {
     return (
       <div className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] border border-[var(--color-border)] p-4">
@@ -77,60 +81,127 @@ export function RestTimer() {
     )
   }
 
-  // Calculate progress: 100% when full, 0% when empty
+  // Calculate progress: 1.0 when full, 0.0 when empty
   const progress = restTimerInitialSeconds > 0
-    ? (restTimerSeconds / restTimerInitialSeconds) * 100
+    ? restTimerSeconds / restTimerInitialSeconds
     : 0
 
+  const isFinished = restTimerSeconds === 0
+
+  // ─── ACTIVE TIMER — dramatic circular display ───
   return (
-    <div className="bg-[var(--color-primary)] rounded-[var(--radius-xl)] p-5 text-[var(--color-primary-text)]">
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-xs font-medium uppercase tracking-wider opacity-60">Rest Timer</p>
-        <button
-          onClick={stopRestTimer}
-          className="p-1.5 hover:bg-black/10 rounded-full active:scale-90 transition-transform duration-100"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key="active-timer"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={springPresets.snappy}
+        className="rounded-[var(--radius-xl)] p-5 relative overflow-hidden"
+        style={{
+          background: isFinished
+            ? 'var(--color-primary)'
+            : 'var(--color-surface)',
+          border: isFinished
+            ? 'none'
+            : '1px solid var(--color-border)',
+        }}
+      >
+        {/* Subtle glow when active */}
+        {!isFinished && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle at 50% 50%, rgba(232, 255, 0, 0.04) 0%, transparent 70%)',
+            }}
+          />
+        )}
 
-      <div className="text-center mb-5">
-        <span className="text-5xl font-bold tabular-nums tracking-tight">
-          {formatDuration(restTimerSeconds)}
-        </span>
-      </div>
+        {/* Close button */}
+        <div className="flex justify-end mb-2 relative">
+          <button
+            onClick={stopRestTimer}
+            className={`
+              p-1.5 rounded-full active:scale-90 transition-transform duration-100
+              ${isFinished
+                ? 'hover:bg-black/10 text-[var(--color-primary-text)]'
+                : 'hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]'
+              }
+            `}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
-      {/* Progress bar */}
-      <div className="relative h-2 bg-white/20 rounded-full overflow-hidden mb-5">
-        <div
-          className="absolute inset-y-0 left-0 bg-white rounded-full transition-[width] duration-1000 ease-linear"
-          style={{ width: `${progress}%` }}
-        />
-        {/* Glow effect on the end */}
-        <div
-          className="absolute inset-y-0 w-4 bg-gradient-to-r from-white/0 to-white/50 rounded-full blur-sm transition-[left] duration-1000 ease-linear"
-          style={{ left: `calc(${progress}% - 1rem)` }}
-        />
-      </div>
+        {/* Circular timer display */}
+        <div className="relative flex flex-col items-center">
+          {/* Progress ring */}
+          <div className="relative">
+            <ProgressRing
+              progress={progress}
+              size={160}
+              strokeWidth={6}
+              color={isFinished ? 'rgba(255,255,255,0.9)' : 'var(--color-primary)'}
+              trackColor={isFinished ? 'rgba(255,255,255,0.2)' : 'var(--color-border)'}
+            />
 
-      <div className="flex justify-center gap-4">
-        <button
-          onClick={() => isRestTimerActive ? pauseRestTimer() : startRestTimer(restTimerSeconds || restTimerInitialSeconds)}
-          className="p-3.5 bg-white/20 hover:bg-white/30 rounded-full active:scale-90 transition-transform duration-100"
-        >
-          {isRestTimerActive ? (
-            <Pause className="w-6 h-6" fill="currentColor" />
-          ) : (
-            <Play className="w-6 h-6" fill="currentColor" />
-          )}
-        </button>
-        <button
-          onClick={resetRestTimer}
-          className="p-3.5 bg-white/20 hover:bg-white/30 rounded-full active:scale-90 transition-transform duration-100"
-        >
-          <RotateCcw className="w-6 h-6" />
-        </button>
-      </div>
-    </div>
+            {/* Countdown inside the ring */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <motion.span
+                key={restTimerSeconds}
+                initial={false}
+                animate={isFinished ? { scale: [1, 1.05, 1] } : { scale: 1 }}
+                transition={isFinished
+                  ? { duration: 0.8, repeat: Infinity, ease: 'easeInOut' }
+                  : undefined
+                }
+                className={`
+                  font-mono-stats font-bold tabular-nums tracking-tight
+                  ${isFinished
+                    ? 'text-[var(--color-primary-text)] text-5xl'
+                    : 'text-[var(--color-text)] text-[clamp(3rem,15vw,4.5rem)]'
+                  }
+                `}
+              >
+                {isFinished ? 'Done!' : formatDuration(restTimerSeconds)}
+              </motion.span>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex justify-center gap-4 mt-5">
+            <button
+              onClick={() => isRestTimerActive ? pauseRestTimer() : startRestTimer(restTimerSeconds || restTimerInitialSeconds)}
+              className={`
+                p-3.5 rounded-full active:scale-90 transition-transform duration-100
+                ${isFinished
+                  ? 'bg-white/20 hover:bg-white/30 text-[var(--color-primary-text)]'
+                  : 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-[var(--color-primary-text)]'
+                }
+              `}
+              style={!isFinished ? { boxShadow: '0 0 16px rgba(232, 255, 0, 0.15)' } : undefined}
+            >
+              {isRestTimerActive ? (
+                <Pause className="w-6 h-6" fill="currentColor" />
+              ) : (
+                <Play className="w-6 h-6" fill="currentColor" />
+              )}
+            </button>
+            <button
+              onClick={resetRestTimer}
+              className={`
+                p-3.5 rounded-full active:scale-90 transition-transform duration-100
+                ${isFinished
+                  ? 'bg-white/20 hover:bg-white/30 text-[var(--color-primary-text)]'
+                  : 'bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] text-[var(--color-text-muted)]'
+                }
+              `}
+            >
+              <RotateCcw className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
   )
 }
