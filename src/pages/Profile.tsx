@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout'
-import { Button, Input, Card, CardContent, Modal, ThemePicker, CollapsibleSection } from '@/components/ui'
+import { Button, Input, Modal, ThemePicker, CollapsibleSection } from '@/components/ui'
 import { StaggerList, StaggerItem, AnimatedNumber, ScaleIn } from '@/components/motion'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useCycleDay } from '@/hooks/useCycleDay'
@@ -303,202 +303,202 @@ export function ProfilePage() {
 
   return (
     <AppShell title="Profile" showBack hideNav>
-      <StaggerList className="p-[var(--space-4)] space-y-[var(--space-6)]">
-        {/* User Info Card */}
+      <StaggerList className="pb-[var(--space-8)]">
+        {/* ── HERO PROFILE AREA ── */}
         <StaggerItem>
-          <Card>
-            <CardContent className="py-[var(--space-4)]">
-              <div className="flex items-center gap-[var(--space-4)]">
-                <ScaleIn>
+          <div className="relative px-[var(--space-6)] pt-[var(--space-8)] pb-[var(--space-6)] bg-[var(--color-surface)]">
+            {/* Warm glow behind avatar */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: 'var(--gradient-warm-glow)' }}
+            />
+            <div className="relative flex flex-col items-center text-center">
+              <ScaleIn>
+                <div className="w-20 h-20">
                   <AvatarUpload />
-                </ScaleIn>
-                <div className="flex-1 min-w-0">
-                  {isEditingName ? (
-                    <div className="flex items-center gap-[var(--space-2)]">
-                      <input
-                        type="text"
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleSave()
-                          if (e.key === 'Escape') {
-                            setDisplayName(profile?.display_name || '')
-                            setIsEditingName(false)
-                          }
-                        }}
-                        autoFocus
-                        className="text-lg font-semibold text-[var(--color-text)] bg-transparent border-b-2 border-[var(--color-primary)] outline-none w-full min-w-0"
-                        placeholder="Enter your name"
-                      />
-                      <button
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className="p-1 rounded-[var(--radius-sm)] shrink-0 hover:bg-[var(--color-success-muted)]"
-                        style={{ color: 'var(--color-success)' }}
-                        aria-label="Save name"
-                      >
-                        <Check className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => {
+                </div>
+              </ScaleIn>
+
+              <div className="mt-[var(--space-4)]">
+                {isEditingName ? (
+                  <div className="flex items-center gap-[var(--space-2)] justify-center">
+                    <input
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSave()
+                        if (e.key === 'Escape') {
                           setDisplayName(profile?.display_name || '')
                           setIsEditingName(false)
-                        }}
-                        className="p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] rounded-[var(--radius-sm)] shrink-0"
-                        aria-label="Cancel editing"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                  ) : (
+                        }
+                      }}
+                      autoFocus
+                      className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] bg-transparent border-b-2 border-[var(--color-primary)] outline-none text-center"
+                      style={{ fontFamily: 'var(--font-heading)' }}
+                      placeholder="Enter your name"
+                    />
                     <button
-                      onClick={() => setIsEditingName(true)}
-                      className="flex items-center gap-[var(--space-2)] group text-left"
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="p-1 rounded-[var(--radius-sm)] shrink-0 hover:bg-[var(--color-success-muted)]"
+                      style={{ color: 'var(--color-success)' }}
+                      aria-label="Save name"
                     >
-                      <h2 className="text-lg text-[var(--color-text)] truncate">
-                        {displayName || 'No name set'}
-                      </h2>
-                      <Pencil className="w-3.5 h-3.5 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                      <Check className="w-5 h-5" />
                     </button>
-                  )}
-                  <p className="text-sm text-[var(--color-text-muted)]">{user?.email}</p>
-                </div>
+                    <button
+                      onClick={() => {
+                        setDisplayName(profile?.display_name || '')
+                        setIsEditingName(false)
+                      }}
+                      className="p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] rounded-[var(--radius-sm)] shrink-0"
+                      aria-label="Cancel editing"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setIsEditingName(true)}
+                    className="flex items-center gap-[var(--space-2)] group"
+                  >
+                    <h2
+                      className="text-[var(--text-2xl)] text-[var(--color-text)]"
+                      style={{ fontFamily: 'var(--font-heading)', fontWeight: 'var(--weight-bold)' }}
+                    >
+                      {displayName || 'No name set'}
+                    </h2>
+                    <Pencil className="w-3.5 h-3.5 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </button>
+                )}
+                <p className="text-[var(--text-sm)] text-[var(--color-text-muted)] mt-[var(--space-1)]">{user?.email}</p>
               </div>
-            </CardContent>
-          </Card>
-        </StaggerItem>
-
-        {/* Lifetime Stats */}
-        <StaggerItem>
-          <div className="grid grid-cols-3 gap-[var(--space-3)]">
-            <Card className="overflow-hidden">
-              <CardContent className="py-[var(--space-3)] px-[var(--space-2)] text-center relative">
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-tertiary-muted), transparent)' }} />
-                <div className="relative">
-                  <Trophy className="w-5 h-5 mx-auto mb-1" style={{ color: 'var(--color-tertiary)' }} />
-                  <AnimatedNumber value={lifetimeStats.totalWorkouts} className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] block" />
-                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-wider)] font-medium">Total</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden">
-              <CardContent className="py-[var(--space-3)] px-[var(--space-2)] text-center relative">
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-accent-muted), transparent)' }} />
-                <div className="relative">
-                  <Flame className="w-5 h-5 mx-auto mb-1" style={{ color: 'var(--color-accent)' }} />
-                  <AnimatedNumber value={lifetimeStats.longestStreak} className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] block" />
-                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-wider)] font-medium">Best Streak</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden">
-              <CardContent className="py-[var(--space-3)] px-[var(--space-2)] text-center relative">
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-success-muted), transparent)' }} />
-                <div className="relative">
-                  <Star className="w-5 h-5 mx-auto mb-1" style={{ color: 'var(--color-success)' }} />
-                  <p className="text-sm font-bold text-[var(--color-text)] mt-1 truncate">{lifetimeStats.favoriteType}</p>
-                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-wider)] font-medium">Favorite</p>
-                </div>
-              </CardContent>
-            </Card>
+            </div>
           </div>
         </StaggerItem>
 
-        {/* Workout Split Section */}
+        {/* ── STAT CHIPS ── */}
         <StaggerItem>
-          <Card>
-            <CardContent className="py-[var(--space-4)] space-y-[var(--space-4)]">
-              <div className="flex items-center gap-[var(--space-3)]">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--color-weights-muted)' }}>
-                  <Dumbbell className="w-5 h-5" style={{ color: 'var(--color-weights)' }} />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[var(--color-text)]">Workout Split</h3>
-                  <p className="text-sm text-[var(--color-text-muted)]">Currently: {currentSplitName}</p>
-                </div>
+          <div className="flex gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-4)] overflow-x-auto">
+            <div className="flex items-center gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] rounded-[var(--radius-xl)] bg-[var(--color-surface)]" style={{ minWidth: 'fit-content' }}>
+              <Trophy className="w-4 h-4 shrink-0" style={{ color: 'var(--color-accent)' }} />
+              <div>
+                <AnimatedNumber value={lifetimeStats.totalWorkouts} className="font-mono-stats text-[var(--text-lg)] font-bold text-[var(--color-text)] block" />
+                <span className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-wider)]">Total</span>
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-[var(--space-2)]">
-                {([
-                  [PPL_PLAN_ID, 'Push/Pull/Legs', ArrowLeftRight],
-                  [UPPER_LOWER_PLAN_ID, 'Upper/Lower', ArrowUpDown],
-                  [FULL_BODY_PLAN_ID, 'Full Body', Dumbbell],
-                  [BRO_SPLIT_PLAN_ID, 'Bro Split', Flame],
-                  [ARNOLD_SPLIT_PLAN_ID, 'Arnold Split', Trophy],
-                  [GLUTE_HYPERTROPHY_PLAN_ID, 'Glute Hypertrophy', Heart],
-                ] as const).map(([planId, label, Icon]) => (
+            <div className="flex items-center gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] rounded-[var(--radius-xl)] bg-[var(--color-surface)]" style={{ minWidth: 'fit-content' }}>
+              <Flame className="w-4 h-4 shrink-0" style={{ color: 'var(--color-primary)' }} />
+              <div>
+                <AnimatedNumber value={lifetimeStats.longestStreak} className="font-mono-stats text-[var(--text-lg)] font-bold text-[var(--color-text)] block" />
+                <span className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-wider)]">Best Streak</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] rounded-[var(--radius-xl)] bg-[var(--color-surface)]" style={{ minWidth: 'fit-content' }}>
+              <Star className="w-4 h-4 shrink-0" style={{ color: 'var(--color-tertiary)' }} />
+              <div>
+                <p className="font-mono-stats text-[var(--text-sm)] font-bold text-[var(--color-text)] truncate max-w-24">{lifetimeStats.favoriteType}</p>
+                <span className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-wider)]">Favorite</span>
+              </div>
+            </div>
+          </div>
+        </StaggerItem>
+
+        {/* ── WORKOUT SPLIT ── */}
+        <StaggerItem>
+          <div className="px-[var(--space-4)] pt-[var(--space-4)]">
+            <h3
+              className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-widest)] mb-[var(--space-4)]"
+              style={{ fontWeight: 'var(--weight-semibold)' }}
+            >
+              Workout Split — {currentSplitName}
+            </h3>
+
+            <div className="grid grid-cols-2 gap-[var(--space-2)]">
+              {([
+                [PPL_PLAN_ID, 'Push/Pull/Legs', ArrowLeftRight],
+                [UPPER_LOWER_PLAN_ID, 'Upper/Lower', ArrowUpDown],
+                [FULL_BODY_PLAN_ID, 'Full Body', Dumbbell],
+                [BRO_SPLIT_PLAN_ID, 'Bro Split', Flame],
+                [ARNOLD_SPLIT_PLAN_ID, 'Arnold Split', Trophy],
+                [GLUTE_HYPERTROPHY_PLAN_ID, 'Glute Hypertrophy', Heart],
+              ] as const).map(([planId, label, Icon]) => {
+                const isActive = currentSplitId === planId
+                return (
                   <button
                     key={planId}
                     onClick={() => handleSplitChange(planId)}
                     className={`
-                      flex flex-col items-center gap-[var(--space-2)] p-[var(--space-3)] rounded-[var(--radius-md)] border-2 transition-all
-                      ${currentSplitId === planId
-                        ? 'border-[var(--color-primary)] bg-[var(--color-primary-muted)]'
-                        : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
+                      flex items-center gap-[var(--space-3)] p-[var(--space-3)] rounded-[var(--radius-md)] transition-all
+                      ${isActive
+                        ? 'bg-[var(--color-primary-muted)] border-l-[3px] border-l-[var(--color-primary)]'
+                        : 'bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)]'
                       }
                     `}
                   >
-                    <Icon className={`w-6 h-6 ${currentSplitId === planId ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
-                    <span className={`text-sm font-medium text-center ${currentSplitId === planId ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
+                    <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
+                    <span className={`text-[var(--text-sm)] font-medium ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
                       {label}
                     </span>
                   </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                )
+              })}
+            </div>
+          </div>
         </StaggerItem>
 
-        {/* Appearance Section */}
+        {/* ── SETTINGS: APPEARANCE ── */}
         <StaggerItem>
-          <Card>
-            <CardContent className="py-[var(--space-4)] space-y-[var(--space-4)]">
-              <div className="flex items-center gap-[var(--space-3)]">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--color-primary-muted)' }}>
-                  <Monitor className="w-5 h-5 text-[var(--color-primary)]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[var(--color-text)]">Appearance</h3>
-                  <p className="text-sm text-[var(--color-text-muted)]">Choose your theme preference</p>
-                </div>
+          <div className="px-[var(--space-4)] pt-[var(--space-8)]">
+            <h3
+              className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-widest)] mb-[var(--space-4)]"
+              style={{ fontWeight: 'var(--weight-semibold)' }}
+            >
+              Appearance
+            </h3>
+            <div className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] p-[var(--space-4)]">
+              <div className="flex items-center gap-[var(--space-3)] mb-[var(--space-4)]">
+                <Monitor className="w-5 h-5 text-[var(--color-primary)]" />
+                <span className="text-[var(--text-sm)] text-[var(--color-text)]">Theme</span>
               </div>
-
               <ThemePicker />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </StaggerItem>
 
-        {/* Notification Settings */}
+        {/* ── NOTIFICATIONS ── */}
         <StaggerItem>
-          <NotificationSettings />
+          <div className="px-[var(--space-4)] pt-[var(--space-4)]">
+            <NotificationSettings />
+          </div>
         </StaggerItem>
 
-        {/* Privacy Section */}
+        {/* ── SETTINGS: PRIVACY ── */}
         <StaggerItem>
-          <Card>
-            <CardContent className="py-[var(--space-4)] space-y-[var(--space-4)]">
-              <div className="flex items-center gap-[var(--space-3)]">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--color-tertiary-muted)' }}>
+          <div className="px-[var(--space-4)] pt-[var(--space-8)]">
+            <h3
+              className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-widest)] mb-[var(--space-4)]"
+              style={{ fontWeight: 'var(--weight-semibold)' }}
+            >
+              Privacy
+            </h3>
+            <div className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] p-[var(--space-4)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-[var(--space-3)] flex-1 pr-[var(--space-4)]">
                   {profile?.hide_weight_details ? (
-                    <EyeOff className="w-5 h-5" style={{ color: 'var(--color-tertiary)' }} />
+                    <EyeOff className="w-5 h-5 text-[var(--color-text-muted)] shrink-0" />
                   ) : (
-                    <Eye className="w-5 h-5" style={{ color: 'var(--color-tertiary)' }} />
+                    <Eye className="w-5 h-5 text-[var(--color-text-muted)] shrink-0" />
                   )}
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-[var(--color-text)]">Privacy</h3>
-                  <p className="text-sm text-[var(--color-text-muted)]">Control what others see</p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between py-[var(--space-2)]">
-                <div className="flex-1 pr-[var(--space-4)]">
-                  <p className="text-sm font-medium text-[var(--color-text)]">Hide weight details</p>
-                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                    Others will see your exercises but not weights
-                  </p>
+                  <div>
+                    <p className="text-[var(--text-sm)] font-medium text-[var(--color-text)]">Hide weight details</p>
+                    <p className="text-[var(--text-xs)] text-[var(--color-text-muted)] mt-0.5">
+                      Others will see your exercises but not weights
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={() => {
@@ -530,125 +530,36 @@ export function ProfilePage() {
                   />
                 </button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </StaggerItem>
 
-        {/* Security Section */}
+        {/* ── WORKOUT CYCLE ── */}
         <StaggerItem>
-          <CollapsibleSection
-            icon={Shield}
-            iconColor="bg-[var(--color-primary)]/20 text-[var(--color-primary)]"
-            title="Security"
-            subtitle="Change password & sessions"
-          >
-            <h4 className="text-sm font-medium text-[var(--color-text)]">Change Password</h4>
-            <div>
-              <Input
-                type="password"
-                label="New Password"
-                placeholder="Enter new password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                autoComplete="new-password"
-              />
-              <PasswordStrengthIndicator password={newPassword} />
-            </div>
-            <Input
-              type="password"
-              label="Confirm Password"
-              placeholder="Confirm new password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-            <Button
-              onClick={handleChangePassword}
-              loading={isChangingPassword}
-              className="w-full"
-              disabled={!newPassword || !confirmPassword}
+          <div className="px-[var(--space-4)] pt-[var(--space-8)]">
+            <h3
+              className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-widest)] mb-[var(--space-4)]"
+              style={{ fontWeight: 'var(--weight-semibold)' }}
             >
-              Update Password
-            </Button>
-
-            <div className="pt-[var(--space-4)] border-t border-[var(--color-border)]">
-              <h4 className="text-sm font-medium text-[var(--color-text)] mb-[var(--space-3)]">Session Management</h4>
-              <Button
-                variant="secondary"
-                onClick={handleSignOutAllDevices}
-                className="w-full flex items-center justify-center gap-[var(--space-2)]"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign Out All Devices
-              </Button>
-            </div>
-
-            <div className="pt-[var(--space-4)] border-t border-[var(--color-border)]">
-              <button
-                onClick={() => setShowDeleteModal(true)}
-                className="text-sm text-[var(--color-danger)] hover:underline"
-              >
-                Delete Account
-              </button>
-            </div>
-          </CollapsibleSection>
-        </StaggerItem>
-
-        {/* Change Email Section */}
-        <StaggerItem>
-          <CollapsibleSection
-            icon={Mail}
-            iconColor="bg-[var(--color-info-muted)] text-[var(--color-info)]"
-            title="Email"
-            subtitle="Change your email address"
-          >
-            <p className="text-sm text-[var(--color-text-muted)]">
-              Current email: <span className="font-medium text-[var(--color-text)]">{user?.email}</span>
-            </p>
-            <Input
-              type="email"
-              label="New Email"
-              placeholder="Enter new email address"
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
-              autoComplete="email"
-            />
-            <p className="text-xs text-[var(--color-text-muted)]">
-              A confirmation link will be sent to your new email address.
-            </p>
-            <Button
-              onClick={handleChangeEmail}
-              loading={isChangingEmail}
-              className="w-full"
-              disabled={!newEmail}
-            >
-              Update Email
-            </Button>
-          </CollapsibleSection>
-        </StaggerItem>
-
-        {/* Workout Cycle Info */}
-        <StaggerItem>
-          <Card>
-            <CardContent className="py-[var(--space-4)]">
+              Workout Cycle
+            </h3>
+            <div className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] p-[var(--space-4)]">
               <div className="flex items-center gap-[var(--space-3)]">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--color-primary-muted)' }}>
-                  <Calendar className="w-5 h-5 text-[var(--color-primary)]" />
-                </div>
+                <Calendar className="w-5 h-5 text-[var(--color-primary)] shrink-0" />
                 <div>
-                  <p className="text-sm text-[var(--color-text-muted)]">Current Cycle Day</p>
-                  <p className="text-lg font-semibold text-[var(--color-text)]">
+                  <p className="text-[var(--text-sm)] text-[var(--color-text-muted)]">Current Cycle Day</p>
+                  <p className="font-mono-stats text-[var(--text-lg)] font-semibold text-[var(--color-text)]">
                     Day {currentCycleDay} of 7
                   </p>
                 </div>
               </div>
-              <div className="relative flex items-center gap-[var(--space-2)] mt-[var(--space-3)]">
-                <p className="text-sm text-[var(--color-text-muted)]">
+              <div className="relative flex items-center gap-[var(--space-2)] mt-[var(--space-3)] ml-8">
+                <p className="text-[var(--text-sm)] text-[var(--color-text-muted)]">
                   Cycle started {formatCycleStartDate(profile?.cycle_start_date)}
                 </p>
                 <button
                   type="button"
-                  className="text-sm font-semibold text-[var(--color-primary)] cursor-pointer"
+                  className="text-[var(--text-sm)] font-semibold text-[var(--color-primary)] cursor-pointer"
                   onClick={() => dateInputRef.current?.showPicker()}
                 >
                   Change
@@ -671,13 +582,117 @@ export function ProfilePage() {
                   }}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </StaggerItem>
 
-        {/* Feedback Section */}
+        {/* Gradient divider */}
         <StaggerItem>
-          <div ref={feedbackRef}>
+          <div className="px-[var(--space-8)] py-[var(--space-2)]">
+            <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, var(--color-border-strong), transparent)' }} />
+          </div>
+        </StaggerItem>
+
+        {/* ── SECURITY ── */}
+        <StaggerItem>
+          <div className="px-[var(--space-4)]">
+            <CollapsibleSection
+              icon={Shield}
+              iconColor="bg-[var(--color-primary)]/20 text-[var(--color-primary)]"
+              title="Security"
+              subtitle="Change password & sessions"
+            >
+              <h4 className="text-sm font-medium text-[var(--color-text)]">Change Password</h4>
+              <div>
+                <Input
+                  type="password"
+                  label="New Password"
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
+                <PasswordStrengthIndicator password={newPassword} />
+              </div>
+              <Input
+                type="password"
+                label="Confirm Password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+              <Button
+                onClick={handleChangePassword}
+                loading={isChangingPassword}
+                className="w-full"
+                disabled={!newPassword || !confirmPassword}
+              >
+                Update Password
+              </Button>
+
+              <div className="pt-[var(--space-4)] border-t border-[var(--color-border)]">
+                <h4 className="text-sm font-medium text-[var(--color-text)] mb-[var(--space-3)]">Session Management</h4>
+                <Button
+                  variant="secondary"
+                  onClick={handleSignOutAllDevices}
+                  className="w-full flex items-center justify-center gap-[var(--space-2)]"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out All Devices
+                </Button>
+              </div>
+
+              <div className="pt-[var(--space-4)] border-t border-[var(--color-border)]">
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="text-sm text-[var(--color-danger)] hover:underline"
+                >
+                  Delete Account
+                </button>
+              </div>
+            </CollapsibleSection>
+          </div>
+        </StaggerItem>
+
+        {/* ── EMAIL ── */}
+        <StaggerItem>
+          <div className="px-[var(--space-4)] pt-[var(--space-2)]">
+            <CollapsibleSection
+              icon={Mail}
+              iconColor="bg-[var(--color-info-muted)] text-[var(--color-info)]"
+              title="Email"
+              subtitle="Change your email address"
+            >
+              <p className="text-sm text-[var(--color-text-muted)]">
+                Current email: <span className="font-medium text-[var(--color-text)]">{user?.email}</span>
+              </p>
+              <Input
+                type="email"
+                label="New Email"
+                placeholder="Enter new email address"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                autoComplete="email"
+              />
+              <p className="text-xs text-[var(--color-text-muted)]">
+                A confirmation link will be sent to your new email address.
+              </p>
+              <Button
+                onClick={handleChangeEmail}
+                loading={isChangingEmail}
+                className="w-full"
+                disabled={!newEmail}
+              >
+                Update Email
+              </Button>
+            </CollapsibleSection>
+          </div>
+        </StaggerItem>
+
+        {/* ── FEEDBACK ── */}
+        <StaggerItem>
+          <div ref={feedbackRef} className="px-[var(--space-4)] pt-[var(--space-2)]">
             <CollapsibleSection
               icon={MessageSquarePlus}
               iconColor="bg-[var(--color-warning-muted)] text-[var(--color-warning)]"
@@ -791,16 +806,25 @@ export function ProfilePage() {
           </div>
         </StaggerItem>
 
-        {/* Log Out */}
+        {/* Gradient divider */}
         <StaggerItem>
-          <Button
-            variant="secondary"
-            onClick={() => signOut()}
-            className="w-full flex items-center justify-center gap-[var(--space-2)]"
-          >
-            <LogOut className="w-4 h-4" />
-            Log Out
-          </Button>
+          <div className="px-[var(--space-8)] py-[var(--space-2)]">
+            <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, var(--color-border-strong), transparent)' }} />
+          </div>
+        </StaggerItem>
+
+        {/* ── LOG OUT ── */}
+        <StaggerItem>
+          <div className="px-[var(--space-4)] pt-[var(--space-2)]">
+            <Button
+              variant="secondary"
+              onClick={() => signOut()}
+              className="w-full flex items-center justify-center gap-[var(--space-2)]"
+            >
+              <LogOut className="w-4 h-4" />
+              Log Out
+            </Button>
+          </div>
         </StaggerItem>
       </StaggerList>
 
