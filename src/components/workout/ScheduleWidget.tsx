@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight, ChevronLeft, Calendar, Check, Play, type LucideIcon } from 'lucide-react'
 import { motion, AnimatePresence, type PanInfo } from 'motion/react'
-import { Card, CardContent, Button, StreakBar } from '@/components/ui'
+import { Button, StreakBar } from '@/components/ui'
 import { useUserSchedule } from '@/hooks/useSchedule'
 import { useCycleDay } from '@/hooks/useCycleDay'
 import { useUserSessions } from '@/hooks/useWorkoutSession'
@@ -261,16 +261,17 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
     }
   }
 
+  // ─── LOADING STATE ─────────────────────────────────────────────
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="py-4">
-          <div className="h-24 skeleton rounded-lg" />
-        </CardContent>
-      </Card>
+      <div
+        className="rounded-[var(--radius-xl)] skeleton"
+        style={{ minHeight: '38vh' }}
+      />
     )
   }
 
+  // ─── EMPTY STATE ───────────────────────────────────────────────
   if (!hasSchedule) {
     const handleSetup = () => {
       if (onSetupSchedule) {
@@ -281,29 +282,27 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
     }
 
     return (
-      <Card variant="outlined">
-        <CardContent className="py-5">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-[var(--color-surface-hover)] flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-[var(--color-text-muted)]" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-[var(--color-text)]">
-                No schedule set up yet
-              </p>
-              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                Create your weekly workout plan
-              </p>
-            </div>
-            <Button size="sm" variant="primary" onClick={handleSetup}>
-              Set Up
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div
+        className="relative rounded-[var(--radius-xl)] overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] flex flex-col items-center justify-center text-center px-[var(--space-6)]"
+        style={{ minHeight: '38vh' }}
+      >
+        <div className="w-16 h-16 rounded-[var(--radius-xl)] bg-[var(--color-surface-hover)] flex items-center justify-center mb-[var(--space-4)]">
+          <Calendar className="w-8 h-8 text-[var(--color-text-muted)]" />
+        </div>
+        <p className="text-[var(--text-base)] font-semibold text-[var(--color-text)] mb-[var(--space-1)]">
+          No schedule set up yet
+        </p>
+        <p className="text-[var(--text-sm)] text-[var(--color-text-muted)] mb-[var(--space-5)]">
+          Create your weekly workout plan
+        </p>
+        <Button variant="primary" onClick={handleSetup}>
+          Set Up Schedule
+        </Button>
+      </div>
     )
   }
 
+  // ─── MAIN HERO ─────────────────────────────────────────────────
   const activeInfo = todayDisplayInfos[clampedTab] || todayDisplayInfos[0]
   const ActiveIcon = activeInfo.icon
 
@@ -317,187 +316,250 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.1 }}
     >
-      <Card className="overflow-hidden">
-        {/* Multi-workout tabs (only shown when >1 workout today) */}
-        {displayWorkoutCount > 1 && (
-          <div className="flex border-b border-[var(--color-border)]">
-            {todayDisplayInfos.map((info, i) => {
-              const isActive = i === clampedTab
-              const TabIcon = info.icon
-              return (
-                <button
-                  key={i}
-                  onClick={() => setActiveTab(i)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 text-xs font-medium transition-colors relative ${
-                    isActive ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'
-                  }`}
-                >
-                  <TabIcon className="w-3.5 h-3.5" style={{ color: isActive ? info.color : undefined }} strokeWidth={2} />
-                  <span className="truncate">{getWorkoutShortName(info.name)}</span>
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full"
-                      style={{ backgroundColor: info.color }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        )}
+      {/* ═══ CINEMATIC HERO CARD ═══ */}
+      <div
+        className="relative rounded-[var(--radius-xl)] overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)]"
+        style={{ minHeight: '38vh' }}
+      >
+        {/* Gradient tint from workout color */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(170deg, ${activeInfo.color}10 0%, transparent 50%)`,
+          }}
+        />
+        {/* Subtle top glow orb */}
+        <div
+          className="absolute -top-16 left-1/2 -translate-x-1/2 w-[80%] h-32 rounded-full blur-3xl pointer-events-none"
+          style={{ backgroundColor: activeInfo.color, opacity: 0.06 }}
+        />
 
-        {/* Today's Workout - Minimal card with left accent */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={clampedTab}
-            initial={displayWorkoutCount > 1 && !prefersReduced ? { opacity: 0, x: 8 } : false}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -8 }}
-            transition={{ duration: 0.15 }}
-          >
-            <div
-              className="px-4 py-3.5 cursor-pointer active:opacity-90 transition-opacity relative"
-              onClick={handleActiveClick}
-            >
-              {/* Color-coded left accent bar */}
-              <div
-                className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[var(--radius-xl)]"
-                style={{ backgroundColor: activeInfo.color }}
-              />
-
-              <div className="flex items-center gap-3">
-                {/* Inline icon + workout name */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2.5">
-                    {todayCompleted ? (
-                      <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: `${activeInfo.color}20` }}
-                      >
-                        <Check className="w-4 h-4" style={{ color: activeInfo.color }} strokeWidth={2.5} />
-                      </div>
-                    ) : (
-                      <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: `${activeInfo.color}15` }}
-                      >
-                        <ActiveIcon className="w-3.5 h-3.5" style={{ color: activeInfo.color }} strokeWidth={2.5} />
-                      </div>
+        <div className="relative z-10 flex flex-col h-full" style={{ minHeight: '38vh' }}>
+          {/* Multi-workout tabs (only shown when >1 workout today) */}
+          {displayWorkoutCount > 1 && (
+            <div className="flex border-b border-[var(--color-border)]">
+              {todayDisplayInfos.map((info, i) => {
+                const isActive = i === clampedTab
+                const TabIcon = info.icon
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setActiveTab(i)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 text-xs font-medium transition-colors relative ${
+                      isActive ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'
+                    }`}
+                  >
+                    <TabIcon className="w-3.5 h-3.5" style={{ color: isActive ? info.color : undefined }} strokeWidth={2} />
+                    <span className="truncate">{getWorkoutShortName(info.name)}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="heroTab"
+                        className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full"
+                        style={{ backgroundColor: info.color }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                      />
                     )}
-                    <div className="min-w-0">
-                      <h3 className="text-base font-bold text-[var(--color-text)] truncate leading-tight">
-                        {activeInfo.name}
-                      </h3>
-                      {todayCompleted ? (
-                        <p className="text-xs text-[var(--color-success)] mt-0.5 font-medium">
-                          Completed
-                        </p>
-                      ) : !activeInfo.isRest ? (
-                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                          Today's workout
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Hero content — workout icon, name, CTA */}
+          <div className="flex-1 flex flex-col justify-center px-[var(--space-6)] py-[var(--space-6)]">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={clampedTab}
+                initial={displayWorkoutCount > 1 && !prefersReduced ? { opacity: 0, x: 8 } : false}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.15 }}
+              >
+                {/* Workout type icon — large, prominent */}
+                <div
+                  className="w-14 h-14 rounded-[var(--radius-lg)] flex items-center justify-center mb-[var(--space-4)]"
+                  style={{ backgroundColor: `${activeInfo.color}18` }}
+                >
+                  {todayCompleted ? (
+                    <Check className="w-7 h-7" style={{ color: activeInfo.color }} strokeWidth={2.5} />
+                  ) : (
+                    <ActiveIcon className="w-7 h-7" style={{ color: activeInfo.color }} strokeWidth={2} />
+                  )}
                 </div>
 
-                {/* Right action — Start or Finished */}
+                {/* Status label */}
                 {todayCompleted ? (
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-xs font-semibold text-[var(--color-success)]">Finished</span>
-                    <Check className="w-3.5 h-3.5 text-[var(--color-success)]" strokeWidth={2.5} />
-                  </div>
-                ) : !activeInfo.isRest ? (
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-xs font-semibold" style={{ color: activeInfo.color }}>Start</span>
-                    <Play className="w-3.5 h-3.5" style={{ color: activeInfo.color }} strokeWidth={2.5} />
-                  </div>
+                  <p
+                    className="text-[var(--text-xs)] uppercase font-semibold mb-[var(--space-2)]"
+                    style={{ color: 'var(--color-success)', letterSpacing: 'var(--tracking-wider)' }}
+                  >
+                    Completed
+                  </p>
+                ) : activeInfo.isRest ? (
+                  <p
+                    className="text-[var(--text-xs)] uppercase font-semibold text-[var(--color-text-muted)] mb-[var(--space-2)]"
+                    style={{ letterSpacing: 'var(--tracking-wider)' }}
+                  >
+                    Rest Day
+                  </p>
                 ) : (
-                  <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)] shrink-0" />
+                  <p
+                    className="text-[var(--text-xs)] uppercase font-semibold text-[var(--color-text-muted)] mb-[var(--space-2)]"
+                    style={{ letterSpacing: 'var(--tracking-wider)' }}
+                  >
+                    Today's workout
+                  </p>
                 )}
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
 
-        {/* Rolling 7-day schedule strip — swipeable */}
-        <CardContent className="py-3 border-t border-[var(--color-border)] overflow-hidden">
-          {/* Month header — fades in when dates are visible */}
-          <AnimatePresence>
-            {showDateInfo && (
-              <motion.p
-                initial={prefersReduced ? false : { opacity: 0, height: 0, marginBottom: 0 }}
-                animate={{ opacity: 1, height: 'auto', marginBottom: 6 }}
-                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] text-center"
-              >
-                {monthLabel}
-              </motion.p>
-            )}
-          </AnimatePresence>
-
-          <div className="relative">
-            {/* Scroll direction indicators */}
-            <AnimatePresence>
-              {showDateInfo && !prefersReduced && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.5 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 z-10 pointer-events-none"
-                  >
-                    <ChevronLeft className="w-3 h-3 text-[var(--color-text-muted)]" />
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.5 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 z-10 pointer-events-none"
-                  >
-                    <ChevronRight className="w-3 h-3 text-[var(--color-text-muted)]" />
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={weekOffset}
-                initial={{ opacity: 0, x: swipeDirection.current > 0 ? 60 : -60 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: swipeDirection.current > 0 ? -60 : 60 }}
-                transition={{ duration: 0.2 }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragDirectionLock
-                dragElastic={0.2}
-                onDragEnd={handleSwipe}
-                style={{ touchAction: 'pan-y' }}
-              >
-                <StreakBar days={streakDays} showDates={showDateInfo} />
+                {/* ★ MASSIVE workout name — editorial magazine style */}
+                <h2
+                  className="text-[clamp(2.25rem,9vw,3.75rem)] font-extrabold text-[var(--color-text)]"
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    lineHeight: 'var(--leading-tight)',
+                    letterSpacing: 'var(--tracking-tighter)',
+                  }}
+                >
+                  {activeInfo.name}
+                </h2>
               </motion.div>
             </AnimatePresence>
           </div>
 
-          {weekOffset !== 0 && (
-            <button
-              onClick={() => {
-                swipeDirection.current = weekOffset > 0 ? -1 : 1
-                setWeekOffset(0)
-              }}
-              className="mt-2 text-[10px] text-[var(--color-primary)] font-medium mx-auto block"
-            >
-              Back to Today
-            </button>
-          )}
-        </CardContent>
-      </Card>
+          {/* Bottom section: CTA + 7-day streak bar */}
+          <div className="px-[var(--space-6)] pb-[var(--space-5)]">
+            {/* ★ Glowing yellow "Start Workout" CTA */}
+            {!todayCompleted && !activeInfo.isRest && (
+              <motion.button
+                onClick={handleActiveClick}
+                whileTap={prefersReduced ? undefined : { scale: 0.97 }}
+                className="w-full py-[var(--space-4)] rounded-[var(--radius-lg)] font-bold text-[var(--text-base)] mb-[var(--space-5)] transition-shadow"
+                style={{
+                  backgroundColor: 'var(--color-primary)',
+                  color: 'var(--color-primary-text)',
+                  boxShadow: 'var(--shadow-primary)',
+                  fontFamily: 'var(--font-heading)',
+                  letterSpacing: 'var(--tracking-wide)',
+                }}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <Play className="w-4 h-4" fill="currentColor" />
+                  Start Workout
+                </span>
+              </motion.button>
+            )}
+
+            {/* Completed state: subtle "View Details" button */}
+            {todayCompleted && (
+              <motion.button
+                onClick={handleActiveClick}
+                whileTap={prefersReduced ? undefined : { scale: 0.97 }}
+                className="w-full py-[var(--space-3)] rounded-[var(--radius-lg)] font-semibold text-[var(--text-sm)] mb-[var(--space-5)] border transition-colors active:opacity-80"
+                style={{
+                  borderColor: 'var(--color-border-strong)',
+                  color: 'var(--color-text-secondary)',
+                }}
+              >
+                View Details
+              </motion.button>
+            )}
+
+            {/* Rest day: link to rest day page */}
+            {activeInfo.isRest && !todayCompleted && (
+              <motion.button
+                onClick={handleActiveClick}
+                whileTap={prefersReduced ? undefined : { scale: 0.97 }}
+                className="w-full py-[var(--space-3)] rounded-[var(--radius-lg)] font-semibold text-[var(--text-sm)] mb-[var(--space-5)] border transition-colors active:opacity-80"
+                style={{
+                  borderColor: 'var(--color-border-strong)',
+                  color: 'var(--color-text-secondary)',
+                }}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  Rest Day Activities
+                  <ChevronRight className="w-4 h-4" />
+                </span>
+              </motion.button>
+            )}
+
+            {/* ─── Rolling 7-day schedule strip — swipeable ─── */}
+            <div className="overflow-hidden">
+              {/* Month header — fades in when dates are visible */}
+              <AnimatePresence>
+                {showDateInfo && (
+                  <motion.p
+                    initial={prefersReduced ? false : { opacity: 0, height: 0, marginBottom: 0 }}
+                    animate={{ opacity: 1, height: 'auto', marginBottom: 6 }}
+                    exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] text-center"
+                  >
+                    {monthLabel}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+
+              <div className="relative">
+                {/* Scroll direction indicators */}
+                <AnimatePresence>
+                  {showDateInfo && !prefersReduced && (
+                    <>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.5 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 z-10 pointer-events-none"
+                      >
+                        <ChevronLeft className="w-3 h-3 text-[var(--color-text-muted)]" />
+                      </motion.div>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.5 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 z-10 pointer-events-none"
+                      >
+                        <ChevronRight className="w-3 h-3 text-[var(--color-text-muted)]" />
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={weekOffset}
+                    initial={{ opacity: 0, x: swipeDirection.current > 0 ? 60 : -60 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: swipeDirection.current > 0 ? -60 : 60 }}
+                    transition={{ duration: 0.2 }}
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragDirectionLock
+                    dragElastic={0.2}
+                    onDragEnd={handleSwipe}
+                    style={{ touchAction: 'pan-y' }}
+                  >
+                    <StreakBar days={streakDays} showDates={showDateInfo} />
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {weekOffset !== 0 && (
+                <button
+                  onClick={() => {
+                    swipeDirection.current = weekOffset > 0 ? -1 : 1
+                    setWeekOffset(0)
+                  }}
+                  className="mt-2 text-[10px] text-[var(--color-primary)] font-medium mx-auto block"
+                >
+                  Back to Today
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </motion.div>
   )
 }

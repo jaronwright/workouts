@@ -1,40 +1,28 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'motion/react'
+import { motion } from 'motion/react'
 import {
   Play, TrendingUp, ChevronRight, Flame, Trophy, Calendar,
-  Heart, X, Dumbbell, Activity, Wind as WindIcon
+  Heart, X
 } from 'lucide-react'
 import { AppShell } from '@/components/layout'
-import { Button, Card, CardContent, Badge } from '@/components/ui'
-import { CardioLogCard, ScheduleWidget } from '@/components/workout'
-import { WeatherCard } from '@/components/weather'
+import { Button } from '@/components/ui'
+import { ScheduleWidget } from '@/components/workout'
 import {
-  FadeIn, StaggerList, StaggerItem, AnimatedNumber, PressableButton, PressableCard
+  FadeIn, StaggerList, StaggerItem, AnimatedNumber,
+  PressableButton, PressableCard, FadeInOnScroll
 } from '@/components/motion'
 
 import { OnboardingWizard } from '@/components/onboarding'
 import { useActiveSession, useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
 import { useProfile } from '@/hooks/useProfile'
-import { useCycleDay } from '@/hooks/useCycleDay'
-import { useSelectedPlanDays } from '@/hooks/useWorkoutPlan'
-import { useWorkoutTemplatesByType, useUserSchedule } from '@/hooks/useSchedule'
-import { useMobilityCategories } from '@/hooks/useMobilityTemplates'
+import { useUserSchedule } from '@/hooks/useSchedule'
 import { useUserTemplateWorkouts } from '@/hooks/useTemplateWorkout'
 import { useToast } from '@/hooks/useToast'
 import { formatRelativeTime } from '@/utils/formatters'
-import { springPresets } from '@/config/animationConfig'
-import {
-  getWorkoutDisplayName,
-  getCardioStyle,
-  getMobilityStyle,
-  getWeightsStyleByName,
-  CATEGORY_DEFAULTS,
-  CATEGORY_LABELS
-} from '@/config/workoutConfig'
+import { getWorkoutDisplayName } from '@/config/workoutConfig'
 import type { SessionWithDay } from '@/services/workoutService'
 import type { TemplateWorkoutSession } from '@/services/templateWorkoutService'
-import type { WorkoutTemplate } from '@/services/scheduleService'
 
 // Unified session type for stats and recent activity
 type RecentSession =
@@ -96,20 +84,6 @@ function getWeeklyCount(sessions: { completed_at: string | null }[]): number {
   return days.size
 }
 
-// Get session summary for a weights workout day
-function getWeightsSessionSummary(dayId: string, sessions: SessionWithDay[]): string | undefined {
-  const completed = sessions.filter(s => s.workout_day_id === dayId && s.completed_at)
-  if (completed.length === 0) return undefined
-  return `${completed.length} session${completed.length !== 1 ? 's' : ''} completed`
-}
-
-// Get session summary for a mobility category (matches all duration variants)
-function getMobilityCategorySummary(category: string, sessions: TemplateWorkoutSession[]): string | undefined {
-  const completed = sessions.filter(s => s.completed_at && s.template?.category === category)
-  if (completed.length === 0) return undefined
-  return `${completed.length} session${completed.length !== 1 ? 's' : ''} completed`
-}
-
 // Time-of-day greeting
 function getGreeting(): string {
   const hour = new Date().getHours()
@@ -118,88 +92,12 @@ function getGreeting(): string {
   return 'Good evening'
 }
 
-// Workout Day Card Component (compact row style)
-interface WorkoutDayCardProps {
-  day: { id: string; name: string; day_number: number }
-  onClick: () => void
-  delay?: number
-  subtitle?: string
-}
-
-function WorkoutDayCard({ day, onClick, delay = 0 }: WorkoutDayCardProps) {
-  const style = getWeightsStyleByName(day.name)
-  const Icon = style.icon
-
-  return (
-    <PressableCard onClick={onClick} className="cursor-pointer">
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ ...springPresets.smooth, delay }}
-        className="flex items-center gap-[var(--space-3)] py-[var(--space-3)]"
-      >
-        <div
-          className="w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center shrink-0"
-          style={{ backgroundColor: `${style.color}15` }}
-        >
-          <Icon className="w-5 h-5" style={{ color: style.color }} strokeWidth={2} />
-        </div>
-        <p className="flex-1 text-[var(--text-sm)] font-semibold text-[var(--color-text)] truncate">
-          {getWorkoutDisplayName(day.name)}
-        </p>
-        <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)] shrink-0" />
-      </motion.div>
-    </PressableCard>
-  )
-}
-
-// Template Card Component (compact row style)
-interface TemplateCardProps {
-  template: WorkoutTemplate
-  onClick: () => void
-  delay?: number
-  subtitle?: string
-}
-
-function TemplateCard({ template, onClick, delay = 0 }: TemplateCardProps) {
-  const style = template.type === 'cardio'
-    ? getCardioStyle(template.category)
-    : getMobilityStyle(template.category)
-  const Icon = style.icon
-
-  return (
-    <PressableCard onClick={onClick} className="cursor-pointer">
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ ...springPresets.smooth, delay }}
-        className="flex items-center gap-[var(--space-3)] py-[var(--space-3)]"
-      >
-        <div
-          className="w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center shrink-0"
-          style={{ backgroundColor: `${style.color}15` }}
-        >
-          <Icon className="w-5 h-5" style={{ color: style.color }} strokeWidth={2} />
-        </div>
-        <p className="flex-1 text-[var(--text-sm)] font-semibold text-[var(--color-text)] truncate">
-          {template.name}
-        </p>
-        <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)] shrink-0" />
-      </motion.div>
-    </PressableCard>
-  )
-}
-
 export function HomePage() {
   const navigate = useNavigate()
   const { data: activeSession } = useActiveSession()
   const deleteSession = useDeleteSession()
   const { data: sessions, isLoading: sessionsLoading } = useUserSessions()
   const { data: profile } = useProfile()
-  const currentCycleDay = useCycleDay()
-  const { data: days, isLoading: daysLoading } = useSelectedPlanDays()
-  const { data: cardioTemplates, isLoading: cardioLoading } = useWorkoutTemplatesByType('cardio')
-  const { data: mobilityCategories, isLoading: mobilityLoading } = useMobilityCategories()
   const { data: schedule, isLoading: scheduleLoading } = useUserSchedule()
   const { data: templateWorkoutSessions, isLoading: templateSessionsLoading } = useUserTemplateWorkouts()
   const toast = useToast()
@@ -244,14 +142,7 @@ export function HomePage() {
   const totalWorkouts = allCompleted.filter(s => s.completed_at).length
   const statsLoading = sessionsLoading || templateSessionsLoading
 
-  // Quick Select tab state
-  const [activeQuickTab, setActiveQuickTab] = useState<'weights' | 'cardio' | 'mobility'>('weights')
-
   // Handlers
-  const handleStartWorkout = (dayId: string) => navigate(`/workout/${dayId}`)
-  const handleStartMobility = (category: string) => {
-    navigate(`/mobility/${category}/select`)
-  }
   const handleContinueWorkout = () => {
     if (activeSession) {
       navigate(`/workout/${activeSession.workout_day_id}/active`)
@@ -275,8 +166,8 @@ export function HomePage() {
 
         {/* ─── HERO SECTION ─── */}
         <FadeIn direction="up">
-          <section className="mb-[var(--space-8)]">
-            {/* Greeting */}
+          <section className="mb-[var(--space-6)]">
+            {/* Greeting — large Syne heading with yellow accent */}
             <p
               className="text-[var(--text-xs)] uppercase font-medium text-[var(--color-text-muted)]"
               style={{ letterSpacing: 'var(--tracking-widest)' }}
@@ -289,12 +180,13 @@ export function HomePage() {
                 style={{ fontFamily: 'var(--font-heading)', lineHeight: 'var(--leading-tight)' }}
               >
                 {firstName}
+                <span className="text-[var(--color-primary)]">.</span>
               </h1>
             )}
 
-            {/* Today's Workout Hero Card */}
+            {/* Today's Workout — Cinematic Hero Card */}
             <FadeIn direction="up" delay={0.1}>
-              <div className="mt-[var(--space-6)]">
+              <div className="mt-[var(--space-5)]">
                 <ScheduleWidget onSetupSchedule={() => setShowOnboarding(true)} />
               </div>
             </FadeIn>
@@ -344,205 +236,77 @@ export function HomePage() {
           </FadeIn>
         )}
 
-        {/* ─── STAT PILLS (horizontal scroll) ─── */}
+        {/* ─── STAT PILLS — number-forward, JetBrains Mono ─── */}
         <FadeIn direction="up" delay={0.15}>
           <section className="mb-[var(--space-6)]">
-            <div className="flex gap-[var(--space-3)] overflow-x-auto pb-[var(--space-1)]">
-              {/* Streak */}
-              <div className="flex items-center gap-[var(--space-2)] bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] shrink-0">
-                <Flame className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
-                <div>
-                  {statsLoading ? (
-                    <div className="h-5 w-6 rounded-[var(--radius-sm)] skeleton" />
-                  ) : (
-                    <AnimatedNumber
-                      value={streak}
-                      className="text-[var(--text-lg)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
-                    />
-                  )}
-                  <p
-                    className="text-[var(--text-xs)] text-[var(--color-text-muted)] mt-0.5"
-                    style={{ letterSpacing: 'var(--tracking-wider)' }}
-                  >
-                    streak
-                  </p>
-                </div>
+            <div className="flex gap-[var(--space-3)]">
+              {/* Streak — yellow glow when active */}
+              <div
+                className="flex-1 bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]"
+                style={streak > 0 ? { boxShadow: '0 0 16px rgba(232, 255, 0, 0.08)', borderColor: 'rgba(232, 255, 0, 0.15)' } : undefined}
+              >
+                {statsLoading ? (
+                  <div className="h-7 w-8 mx-auto rounded-[var(--radius-sm)] skeleton" />
+                ) : (
+                  <AnimatedNumber
+                    value={streak}
+                    className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
+                  />
+                )}
+                <p
+                  className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
+                  style={{ letterSpacing: 'var(--tracking-widest)' }}
+                >
+                  streak
+                </p>
               </div>
 
               {/* This Week */}
-              <PressableCard onClick={() => navigate('/history')} className="cursor-pointer shrink-0">
-                <div className="flex items-center gap-[var(--space-2)] bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)]">
-                  <Calendar className="w-4 h-4" style={{ color: 'var(--color-weights)' }} />
-                  <div>
-                    {statsLoading ? (
-                      <div className="h-5 w-6 rounded-[var(--radius-sm)] skeleton" />
-                    ) : (
-                      <AnimatedNumber
-                        value={thisWeek}
-                        className="text-[var(--text-lg)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
-                      />
-                    )}
-                    <p
-                      className="text-[var(--text-xs)] text-[var(--color-text-muted)] mt-0.5"
-                      style={{ letterSpacing: 'var(--tracking-wider)' }}
-                    >
-                      week
-                    </p>
-                  </div>
+              <PressableCard onClick={() => navigate('/history')} className="flex-1 cursor-pointer">
+                <div className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]">
+                  {statsLoading ? (
+                    <div className="h-7 w-8 mx-auto rounded-[var(--radius-sm)] skeleton" />
+                  ) : (
+                    <AnimatedNumber
+                      value={thisWeek}
+                      className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
+                    />
+                  )}
+                  <p
+                    className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
+                    style={{ letterSpacing: 'var(--tracking-widest)' }}
+                  >
+                    this week
+                  </p>
                 </div>
               </PressableCard>
 
               {/* Total */}
-              <PressableCard onClick={() => navigate('/history')} className="cursor-pointer shrink-0">
-                <div className="flex items-center gap-[var(--space-2)] bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)]">
-                  <Trophy className="w-4 h-4" style={{ color: 'var(--color-tertiary)' }} />
-                  <div>
-                    {statsLoading ? (
-                      <div className="h-5 w-6 rounded-[var(--radius-sm)] skeleton" />
-                    ) : (
-                      <AnimatedNumber
-                        value={totalWorkouts}
-                        className="text-[var(--text-lg)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
-                      />
-                    )}
-                    <p
-                      className="text-[var(--text-xs)] text-[var(--color-text-muted)] mt-0.5"
-                      style={{ letterSpacing: 'var(--tracking-wider)' }}
-                    >
-                      total
-                    </p>
-                  </div>
+              <PressableCard onClick={() => navigate('/history')} className="flex-1 cursor-pointer">
+                <div className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]">
+                  {statsLoading ? (
+                    <div className="h-7 w-8 mx-auto rounded-[var(--radius-sm)] skeleton" />
+                  ) : (
+                    <AnimatedNumber
+                      value={totalWorkouts}
+                      className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
+                    />
+                  )}
+                  <p
+                    className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
+                    style={{ letterSpacing: 'var(--tracking-widest)' }}
+                  >
+                    total
+                  </p>
                 </div>
               </PressableCard>
             </div>
-          </section>
-        </FadeIn>
-
-        {/* ─── WEATHER (compact) ─── */}
-        <FadeIn direction="up" delay={0.2}>
-          <section className="mb-[var(--space-6)]">
-            <WeatherCard />
-          </section>
-        </FadeIn>
-
-        {/* ─── QUICK SELECT ─── */}
-        <FadeIn direction="up" delay={0.25}>
-          <section className="mb-[var(--space-6)]">
-            {/* Category pill buttons */}
-            <div className="flex gap-[var(--space-2)] mb-[var(--space-4)]">
-              {(['weights', 'cardio', 'mobility'] as const).map((cat) => {
-                const cfg = CATEGORY_DEFAULTS[cat]
-                const Icon = cfg.icon
-                const isActive = activeQuickTab === cat
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => setActiveQuickTab(cat)}
-                    className="flex items-center gap-[var(--space-2)] rounded-[var(--radius-full)] px-[var(--space-4)] py-[var(--space-2)] text-[var(--text-xs)] font-semibold transition-all"
-                    style={{
-                      backgroundColor: isActive ? `${cfg.color}18` : 'var(--color-surface)',
-                      color: isActive ? cfg.color : 'var(--color-text-muted)',
-                      border: `1.5px solid ${isActive ? cfg.color : 'var(--color-border)'}`,
-                      letterSpacing: 'var(--tracking-wide)',
-                    }}
-                  >
-                    <Icon className="w-3.5 h-3.5" strokeWidth={2.5} />
-                    {CATEGORY_LABELS[cat]}
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* Tab Content */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeQuickTab}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={springPresets.smooth}
-                className="space-y-[var(--space-1)]"
-              >
-                {activeQuickTab === 'weights' && (
-                  daysLoading ? (
-                    <div className="space-y-[var(--space-3)]">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-14 rounded-[var(--radius-lg)] skeleton" />
-                      ))}
-                    </div>
-                  ) : days?.length ? (
-                    days.map((day, idx) => (
-                      <WorkoutDayCard
-                        key={day.id}
-                        day={day}
-                        onClick={() => handleStartWorkout(day.id)}
-                        delay={idx * 0.04}
-                        subtitle={getWeightsSessionSummary(day.id, weightsSessions)}
-                      />
-                    ))
-                  ) : (
-                    <p className="text-[var(--text-sm)] text-[var(--color-text-muted)] py-[var(--space-4)]">
-                      No weight workouts found.
-                    </p>
-                  )
-                )}
-
-                {activeQuickTab === 'cardio' && (
-                  cardioLoading ? (
-                    <div className="space-y-[var(--space-3)]">
-                      {[1, 2].map((i) => (
-                        <div key={i} className="h-14 rounded-[var(--radius-lg)] skeleton" />
-                      ))}
-                    </div>
-                  ) : cardioTemplates?.length ? (
-                    cardioTemplates.map((template, idx) => (
-                      <CardioLogCard
-                        key={template.id}
-                        template={template}
-                        sessions={templateWorkoutSessions || []}
-                        schedule={schedule || []}
-                        currentCycleDay={currentCycleDay}
-                        delay={idx * 0.04}
-                      />
-                    ))
-                  ) : (
-                    <p className="text-[var(--text-sm)] text-[var(--color-text-muted)] py-[var(--space-4)]">
-                      No cardio workouts available.
-                    </p>
-                  )
-                )}
-
-                {activeQuickTab === 'mobility' && (
-                  mobilityLoading ? (
-                    <div className="space-y-[var(--space-3)]">
-                      {[1, 2].map((i) => (
-                        <div key={i} className="h-14 rounded-[var(--radius-lg)] skeleton" />
-                      ))}
-                    </div>
-                  ) : mobilityCategories?.length ? (
-                    mobilityCategories.map(({ category, template }, idx) => (
-                      <TemplateCard
-                        key={category}
-                        template={template}
-                        onClick={() => handleStartMobility(category)}
-                        delay={idx * 0.04}
-                        subtitle={getMobilityCategorySummary(category, templateSessions)}
-                      />
-                    ))
-                  ) : (
-                    <p className="text-[var(--text-sm)] text-[var(--color-text-muted)] py-[var(--space-4)]">
-                      No mobility workouts available.
-                    </p>
-                  )
-                )}
-              </motion.div>
-            </AnimatePresence>
           </section>
         </FadeIn>
 
         {/* ─── RECENT ACTIVITY ─── */}
         {recentActivity.length > 0 && (
-          <FadeIn direction="up" delay={0.3}>
+          <FadeInOnScroll direction="up">
             <section>
               <div className="flex items-center justify-between mb-[var(--space-3)]">
                 <h2
@@ -560,7 +324,7 @@ export function HomePage() {
                 </PressableButton>
               </div>
               <StaggerList className="space-y-[var(--space-1)]">
-                {recentActivity.map((item) => {
+                {recentActivity.map((item, idx) => {
                   const isWeights = item.kind === 'weights'
                   const session = item.session
                   const name = isWeights
@@ -574,7 +338,10 @@ export function HomePage() {
                   return (
                     <StaggerItem key={session.id}>
                       <PressableCard onClick={() => navigate(historyPath)} className="cursor-pointer">
-                        <div className="flex items-center gap-[var(--space-3)] py-[var(--space-3)]">
+                        <div
+                          className="flex items-center gap-[var(--space-3)] py-[var(--space-3)] pl-[var(--space-3)]"
+                          style={idx === 0 ? { borderLeft: '2px solid var(--color-primary)' } : undefined}
+                        >
                           <div
                             className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
                             style={{
@@ -604,7 +371,7 @@ export function HomePage() {
                 })}
               </StaggerList>
             </section>
-          </FadeIn>
+          </FadeInOnScroll>
         )}
       </div>
 
