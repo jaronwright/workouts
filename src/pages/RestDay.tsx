@@ -46,7 +46,18 @@ export function RestDayPage() {
       <div className="p-[var(--space-4)] space-y-[var(--space-4)]">
         <FadeIn direction="up">
           <div className="text-center py-[var(--space-4)]">
-            <h2 className="text-[var(--text-xl)] text-[var(--color-text)]">Recovery Day</h2>
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-[var(--space-3)]"
+              style={{ background: 'var(--color-tertiary-muted)' }}
+            >
+              <Moon className="w-7 h-7" style={{ color: 'var(--color-tertiary)' }} />
+            </div>
+            <h2
+              className="text-[var(--text-xl)] text-[var(--color-text)]"
+              style={{ fontFamily: 'var(--font-heading)', fontWeight: 'var(--weight-bold)' }}
+            >
+              Recovery Day
+            </h2>
             <p className="text-[var(--color-text-muted)] mt-[var(--space-1)]">
               Rest is when your muscles grow. Try some of these activities:
             </p>

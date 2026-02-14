@@ -101,10 +101,10 @@ export function MobilityWorkoutPage() {
     return (
       <AppShell title="Loading..." showBack>
         <div className="p-[var(--space-4)] space-y-[var(--space-4)]">
-          <div className="h-32 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
-          <div className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
-          <div className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
-          <div className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
+          <div className="h-32 skeleton rounded-[var(--radius-xl)]" />
+          <div className="h-16 skeleton rounded-[var(--radius-xl)]" />
+          <div className="h-16 skeleton rounded-[var(--radius-xl)]" />
+          <div className="h-16 skeleton rounded-[var(--radius-xl)]" />
         </div>
       </AppShell>
     )
@@ -219,6 +219,7 @@ export function MobilityWorkoutPage() {
             onClick={handleComplete}
             loading={isPending}
             disabled={checkedCount === 0}
+            variant="gradient"
             size="lg"
             className="w-full"
           >

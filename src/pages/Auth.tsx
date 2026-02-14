@@ -201,13 +201,18 @@ export function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)] flex flex-col items-center justify-center p-[var(--space-4)]">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen bg-[var(--color-background)] flex flex-col items-center justify-center p-[var(--space-4)] relative overflow-hidden">
+      {/* Warm glow backdrop */}
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] pointer-events-none"
+        style={{ background: 'var(--gradient-warm-glow)' }}
+      />
+      <div className="w-full max-w-sm relative">
         {/* Brand Header */}
         <FadeIn direction="up">
           <div className="text-center mb-[var(--space-10)]">
             <div
-              className="w-16 h-16 mx-auto mb-[var(--space-5)] rounded-[var(--radius-xl)] flex items-center justify-center"
+              className="w-16 h-16 mx-auto mb-[var(--space-5)] rounded-[var(--radius-xl)] flex items-center justify-center animate-glow"
               style={{
                 background: 'var(--gradient-primary)',
                 boxShadow: 'var(--shadow-primary)',

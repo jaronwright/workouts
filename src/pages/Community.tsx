@@ -91,7 +91,7 @@ export function CommunityPage() {
         {isLoading && (
           <div className="space-y-[var(--space-3)]">
             {[0, 1, 2].map(i => (
-              <div key={i} className="h-28 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
+              <div key={i} className="h-28 skeleton rounded-[var(--radius-xl)]" />
             ))}
           </div>
         )}
@@ -163,7 +163,8 @@ export function CommunityPage() {
             </p>
             <PressableButton
               onClick={() => setShowPrivacyModal(false)}
-              className="w-full py-3 rounded-[var(--radius-lg)] bg-[var(--color-primary)] text-[var(--color-primary-text)] font-semibold text-sm"
+              className="w-full py-3 rounded-[var(--radius-lg)] text-[var(--color-primary-text)] font-semibold text-sm"
+              style={{ background: 'var(--gradient-primary)', boxShadow: 'var(--shadow-primary)' } as React.CSSProperties}
             >
               Got it
             </PressableButton>

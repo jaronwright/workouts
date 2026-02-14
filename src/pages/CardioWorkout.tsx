@@ -219,7 +219,7 @@ export function CardioWorkoutPage() {
     return (
       <AppShell title="Loading..." showBack>
         <div className="p-[var(--space-4)]">
-          <div className="h-48 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
+          <div className="h-48 skeleton rounded-[var(--radius-xl)]" />
         </div>
       </AppShell>
     )

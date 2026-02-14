@@ -166,7 +166,7 @@ export function WorkoutPage() {
       <AppShell title="Loading..." showBack>
         <div className="p-[var(--space-4)] space-y-[var(--space-4)]">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-32 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
+            <div key={i} className="h-32 skeleton rounded-[var(--radius-xl)]" />
           ))}
         </div>
       </AppShell>
@@ -390,6 +390,7 @@ export function WorkoutPage() {
           <Button
             onClick={handleComplete}
             loading={isCompleting}
+            variant="gradient"
             className="w-full"
             size="lg"
           >
