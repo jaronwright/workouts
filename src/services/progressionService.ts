@@ -98,26 +98,3 @@ export async function getProgressionSuggestion(
   return null
 }
 
-export async function getProgressionSuggestionsForWorkout(
-  userId: string,
-  exercises: Array<{ id: string; name: string; reps_min: number | null }>
-): Promise<Map<string, ProgressionSuggestion>> {
-  const suggestions = new Map<string, ProgressionSuggestion>()
-
-  for (const exercise of exercises) {
-    if (!exercise.reps_min) continue
-
-    const suggestion = await getProgressionSuggestion(
-      userId,
-      exercise.id,
-      exercise.name,
-      exercise.reps_min
-    )
-
-    if (suggestion) {
-      suggestions.set(exercise.id, suggestion)
-    }
-  }
-
-  return suggestions
-}

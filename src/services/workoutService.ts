@@ -9,6 +9,12 @@ type PlanExercise = Tables<'plan_exercises'>
 type WorkoutSession = Tables<'workout_sessions'>
 type ExerciseSet = Tables<'exercise_sets'>
 
+// Shared select for session queries with joined workout day
+const SESSION_WITH_DAY_SELECT = `
+  *,
+  workout_day:workout_days(*)
+`
+
 export async function getWorkoutPlans(): Promise<WorkoutPlan[]> {
   const { data, error } = await supabase
     .from('workout_plans')
@@ -179,10 +185,7 @@ export interface SessionWithDay extends WorkoutSession {
 export async function getUserSessions(userId: string): Promise<SessionWithDay[]> {
   const { data, error } = await supabase
     .from('workout_sessions')
-    .select(`
-      *,
-      workout_day:workout_days(*)
-    `)
+    .select(SESSION_WITH_DAY_SELECT)
     .eq('user_id', userId)
     .order('started_at', { ascending: false })
 
@@ -193,10 +196,7 @@ export async function getUserSessions(userId: string): Promise<SessionWithDay[]>
 export async function getActiveSession(userId: string): Promise<SessionWithDay | null> {
   const { data, error } = await supabase
     .from('workout_sessions')
-    .select(`
-      *,
-      workout_day:workout_days(*)
-    `)
+    .select(SESSION_WITH_DAY_SELECT)
     .eq('user_id', userId)
     .is('completed_at', null)
     .order('started_at', { ascending: false })
@@ -249,10 +249,7 @@ export interface SessionWithSets extends WorkoutSession {
 export async function getSessionWithSets(sessionId: string): Promise<SessionWithSets | null> {
   const { data: session, error: sessionError } = await supabase
     .from('workout_sessions')
-    .select(`
-      *,
-      workout_day:workout_days(*)
-    `)
+    .select(SESSION_WITH_DAY_SELECT)
     .eq('id', sessionId)
     .single()
 
@@ -360,10 +357,7 @@ export async function updateWorkoutSession(
 export async function getWorkoutSession(sessionId: string): Promise<SessionWithDay | null> {
   const { data, error } = await supabase
     .from('workout_sessions')
-    .select(`
-      *,
-      workout_day:workout_days(*)
-    `)
+    .select(SESSION_WITH_DAY_SELECT)
     .eq('id', sessionId)
     .single()
 

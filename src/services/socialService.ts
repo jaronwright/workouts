@@ -164,6 +164,44 @@ export async function getSocialFeed(limit = 20): Promise<FeedWorkout[]> {
 
 // ─── Batch Fetchers ──────────────────────────────────
 
+// Shared helper: query a table for both session types and group results by polymorphic key
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function queryPolymorphicSessions<T>(
+  table: 'activity_reactions' | 'workout_reviews' | 'workout_photos',
+  select: string,
+  sessionIds: string[],
+  templateSessionIds: string[],
+  processRow: (row: any) => T,
+  idColumn: 'session_id' | 'template_session_id',
+  keyPrefix: 'session' | 'template'
+): Promise<Map<string, T[]>> {
+  const map = new Map<string, T[]>()
+  const ids = idColumn === 'session_id' ? sessionIds : templateSessionIds
+  if (ids.length === 0) return map
+
+  const query = supabase.from(table).select(select).in(idColumn, ids)
+  if (table === 'workout_photos') query.order('sort_order')
+
+  const { data, error } = await query
+  if (error) { console.warn(`Error fetching ${table}:`, error.message); return map }
+
+  data?.forEach(row => {
+    const key = `${keyPrefix}:${row[idColumn]}`
+    if (!map.has(key)) map.set(key, [])
+    map.get(key)!.push(processRow(row))
+  })
+
+  return map
+}
+
+// Merge two maps (mutates target)
+function mergeMaps<T>(target: Map<string, T[]>, source: Map<string, T[]>): void {
+  source.forEach((values, key) => {
+    if (!target.has(key)) target.set(key, [])
+    target.get(key)!.push(...values)
+  })
+}
+
 async function fetchUserProfiles(userIds: string[]): Promise<Map<string, FeedUserProfile>> {
   const map = new Map<string, FeedUserProfile>()
   if (userIds.length === 0) return map
@@ -206,45 +244,19 @@ async function fetchReactionsForSessions(
   sessionIds: string[],
   templateSessionIds: string[]
 ): Promise<Map<string, Reaction[]>> {
-  const map = new Map<string, Reaction[]>()
+  const [sessionReactions, templateReactions] = await Promise.all([
+    queryPolymorphicSessions<Reaction>(
+      'activity_reactions', 'id, user_id, session_id, reaction_type, created_at',
+      sessionIds, templateSessionIds, r => r as Reaction, 'session_id', 'session'
+    ),
+    queryPolymorphicSessions<Reaction>(
+      'activity_reactions', 'id, user_id, template_session_id, reaction_type, created_at',
+      sessionIds, templateSessionIds, r => r as Reaction, 'template_session_id', 'template'
+    ),
+  ])
 
-  const promises: Promise<void>[] = []
-
-  if (sessionIds.length > 0) {
-    promises.push(
-      supabase
-        .from('activity_reactions')
-        .select('id, user_id, session_id, reaction_type, created_at')
-        .in('session_id', sessionIds)
-        .then(({ data, error }) => {
-          if (error) { console.warn('Error fetching reactions:', error.message); return }
-          data?.forEach(r => {
-            const key = `session:${r.session_id}`
-            if (!map.has(key)) map.set(key, [])
-            map.get(key)!.push(r as Reaction)
-          })
-        })
-    )
-  }
-
-  if (templateSessionIds.length > 0) {
-    promises.push(
-      supabase
-        .from('activity_reactions')
-        .select('id, user_id, template_session_id, reaction_type, created_at')
-        .in('template_session_id', templateSessionIds)
-        .then(({ data, error }) => {
-          if (error) { console.warn('Error fetching reactions:', error.message); return }
-          data?.forEach(r => {
-            const key = `template:${r.template_session_id}`
-            if (!map.has(key)) map.set(key, [])
-            map.get(key)!.push(r as Reaction)
-          })
-        })
-    )
-  }
-
-  await Promise.all(promises)
+  const map = sessionReactions
+  mergeMaps(map, templateReactions)
 
   // Fetch profiles for all reactors
   const reactorIds = new Set<string>()
@@ -271,56 +283,34 @@ async function fetchReviewsForSessions(
   sessionIds: string[],
   templateSessionIds: string[]
 ): Promise<Map<string, FeedReview>> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const toReview = (r: any): FeedReview => ({
+    overall_rating: r.overall_rating,
+    difficulty_rating: r.difficulty_rating,
+    energy_level: r.energy_level,
+    mood_before: r.mood_before,
+    mood_after: r.mood_after,
+    performance_tags: (r.performance_tags as string[]) || [],
+    reflection: r.reflection,
+  })
+
+  const reviewSelect = 'overall_rating, difficulty_rating, energy_level, mood_before, mood_after, performance_tags, reflection'
+
+  const [sessionReviews, templateReviews] = await Promise.all([
+    queryPolymorphicSessions<FeedReview>(
+      'workout_reviews', `session_id, ${reviewSelect}`,
+      sessionIds, templateSessionIds, toReview, 'session_id', 'session'
+    ),
+    queryPolymorphicSessions<FeedReview>(
+      'workout_reviews', `template_session_id, ${reviewSelect}`,
+      sessionIds, templateSessionIds, toReview, 'template_session_id', 'template'
+    ),
+  ])
+
+  // Reviews are 1:1 — convert to single-value map
   const map = new Map<string, FeedReview>()
-  const promises: Promise<void>[] = []
-
-  if (sessionIds.length > 0) {
-    promises.push(
-      supabase
-        .from('workout_reviews')
-        .select('session_id, overall_rating, difficulty_rating, energy_level, mood_before, mood_after, performance_tags, reflection')
-        .in('session_id', sessionIds)
-        .then(({ data, error }) => {
-          if (error) { console.warn('Error fetching reviews:', error.message); return }
-          data?.forEach(r => {
-            map.set(`session:${r.session_id}`, {
-              overall_rating: r.overall_rating,
-              difficulty_rating: r.difficulty_rating,
-              energy_level: r.energy_level,
-              mood_before: r.mood_before,
-              mood_after: r.mood_after,
-              performance_tags: (r.performance_tags as string[]) || [],
-              reflection: r.reflection,
-            })
-          })
-        })
-    )
-  }
-
-  if (templateSessionIds.length > 0) {
-    promises.push(
-      supabase
-        .from('workout_reviews')
-        .select('template_session_id, overall_rating, difficulty_rating, energy_level, mood_before, mood_after, performance_tags, reflection')
-        .in('template_session_id', templateSessionIds)
-        .then(({ data, error }) => {
-          if (error) { console.warn('Error fetching reviews:', error.message); return }
-          data?.forEach(r => {
-            map.set(`template:${r.template_session_id}`, {
-              overall_rating: r.overall_rating,
-              difficulty_rating: r.difficulty_rating,
-              energy_level: r.energy_level,
-              mood_before: r.mood_before,
-              mood_after: r.mood_after,
-              performance_tags: (r.performance_tags as string[]) || [],
-              reflection: r.reflection,
-            })
-          })
-        })
-    )
-  }
-
-  await Promise.all(promises)
+  sessionReviews.forEach((reviews, key) => { if (reviews[0]) map.set(key, reviews[0]) })
+  templateReviews.forEach((reviews, key) => { if (reviews[0]) map.set(key, reviews[0]) })
   return map
 }
 
@@ -328,46 +318,22 @@ async function fetchPhotosForSessions(
   sessionIds: string[],
   templateSessionIds: string[]
 ): Promise<Map<string, FeedPhoto[]>> {
-  const map = new Map<string, FeedPhoto[]>()
-  const promises: Promise<void>[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const toPhoto = (p: any): FeedPhoto => ({ id: p.id, photo_url: p.photo_url, caption: p.caption })
 
-  if (sessionIds.length > 0) {
-    promises.push(
-      supabase
-        .from('workout_photos')
-        .select('id, session_id, photo_url, caption')
-        .in('session_id', sessionIds)
-        .order('sort_order')
-        .then(({ data, error }) => {
-          if (error) { console.warn('Error fetching photos:', error.message); return }
-          data?.forEach(p => {
-            const key = `session:${p.session_id}`
-            if (!map.has(key)) map.set(key, [])
-            map.get(key)!.push({ id: p.id, photo_url: p.photo_url, caption: p.caption })
-          })
-        })
-    )
-  }
+  const [sessionPhotos, templatePhotos] = await Promise.all([
+    queryPolymorphicSessions<FeedPhoto>(
+      'workout_photos', 'id, session_id, photo_url, caption',
+      sessionIds, templateSessionIds, toPhoto, 'session_id', 'session'
+    ),
+    queryPolymorphicSessions<FeedPhoto>(
+      'workout_photos', 'id, template_session_id, photo_url, caption',
+      sessionIds, templateSessionIds, toPhoto, 'template_session_id', 'template'
+    ),
+  ])
 
-  if (templateSessionIds.length > 0) {
-    promises.push(
-      supabase
-        .from('workout_photos')
-        .select('id, template_session_id, photo_url, caption')
-        .in('template_session_id', templateSessionIds)
-        .order('sort_order')
-        .then(({ data, error }) => {
-          if (error) { console.warn('Error fetching photos:', error.message); return }
-          data?.forEach(p => {
-            const key = `template:${p.template_session_id}`
-            if (!map.has(key)) map.set(key, [])
-            map.get(key)!.push({ id: p.id, photo_url: p.photo_url, caption: p.caption })
-          })
-        })
-    )
-  }
-
-  await Promise.all(promises)
+  const map = sessionPhotos
+  mergeMaps(map, templatePhotos)
   return map
 }
 

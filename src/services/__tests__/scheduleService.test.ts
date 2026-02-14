@@ -455,12 +455,16 @@ describe('scheduleService', () => {
   // saveScheduleDayWorkouts
   // =========================================================================
   describe('saveScheduleDayWorkouts', () => {
-    it('clears day and returns empty array when workouts is empty', async () => {
+    it('inserts rest day when workouts is empty', async () => {
       // deleteScheduleDay
       queueResponse(null)
+      // insert rest day (empty workouts now inserts rest day to prevent orphaned schedule)
+      const restDay = makeScheduleDay({ is_rest_day: true, workout_day_id: null, template_id: null })
+      queueResponse([restDay])
 
       const result = await saveScheduleDayWorkouts('user-1', 1, [])
-      expect(result).toEqual([])
+      expect(result).toHaveLength(1)
+      expect(result[0].is_rest_day).toBe(true)
       expect(mockFrom).toHaveBeenCalledWith('user_schedules')
     })
 
@@ -660,6 +664,17 @@ describe('scheduleService', () => {
       warnSpy.mockRestore()
     })
 
+    it('throws when rest day insert fails for empty workouts', async () => {
+      // Delete succeeds
+      queueResponse(null)
+      // Rest day insert fails
+      queueError('Insert failed')
+
+      await expect(saveScheduleDayWorkouts('user-1', 1, [])).rejects.toThrow(
+        'Failed to save rest day'
+      )
+    })
+
     it('returns empty array when insert returns null data for rest day', async () => {
       // Delete succeeds
       queueResponse(null)
@@ -742,13 +757,17 @@ describe('scheduleService', () => {
       expect(result!.template_id).toBe('template-1')
     })
 
-    it('clears day when no data provided', async () => {
-      // Delete succeeds (empty workouts list means just clear)
+    it('inserts rest day when no data provided', async () => {
+      // Delete succeeds, then empty workouts triggers rest day insert
       queueResponse(null)
+      // Insert rest day
+      const restDay = makeScheduleDay({ is_rest_day: true, workout_day_id: null, template_id: null })
+      queueResponse([restDay])
 
       const data: UpdateScheduleDayData = {}
       const result = await upsertScheduleDay('user-1', 1, data)
-      expect(result).toBeNull()
+      expect(result).not.toBeNull()
+      expect(result!.is_rest_day).toBe(true)
     })
 
     it('returns null when save returns empty array', async () => {

@@ -154,8 +154,28 @@ vi.mock('@/components/workout', () => ({
       {children}
     </div>
   ),
-  ExerciseCard: ({ exercise }: { exercise: { name: string } }) => (
-    <div data-testid="exercise-card">{exercise.name}</div>
+  ExerciseCard: ({
+    exercise,
+    onExerciseComplete,
+    onExerciseUncomplete,
+  }: {
+    exercise: { name: string }
+    onExerciseComplete?: (reps: number | null, weight: number | null) => void
+    onExerciseUncomplete?: () => void
+  }) => (
+    <div data-testid="exercise-card">
+      {exercise.name}
+      {onExerciseComplete && (
+        <button data-testid={`complete-${exercise.name.replace(/\s+/g, '-')}`} onClick={() => onExerciseComplete(null, null)}>
+          Complete {exercise.name}
+        </button>
+      )}
+      {onExerciseUncomplete && (
+        <button data-testid={`uncomplete-${exercise.name.replace(/\s+/g, '-')}`} onClick={() => onExerciseUncomplete()}>
+          Uncomplete {exercise.name}
+        </button>
+      )}
+    </div>
   ),
   RestTimer: () => <div data-testid="rest-timer" />,
 }))
@@ -657,6 +677,104 @@ describe('WorkoutPage Workflows', () => {
 
       // The warm-up collapsible section should show the subtitle
       expect(screen.getByTestId('section-subtitle')).toHaveTextContent('10 min')
+    })
+  })
+
+  describe('Exercise completion with multi-set logging', () => {
+    it('logs 3 sets when exercise has sets=3', () => {
+      mockWorkoutDay = makeWorkoutDay()
+      mockActiveSession = { id: 'session-1', workout_day_id: 'day-1' }
+
+      render(<WorkoutPage />)
+
+      const completeBtn = screen.getByTestId('complete-Bench-Press')
+      fireEvent.click(completeBtn)
+
+      expect(mockLogSetMutate).toHaveBeenCalledTimes(3)
+      expect(mockLogSetMutate).toHaveBeenNthCalledWith(1, expect.objectContaining({ setNumber: 1 }))
+      expect(mockLogSetMutate).toHaveBeenNthCalledWith(2, expect.objectContaining({ setNumber: 2 }))
+      expect(mockLogSetMutate).toHaveBeenNthCalledWith(3, expect.objectContaining({ setNumber: 3 }))
+    })
+
+    it('logs 1 set when exercise has sets=null', () => {
+      mockWorkoutDay = makeWorkoutDay({
+        sections: [
+          {
+            id: 'section-1',
+            name: 'Main Lifts',
+            duration_minutes: null,
+            exercises: [
+              {
+                id: 'ex-1',
+                name: 'Bench Press',
+                sets: null,
+                reps_min: 8,
+                reps_max: 12,
+                reps_unit: 'reps',
+                is_per_side: false,
+              },
+            ],
+          },
+        ],
+      })
+      mockActiveSession = { id: 'session-1', workout_day_id: 'day-1' }
+
+      render(<WorkoutPage />)
+
+      const completeBtn = screen.getByTestId('complete-Bench-Press')
+      fireEvent.click(completeBtn)
+
+      expect(mockLogSetMutate).toHaveBeenCalledTimes(1)
+      expect(mockLogSetMutate).toHaveBeenCalledWith(expect.objectContaining({ setNumber: 1 }))
+    })
+
+    it('logs 4 sets for exercise with sets=4', () => {
+      mockWorkoutDay = makeWorkoutDay({
+        sections: [
+          {
+            id: 'section-1',
+            name: 'Main Lifts',
+            duration_minutes: null,
+            exercises: [
+              {
+                id: 'ex-1',
+                name: 'Bench Press',
+                sets: 4,
+                reps_min: 6,
+                reps_max: 8,
+                reps_unit: 'reps',
+                is_per_side: false,
+              },
+            ],
+          },
+        ],
+      })
+      mockActiveSession = { id: 'session-1', workout_day_id: 'day-1' }
+
+      render(<WorkoutPage />)
+
+      const completeBtn = screen.getByTestId('complete-Bench-Press')
+      fireEvent.click(completeBtn)
+
+      expect(mockLogSetMutate).toHaveBeenCalledTimes(4)
+    })
+
+    it('passes correct sessionId and exerciseId in each logSet call', () => {
+      mockWorkoutDay = makeWorkoutDay()
+      mockActiveSession = { id: 'session-1', workout_day_id: 'day-1' }
+
+      render(<WorkoutPage />)
+
+      const completeBtn = screen.getByTestId('complete-Bench-Press')
+      fireEvent.click(completeBtn)
+
+      // All 3 calls should have the same sessionId and planExerciseId
+      for (let i = 1; i <= 3; i++) {
+        expect(mockLogSetMutate).toHaveBeenNthCalledWith(i, expect.objectContaining({
+          sessionId: 'session-1',
+          planExerciseId: 'ex-1',
+        }))
+      }
     })
   })
 })

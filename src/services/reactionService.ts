@@ -58,23 +58,3 @@ export async function removeReaction(
   if (error) throw error
 }
 
-export async function getUserReaction(
-  userId: string,
-  sessionId?: string,
-  templateSessionId?: string
-): Promise<ReactionType | null> {
-  let query = supabase
-    .from('activity_reactions')
-    .select('reaction_type')
-    .eq('user_id', userId)
-
-  if (sessionId) {
-    query = query.eq('session_id', sessionId)
-  } else if (templateSessionId) {
-    query = query.eq('template_session_id', templateSessionId)
-  }
-
-  const { data, error } = await query.maybeSingle()
-  if (error) { console.warn('Error fetching user reaction:', error.message); return null }
-  return (data?.reaction_type as ReactionType) || null
-}

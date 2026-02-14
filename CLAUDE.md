@@ -138,5 +138,4 @@ Protected routes require authentication. Full route list:
 - Exercise name matching uses a mapping table + plural stripping + fuzzy scoring + keyword fallback
 - Bottom nav uses `min-w-14 px-2` (not fixed width) so longer labels fit; active state is Material 3-style pill
 - `react-hooks/set-state-in-effect` lint rule requires `/* eslint-disable */` for effects that reset state on open/close
-- V2 planning docs live in `docs/v2/` (discovery.md, research.md, plan.md, progress.md); review redesign specs in `docs/` root
 - Deployed to Vercel with SPA rewrites configured in `vercel.json`
