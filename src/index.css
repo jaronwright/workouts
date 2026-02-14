@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════
-   DESIGN SYSTEM V3 — WARM BRUTALIST LUXURY
+   DESIGN SYSTEM V4 — ELECTRIC VOLT
 
-   Aesthetic: Obsidian & Firelight
-   Typography: Syne (display) + DM Sans (body) + JetBrains Mono (stats)
-   Palette: Warm near-blacks, Burnt Ember accent (#E85D2C)
+   Aesthetic: Highlighter on dark paper. Nike Volt energy.
+   Typography: Syne (display) + Outfit (body) + JetBrains Mono (stats)
+   Palette: Near-blacks + Electric Yellow (#E8FF00) accent
 
-   "A premium private gym at midnight meets a high-end Japanese whisky bar."
+   The yellow is SACRED — used sparingly for maximum impact.
    ═══════════════════════════════════════════════════ */
 
 /* ─── NOISE TEXTURE (SVG filter for tactile grain) ─── */
@@ -19,102 +19,102 @@ svg#grain-filter {
 
 /* ─── LIGHT MODE TOKENS ─── */
 :root {
-  /* --- Primary Accent: Burnt Ember — ONE sacred color --- */
-  --color-primary: #E85D2C;
-  --color-primary-hover: #D4511F;
-  --color-primary-muted: rgba(232, 93, 44, 0.12);
-  --color-primary-text: #FFFFFF; /* white text on ember for contrast */
+  /* --- Primary Accent: Electric Yellow (volt) — used SPARINGLY --- */
+  --color-primary: #E8FF00;
+  --color-primary-hover: #D4EB00;
+  --color-primary-muted: rgba(232, 255, 0, 0.10);
+  --color-primary-text: #0A0A0A; /* black text on yellow for contrast */
 
-  /* --- Accent: Molten Gold (secondary, sparingly) --- */
+  /* --- Accent: Soft warm gold (secondary) --- */
   --color-accent: #D4A84B;
   --color-accent-hover: #C49A3D;
   --color-accent-secondary: #E0BD6F;
   --color-accent-muted: rgba(212, 168, 75, 0.12);
 
-  /* --- Tertiary: Warm Sage (informational) --- */
-  --color-tertiary: #7C9F6B;
-  --color-tertiary-hover: #6B8E5A;
-  --color-tertiary-muted: rgba(124, 159, 107, 0.10);
+  /* --- Tertiary: Warm sage --- */
+  --color-tertiary: #4ADE80;
+  --color-tertiary-hover: #3CC970;
+  --color-tertiary-muted: rgba(74, 222, 128, 0.10);
 
-  /* --- Workout Type Colors (warm-toned) --- */
-  --color-weights: #5B8DEF;       /* Warm Blue */
-  --color-weights-muted: rgba(91, 141, 239, 0.12);
-  --color-cardio: #E8536A;        /* Warm Coral */
-  --color-cardio-muted: rgba(232, 83, 106, 0.12);
-  --color-mobility: #6BAE7C;      /* Warm Sage */
-  --color-mobility-muted: rgba(107, 174, 124, 0.10);
+  /* --- Workout Type Colors --- */
+  --color-weights: #60A5FA;
+  --color-weights-muted: rgba(96, 165, 250, 0.12);
+  --color-cardio: #EF4444;
+  --color-cardio-muted: rgba(239, 68, 68, 0.12);
+  --color-mobility: #4ADE80;
+  --color-mobility-muted: rgba(74, 222, 128, 0.10);
 
-  /* --- Background & Surface (Light — warm cream) --- */
-  --color-background: #F5F0EB;
-  --color-surface: #FDFBF8;
+  /* --- Background & Surface (Light) --- */
+  --color-background: #F2F2ED;
+  --color-surface: #FAFAF7;
   --color-surface-elevated: #FFFFFF;
-  --color-surface-hover: #EDE8E2;
-  --color-surface-sunken: #E8E2DB;
-  --color-border: rgba(13, 10, 7, 0.08);
-  --color-border-strong: rgba(13, 10, 7, 0.15);
+  --color-surface-hover: #EBEBE6;
+  --color-surface-sunken: #E5E5E0;
+  --color-border: rgba(10, 10, 10, 0.08);
+  --color-border-strong: rgba(10, 10, 10, 0.15);
 
   /* --- Glass --- */
-  --glass-bg: rgba(253, 251, 248, 0.88);
-  --glass-border: rgba(13, 10, 7, 0.06);
+  --glass-bg: rgba(250, 250, 247, 0.88);
+  --glass-border: rgba(10, 10, 10, 0.06);
   --glass-blur: 16px;
 
-  /* --- Text (Light — warm tones) --- */
-  --color-text: #1A1512;
-  --color-text-secondary: #4A4035;
-  --color-text-muted: #8A7E73;
-  --color-text-inverse: #F5F0EB;
+  /* --- Text (Light) --- */
+  --color-text: #0A0A0A;
+  --color-text-secondary: #5A5A5A;
+  --color-text-muted: #8A8A8A;
+  --color-text-inverse: #F0F0F0;
 
-  /* --- Status Colors (warm) --- */
-  --color-success: #6BAE7C;       /* Warm sage green */
-  --color-success-muted: rgba(107, 174, 124, 0.12);
-  --color-warning: #D4A84B;       /* Molten gold */
-  --color-warning-muted: rgba(212, 168, 75, 0.12);
-  --color-danger: #C45543;        /* Warm terracotta */
-  --color-danger-muted: rgba(196, 85, 67, 0.12);
-  --color-info: #5B8DEF;          /* Warm blue */
-  --color-info-muted: rgba(91, 141, 239, 0.10);
+  /* --- Status Colors --- */
+  --color-success: #4ADE80;
+  --color-success-muted: rgba(74, 222, 128, 0.12);
+  --color-warning: #FACC15;
+  --color-warning-muted: rgba(250, 204, 21, 0.12);
+  --color-danger: #EF4444;
+  --color-danger-muted: rgba(239, 68, 68, 0.12);
+  --color-info: #60A5FA;
+  --color-info-muted: rgba(96, 165, 250, 0.10);
 
-  /* --- Shadows (Light — warm-toned) --- */
-  --shadow-xs: 0 1px 2px rgba(13, 10, 7, 0.05);
-  --shadow-sm: 0 2px 8px rgba(13, 10, 7, 0.07), 0 1px 2px rgba(13, 10, 7, 0.04);
-  --shadow-md: 0 4px 16px rgba(13, 10, 7, 0.09), 0 2px 4px rgba(13, 10, 7, 0.05);
-  --shadow-lg: 0 8px 32px rgba(13, 10, 7, 0.12), 0 4px 8px rgba(13, 10, 7, 0.06);
-  --shadow-xl: 0 16px 48px rgba(13, 10, 7, 0.16), 0 8px 16px rgba(13, 10, 7, 0.08);
-  --shadow-primary: 0 4px 24px rgba(232, 93, 44, 0.20);
-  --shadow-accent: 0 4px 24px rgba(212, 168, 75, 0.20);
+  /* --- Shadows (Light) --- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+  --shadow-primary: 0 0 20px rgba(232, 255, 0, 0.10);
+  --shadow-accent: 0 4px 24px rgba(212, 168, 75, 0.15);
 
   /* --- Gradients --- */
-  --gradient-primary: linear-gradient(135deg, #E85D2C 0%, #D4511F 100%);
-  --gradient-accent: linear-gradient(135deg, #E85D2C 0%, #D4A84B 100%);
+  --gradient-primary: linear-gradient(135deg, #E8FF00 0%, #D4EB00 100%);
+  --gradient-accent: linear-gradient(135deg, #E8FF00 0%, #D4A84B 100%);
   --gradient-surface: linear-gradient(180deg, var(--color-surface) 0%, var(--color-background) 100%);
-  --gradient-hero: linear-gradient(135deg, #1A1512 0%, #231F1A 50%, #2C2620 100%);
-  --gradient-warm-glow: radial-gradient(ellipse at 50% 0%, rgba(232, 93, 44, 0.08) 0%, transparent 70%);
+  --gradient-hero: linear-gradient(135deg, #141414 0%, #1E1E1E 50%, #282828 100%);
+  --gradient-warm-glow: radial-gradient(ellipse at 50% 0%, rgba(232, 255, 0, 0.06) 0%, transparent 70%);
 
   /* --- Border Radius --- */
   --radius-none: 0px;
-  --radius-sm: 6px;
+  --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
+  --radius-lg: 20px;
+  --radius-xl: 20px;
+  --radius-2xl: 20px;
   --radius-full: 9999px;
 
   /* --- Typography --- */
-  /* Syne: bold, geometric, expressive — perfect for a fitness brand that takes itself seriously.
-     It has the confidence of Futura with the personality of a custom type commission. */
+  /* Syne: geometric, sharp, modern, athletic — bold headings that command attention */
   --font-heading: 'Syne', system-ui, sans-serif;
-  --font-body: 'DM Sans', system-ui, sans-serif;
+  /* Outfit: clean, friendly, excellent readability — comfortable for body text */
+  --font-body: 'Outfit', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-  /* Modular scale (1.25 ratio) — headings are DRAMATICALLY larger */
-  --text-xs: 0.75rem;     /* 12px */
-  --text-sm: 0.875rem;    /* 14px */
-  --text-base: 1rem;      /* 16px */
-  --text-lg: 1.25rem;     /* 20px */
-  --text-xl: 1.5rem;      /* 24px — NOT timid */
-  --text-2xl: 1.75rem;    /* 28px */
-  --text-3xl: 2.25rem;    /* 36px */
-  --text-4xl: 3rem;       /* 48px — hero size */
+  /* Type scale — headings feel BOLD, body is readable */
+  --text-xs: 0.75rem;     /* 12px — caption */
+  --text-sm: 0.875rem;    /* 14px — small */
+  --text-base: 1rem;      /* 16px — default body */
+  --text-lg: 1.375rem;    /* 22px — subheading */
+  --text-xl: 1.375rem;    /* 22px */
+  --text-2xl: 1.75rem;    /* 28px — section heading */
+  --text-3xl: 2.25rem;    /* 36px — page heading */
+  --text-4xl: 3rem;       /* 48px — hero/display */
   --text-5xl: 3.75rem;    /* 60px — editorial */
 
   /* Line heights */
@@ -164,75 +164,75 @@ svg#grain-filter {
 
 /* ─── DARK MODE TOKENS — THE STAR OF THE SHOW ─── */
 .dark {
-  /* --- Primary: Burnt Ember — glows warmer on dark --- */
-  --color-primary: #E85D2C;
-  --color-primary-hover: #F06D3E;
-  --color-primary-muted: rgba(232, 93, 44, 0.10);
-  --color-primary-text: #FFFFFF;
+  /* --- Primary: Electric Yellow — pops on dark like a highlighter --- */
+  --color-primary: #E8FF00;
+  --color-primary-hover: #D4EB00;
+  --color-primary-muted: rgba(232, 255, 0, 0.10);
+  --color-primary-text: #0A0A0A; /* black on yellow */
 
-  /* --- Accent: Molten Gold --- */
+  /* --- Accent: Warm gold --- */
   --color-accent: #D4A84B;
   --color-accent-hover: #E0BD6F;
   --color-accent-secondary: #E8CC84;
   --color-accent-muted: rgba(212, 168, 75, 0.10);
 
-  /* --- Tertiary: Warm Sage --- */
-  --color-tertiary: #8AB87A;
-  --color-tertiary-hover: #9AC78C;
-  --color-tertiary-muted: rgba(138, 184, 122, 0.10);
+  /* --- Tertiary: Success green --- */
+  --color-tertiary: #4ADE80;
+  --color-tertiary-hover: #5AEE90;
+  --color-tertiary-muted: rgba(74, 222, 128, 0.10);
 
-  /* --- Workout Type Colors (brighter for dark) --- */
-  --color-weights: #6B9EF5;
-  --color-weights-muted: rgba(107, 158, 245, 0.12);
-  --color-cardio: #F06B80;
-  --color-cardio-muted: rgba(240, 107, 128, 0.12);
-  --color-mobility: #7CC08C;
-  --color-mobility-muted: rgba(124, 192, 140, 0.12);
+  /* --- Workout Type Colors --- */
+  --color-weights: #60A5FA;
+  --color-weights-muted: rgba(96, 165, 250, 0.12);
+  --color-cardio: #EF4444;
+  --color-cardio-muted: rgba(239, 68, 68, 0.12);
+  --color-mobility: #4ADE80;
+  --color-mobility-muted: rgba(74, 222, 128, 0.12);
 
-  /* --- Background & Surface (warm near-blacks with brown/amber undertone) --- */
-  --color-background: #0D0A07;
-  --color-surface: #1A1512;
-  --color-surface-elevated: #231F1A;
-  --color-surface-hover: #2C2620;
-  --color-surface-sunken: #0A0806;
-  --color-border: rgba(245, 240, 235, 0.07);
-  --color-border-strong: rgba(245, 240, 235, 0.12);
+  /* --- Background & Surface (near-blacks, slightly warm) --- */
+  --color-background: #0A0A0A;
+  --color-surface: #141414;
+  --color-surface-elevated: #1E1E1E;
+  --color-surface-hover: #282828;
+  --color-surface-sunken: #050505;
+  --color-border: rgba(240, 240, 240, 0.07);
+  --color-border-strong: rgba(240, 240, 240, 0.12);
 
-  /* --- Glass (Dark — warm tinted) --- */
-  --glass-bg: rgba(26, 21, 18, 0.90);
-  --glass-border: rgba(245, 240, 235, 0.05);
+  /* --- Glass (Dark) --- */
+  --glass-bg: rgba(20, 20, 20, 0.90);
+  --glass-border: rgba(240, 240, 240, 0.05);
 
-  /* --- Text (Dark — warm, NEVER cool gray, NEVER pure white) --- */
-  --color-text: #F5F0EB;
-  --color-text-secondary: #A09890;
-  --color-text-muted: #706860;
-  --color-text-inverse: #0D0A07;
+  /* --- Text (EXACT spec) --- */
+  --color-text: #F0F0F0;
+  --color-text-secondary: #8A8A8A;
+  --color-text-muted: #5A5A5A;
+  --color-text-inverse: #0A0A0A;
 
-  /* --- Status Colors (warm) --- */
-  --color-success: #7CC08C;        /* Warm sage green */
-  --color-success-muted: rgba(124, 192, 140, 0.10);
-  --color-warning: #E0BD6F;        /* Warm gold */
-  --color-warning-muted: rgba(224, 189, 111, 0.10);
-  --color-danger: #D46B5A;         /* Warm terracotta */
-  --color-danger-muted: rgba(212, 107, 90, 0.10);
-  --color-info: #6B9EF5;           /* Warm blue */
-  --color-info-muted: rgba(107, 158, 245, 0.10);
+  /* --- Status Colors --- */
+  --color-success: #4ADE80;
+  --color-success-muted: rgba(74, 222, 128, 0.10);
+  --color-warning: #FACC15;
+  --color-warning-muted: rgba(250, 204, 21, 0.10);
+  --color-danger: #EF4444;
+  --color-danger-muted: rgba(239, 68, 68, 0.10);
+  --color-info: #60A5FA;
+  --color-info-muted: rgba(96, 165, 250, 0.10);
 
-  /* --- Shadows (Dark — deep, warm-toned) --- */
+  /* --- Shadows (deep blacks + volt glow) --- */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.30);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.40), 0 1px 2px rgba(0, 0, 0, 0.30);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.50), 0 2px 4px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.60), 0 4px 8px rgba(0, 0, 0, 0.40);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.70), 0 8px 16px rgba(0, 0, 0, 0.50);
-  --shadow-primary: 0 4px 24px rgba(232, 93, 44, 0.20), 0 0 60px rgba(232, 93, 44, 0.06);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.40);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.50);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.60);
+  --shadow-primary: 0 0 20px rgba(232, 255, 0, 0.15);
   --shadow-accent: 0 4px 24px rgba(212, 168, 75, 0.15);
 
-  /* --- Gradients (Dark — warm glows) --- */
-  --gradient-primary: linear-gradient(135deg, #E85D2C 0%, #F06D3E 100%);
-  --gradient-accent: linear-gradient(135deg, #E85D2C 0%, #D4A84B 100%);
+  /* --- Gradients (Dark — volt glows) --- */
+  --gradient-primary: linear-gradient(135deg, #E8FF00 0%, #D4EB00 100%);
+  --gradient-accent: linear-gradient(135deg, #E8FF00 0%, #D4A84B 100%);
   --gradient-surface: linear-gradient(180deg, var(--color-surface) 0%, var(--color-background) 100%);
-  --gradient-hero: linear-gradient(135deg, #1A1512 0%, #231F1A 50%, #1A1512 100%);
-  --gradient-warm-glow: radial-gradient(ellipse at 50% 0%, rgba(232, 93, 44, 0.06) 0%, transparent 70%);
+  --gradient-hero: linear-gradient(135deg, #141414 0%, #1E1E1E 50%, #141414 100%);
+  --gradient-warm-glow: radial-gradient(ellipse at 50% 0%, rgba(232, 255, 0, 0.05) 0%, transparent 70%);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -260,7 +260,7 @@ body {
   font-size: var(--text-base);
 }
 
-/* Headings use Syne — bold, geometric, expressive */
+/* Headings use Syne — bold, geometric, athletic */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: var(--weight-bold);
@@ -284,7 +284,7 @@ h1, h2, h3, h4, h5, h6 {
   background-size: 256px 256px;
 }
 
-/* Warm radial glow — emanates from behind hero elements */
+/* Volt glow — radial glow behind hero elements */
 .warm-glow::after {
   content: '';
   position: absolute;
@@ -321,13 +321,13 @@ h1, h2, h3, h4, h5, h6 {
   100% { background-position: 200% 0; }
 }
 
-/* Warm ember glow pulse */
+/* Electric volt glow pulse */
 @keyframes glow {
-  0%, 100% { box-shadow: 0 0 8px rgba(232, 93, 44, 0.15); }
-  50% { box-shadow: 0 0 24px rgba(232, 93, 44, 0.30); }
+  0%, 100% { box-shadow: 0 0 8px rgba(232, 255, 0, 0.10); }
+  50% { box-shadow: 0 0 24px rgba(232, 255, 0, 0.25); }
 }
 
-/* Warm shimmer sweep for skeletons */
+/* Shimmer sweep for skeletons */
 @keyframes warm-shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -366,19 +366,19 @@ h1, h2, h3, h4, h5, h6 {
    UTILITY CLASSES
    ═══════════════════════════════════════════════════ */
 
-/* Warm shimmer skeleton — gold/amber sweep on dark surface */
+/* Shimmer skeleton — volt-tinted sweep on dark surface */
 .skeleton {
   background: linear-gradient(
     90deg,
     var(--color-surface-hover) 25%,
-    rgba(212, 168, 75, 0.08) 50%,
+    rgba(232, 255, 0, 0.05) 50%,
     var(--color-surface-hover) 75%
   );
   background-size: 400% 100%;
   animation: warm-shimmer 1.8s ease-in-out infinite;
 }
 
-/* Glass effect — warm tinted */
+/* Glass effect */
 .glass {
   background: var(--glass-bg);
   border-bottom: 1px solid var(--glass-border);
@@ -388,15 +388,15 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Frosted glass utility */
 .frosted-glass {
-  background: rgba(253, 251, 248, 0.85);
+  background: rgba(250, 250, 247, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 .dark .frosted-glass {
-  background: rgba(26, 21, 18, 0.85);
+  background: rgba(20, 20, 20, 0.85);
 }
 
-/* Gradient text — primary ember */
+/* Gradient text — primary volt */
 .gradient-text {
   background: var(--gradient-primary);
   -webkit-background-clip: text;
@@ -404,7 +404,7 @@ h1, h2, h3, h4, h5, h6 {
   background-clip: text;
 }
 
-/* Gradient text — accent (ember → gold) */
+/* Gradient text — accent (volt → gold) */
 .gradient-text-accent {
   background: var(--gradient-accent);
   -webkit-background-clip: text;

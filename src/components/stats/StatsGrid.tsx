@@ -364,9 +364,9 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
             {stats.last30Days.map((day, index) => {
               let bg: string
               if (day.sessionCount === 0) bg = 'var(--color-surface-hover)'
-              else if (day.sessionCount === 1) bg = 'rgba(232, 93, 44, 0.25)'
-              else if (day.sessionCount === 2) bg = 'rgba(232, 93, 44, 0.50)'
-              else bg = 'rgba(232, 93, 44, 0.80)'
+              else if (day.sessionCount === 1) bg = 'rgba(232, 255, 0, 0.25)'
+              else if (day.sessionCount === 2) bg = 'rgba(232, 255, 0, 0.50)'
+              else bg = 'rgba(232, 255, 0, 0.80)'
 
               return (
                 <motion.div
@@ -391,9 +391,9 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
           <div className="flex items-center justify-end gap-1.5 mt-2">
             <span className="text-[8px] text-[var(--color-text-muted)] font-medium">Less</span>
             <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'var(--color-surface-hover)' }} />
-            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(232, 93, 44, 0.25)' }} />
-            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(232, 93, 44, 0.50)' }} />
-            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(232, 93, 44, 0.80)' }} />
+            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(232, 255, 0, 0.25)' }} />
+            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(232, 255, 0, 0.50)' }} />
+            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(232, 255, 0, 0.80)' }} />
             <span className="text-[8px] text-[var(--color-text-muted)] font-medium">More</span>
           </div>
         </div>

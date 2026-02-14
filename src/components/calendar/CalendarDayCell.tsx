@@ -24,9 +24,9 @@ function getSessionStyle(session: UnifiedSession): WorkoutStyle {
 // Ember-intensity backgrounds based on session count (contribution graph style)
 function getEmberIntensity(sessionCount: number): string {
   if (sessionCount === 0) return 'transparent'
-  if (sessionCount === 1) return 'rgba(232, 93, 44, 0.12)'
-  if (sessionCount === 2) return 'rgba(232, 93, 44, 0.25)'
-  return 'rgba(232, 93, 44, 0.40)'
+  if (sessionCount === 1) return 'rgba(232, 255, 0, 0.12)'
+  if (sessionCount === 2) return 'rgba(232, 255, 0, 0.25)'
+  return 'rgba(232, 255, 0, 0.40)'
 }
 
 export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellProps) {

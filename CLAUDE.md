@@ -140,6 +140,13 @@ Protected routes require authentication. Full route list:
 - `react-hooks/set-state-in-effect` lint rule requires `/* eslint-disable */` for effects that reset state on open/close
 - Deployed to Vercel with SPA rewrites configured in `vercel.json`
 
+## CRITICAL ALIGNMENT RULES
+
+- Always use flexbox or grid for layout. Never use absolute positioning unless for overlays.
+- Test every screen at 375px width (iPhone SE) and 428px width (iPhone 14 Pro Max)
+- If elements overlap or misalign, the FIRST priority is fixing alignment before adding any new features
+- Check Chrome after EVERY file save. Do not batch changes.
+
 ## Design System V2
 
 ### Overview
