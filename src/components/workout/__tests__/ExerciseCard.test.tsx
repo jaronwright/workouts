@@ -80,7 +80,6 @@ function renderExerciseCard(overrides: {
   completedSets?: ExerciseSet[]
   onExerciseComplete?: ReturnType<typeof vi.fn>
   onExerciseUncomplete?: ReturnType<typeof vi.fn>
-  onExerciseUpdate?: ReturnType<typeof vi.fn>
 } = {}) {
   return render(
     <ExerciseCard
@@ -88,7 +87,6 @@ function renderExerciseCard(overrides: {
       completedSets={overrides.completedSets ?? []}
       onExerciseComplete={overrides.onExerciseComplete ?? vi.fn()}
       onExerciseUncomplete={overrides.onExerciseUncomplete}
-      onExerciseUpdate={overrides.onExerciseUpdate}
     />
   )
 }

@@ -15,7 +15,6 @@ interface ExerciseCardProps {
   completedSets: ExerciseSet[]
   onExerciseComplete: (reps: number | null, weight: number | null) => void
   onExerciseUncomplete?: () => void
-  onExerciseUpdate?: (exercise: PlanExercise) => void
 }
 
 function isBodyweightOrCardio(exercise: PlanExercise): boolean {
@@ -50,8 +49,7 @@ export function ExerciseCard({
   exercise,
   completedSets,
   onExerciseComplete,
-  onExerciseUncomplete,
-  onExerciseUpdate
+  onExerciseUncomplete
 }: ExerciseCardProps) {
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [weight, setWeight] = useState<string>(exercise.target_weight?.toString() || '')
@@ -73,12 +71,7 @@ export function ExerciseCard({
     const newUnit = oldUnit === 'lbs' ? 'kg' : 'lbs'
     setLocalWeightUnit(newUnit)
     try {
-      const updated = await updateExerciseWeightUnit(exercise.id, newUnit)
-      // Only call update callback if we got data back (update succeeded)
-      if (updated) {
-        onExerciseUpdate?.(updated)
-      }
-      // Otherwise, keep local state change (unit switch works visually)
+      await updateExerciseWeightUnit(exercise.id, newUnit)
     } catch (error) {
       // Revert on error using saved value, not stale closure
       setLocalWeightUnit(oldUnit)
