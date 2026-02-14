@@ -100,7 +100,7 @@ export function PRCelebration({ result, onComplete }: PRCelebrationProps) {
                 })
               })
             }}
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium"
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-[var(--color-primary-text)] rounded-lg text-sm font-medium"
           >
             <Share2 className="w-4 h-4" />
             Share

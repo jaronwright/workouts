@@ -20,7 +20,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary: `
-        bg-[var(--color-primary)] text-[var(--color-text-inverse)]
+        bg-[var(--color-primary)] text-[var(--color-primary-text)]
         shadow-sm
       `,
       secondary: `
@@ -36,8 +36,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         bg-transparent text-[var(--color-text)]
       `,
       gradient: `
-        bg-gradient-to-r from-[var(--color-primary)] to-[#8B5CF6]
-        text-[var(--color-text-inverse)]
+        bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)]
+        text-[var(--color-primary-text)]
         shadow-sm
       `
     }

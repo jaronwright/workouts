@@ -90,7 +90,7 @@ export function CalendarDayCell({ day, isSelected, onSelect }: CalendarDayCellPr
     >
       {/* Day number — Apple-style filled circle for today */}
       {isToday ? (
-        <span className="w-7 h-7 flex items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-sm font-bold leading-none">
+        <span className="w-7 h-7 flex items-center justify-center rounded-full bg-[var(--color-primary)] text-[var(--color-primary-text)] text-sm font-bold leading-none">
           {dayOfMonth}
         </span>
       ) : (

@@ -83,12 +83,12 @@ export function RestTimer() {
     : 0
 
   return (
-    <div className="bg-[var(--color-primary)] rounded-[var(--radius-xl)] p-5 text-[var(--color-text-inverse)]">
+    <div className="bg-[var(--color-primary)] rounded-[var(--radius-xl)] p-5 text-[var(--color-primary-text)]">
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-medium uppercase tracking-wider opacity-60">Rest Timer</p>
         <button
           onClick={stopRestTimer}
-          className="p-1.5 hover:bg-white/20 rounded-full active:scale-90 transition-transform duration-100"
+          className="p-1.5 hover:bg-black/10 rounded-full active:scale-90 transition-transform duration-100"
         >
           <X className="w-4 h-4" />
         </button>

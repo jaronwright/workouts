@@ -130,7 +130,7 @@ export function SelectedDayPanel({ day }: SelectedDayPanelProps) {
                     navigate(`/${projected.templateType || 'cardio'}/${projected.templateId}`)
                   }
                 }}
-                className="px-3 py-1.5 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium active:scale-95 transition-transform"
+                className="px-3 py-1.5 rounded-lg bg-[var(--color-primary)] text-[var(--color-primary-text)] text-sm font-medium active:scale-95 transition-transform"
               >
                 Start
               </button>
