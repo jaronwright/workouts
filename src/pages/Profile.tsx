@@ -1,8 +1,8 @@
 import { useRef, useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { motion } from 'motion/react'
 import { AppShell } from '@/components/layout'
-import { Button, Input, Card, CardContent, Modal, AnimatedCounter, ThemePicker, CollapsibleSection } from '@/components/ui'
+import { Button, Input, Card, CardContent, Modal, ThemePicker, CollapsibleSection } from '@/components/ui'
+import { StaggerList, StaggerItem, AnimatedNumber, ScaleIn } from '@/components/motion'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useCycleDay } from '@/hooks/useCycleDay'
 import { formatCycleStartDate } from '@/utils/cycleDay'
@@ -11,11 +11,9 @@ import { useUserSessions } from '@/hooks/useWorkoutSession'
 import { useUserTemplateWorkouts } from '@/hooks/useTemplateWorkout'
 import { useAuthStore } from '@/stores/authStore'
 import { useToast } from '@/hooks/useToast'
-import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { PasswordStrengthIndicator } from '@/components/auth/PasswordStrengthIndicator'
 import { validatePassword } from '@/utils/validation'
 import { deleteUserAccount } from '@/services/profileService'
-import { staggerContainer, staggerChild } from '@/config/animationConfig'
 import { Calendar, Shield, Mail, LogOut, Monitor, Dumbbell, Trophy, Flame, Star, ArrowLeftRight, ArrowUpDown, Heart, MessageSquarePlus, Bug, Lightbulb, Pencil, Check, X, Eye, EyeOff } from 'lucide-react'
 import { AvatarUpload } from '@/components/profile/AvatarUpload'
 import { OnboardingWizard } from '@/components/onboarding'
@@ -108,7 +106,6 @@ export function ProfilePage() {
   const dateInputRef = useRef<HTMLInputElement>(null)
   const feedbackRef = useRef<HTMLDivElement>(null)
   const { success, error: showError } = useToast()
-  const prefersReduced = useReducedMotion()
   const lifetimeStats = useLifetimeStats()
 
   const [displayName, setDisplayName] = useState('')
@@ -295,9 +292,9 @@ export function ProfilePage() {
   if (isLoading) {
     return (
       <AppShell title="Profile" showBack hideNav>
-        <div className="p-4 space-y-4">
+        <div className="p-[var(--space-4)] space-y-[var(--space-4)]">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
+            <div key={i} className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-lg)]" />
           ))}
         </div>
       </AppShell>
@@ -306,21 +303,18 @@ export function ProfilePage() {
 
   return (
     <AppShell title="Profile" showBack hideNav>
-      <motion.div
-        className="p-4 space-y-6"
-        variants={staggerContainer}
-        initial={prefersReduced ? false : 'hidden'}
-        animate="visible"
-      >
+      <StaggerList className="p-[var(--space-4)] space-y-[var(--space-6)]">
         {/* User Info Card */}
-        <motion.div variants={staggerChild}>
+        <StaggerItem>
           <Card>
-            <CardContent className="py-4">
-              <div className="flex items-center gap-4">
-                <AvatarUpload />
+            <CardContent className="py-[var(--space-4)]">
+              <div className="flex items-center gap-[var(--space-4)]">
+                <ScaleIn>
+                  <AvatarUpload />
+                </ScaleIn>
                 <div className="flex-1 min-w-0">
                   {isEditingName ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-[var(--space-2)]">
                       <input
                         type="text"
                         value={displayName}
@@ -339,7 +333,8 @@ export function ProfilePage() {
                       <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="p-1 text-emerald-500 hover:bg-emerald-500/10 rounded-md shrink-0"
+                        className="p-1 rounded-[var(--radius-sm)] shrink-0 hover:bg-[var(--color-success-muted)]"
+                        style={{ color: 'var(--color-success)' }}
                         aria-label="Save name"
                       >
                         <Check className="w-5 h-5" />
@@ -349,7 +344,7 @@ export function ProfilePage() {
                           setDisplayName(profile?.display_name || '')
                           setIsEditingName(false)
                         }}
-                        className="p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] rounded-md shrink-0"
+                        className="p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] rounded-[var(--radius-sm)] shrink-0"
                         aria-label="Cancel editing"
                       >
                         <X className="w-5 h-5" />
@@ -358,9 +353,9 @@ export function ProfilePage() {
                   ) : (
                     <button
                       onClick={() => setIsEditingName(true)}
-                      className="flex items-center gap-2 group text-left"
+                      className="flex items-center gap-[var(--space-2)] group text-left"
                     >
-                      <h2 className="text-lg font-semibold text-[var(--color-text)] truncate">
+                      <h2 className="text-lg text-[var(--color-text)] truncate">
                         {displayName || 'No name set'}
                       </h2>
                       <Pencil className="w-3.5 h-3.5 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
@@ -371,53 +366,53 @@ export function ProfilePage() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </StaggerItem>
 
         {/* Lifetime Stats */}
-        <motion.div variants={staggerChild}>
-          <div className="grid grid-cols-3 gap-3">
+        <StaggerItem>
+          <div className="grid grid-cols-3 gap-[var(--space-3)]">
             <Card className="overflow-hidden">
-              <CardContent className="py-3 px-2 text-center relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent" />
+              <CardContent className="py-[var(--space-3)] px-[var(--space-2)] text-center relative">
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-tertiary-muted), transparent)' }} />
                 <div className="relative">
-                  <Trophy className="w-5 h-5 text-indigo-500 mx-auto mb-1" />
-                  <AnimatedCounter value={lifetimeStats.totalWorkouts} className="text-2xl font-bold text-[var(--color-text)] block" />
-                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Total</p>
+                  <Trophy className="w-5 h-5 mx-auto mb-1" style={{ color: 'var(--color-tertiary)' }} />
+                  <AnimatedNumber value={lifetimeStats.totalWorkouts} className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] block" />
+                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-wider)] font-medium">Total</p>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="overflow-hidden">
-              <CardContent className="py-3 px-2 text-center relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent" />
+              <CardContent className="py-[var(--space-3)] px-[var(--space-2)] text-center relative">
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-accent-muted), transparent)' }} />
                 <div className="relative">
-                  <Flame className="w-5 h-5 text-orange-500 mx-auto mb-1" />
-                  <AnimatedCounter value={lifetimeStats.longestStreak} className="text-2xl font-bold text-[var(--color-text)] block" />
-                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Best Streak</p>
+                  <Flame className="w-5 h-5 mx-auto mb-1" style={{ color: 'var(--color-accent)' }} />
+                  <AnimatedNumber value={lifetimeStats.longestStreak} className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] block" />
+                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-wider)] font-medium">Best Streak</p>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="overflow-hidden">
-              <CardContent className="py-3 px-2 text-center relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent" />
+              <CardContent className="py-[var(--space-3)] px-[var(--space-2)] text-center relative">
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-success-muted), transparent)' }} />
                 <div className="relative">
-                  <Star className="w-5 h-5 text-emerald-500 mx-auto mb-1" />
+                  <Star className="w-5 h-5 mx-auto mb-1" style={{ color: 'var(--color-success)' }} />
                   <p className="text-sm font-bold text-[var(--color-text)] mt-1 truncate">{lifetimeStats.favoriteType}</p>
-                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide font-medium">Favorite</p>
+                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-[var(--tracking-wider)] font-medium">Favorite</p>
                 </div>
               </CardContent>
             </Card>
           </div>
-        </motion.div>
+        </StaggerItem>
 
         {/* Workout Split Section */}
-        <motion.div variants={staggerChild}>
+        <StaggerItem>
           <Card>
-            <CardContent className="py-4 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center">
-                  <Dumbbell className="w-5 h-5 text-indigo-500" />
+            <CardContent className="py-[var(--space-4)] space-y-[var(--space-4)]">
+              <div className="flex items-center gap-[var(--space-3)]">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--color-weights-muted)' }}>
+                  <Dumbbell className="w-5 h-5" style={{ color: 'var(--color-weights)' }} />
                 </div>
                 <div>
                   <h3 className="font-semibold text-[var(--color-text)]">Workout Split</h3>
@@ -425,7 +420,7 @@ export function ProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-[var(--space-2)]">
                 {([
                   [PPL_PLAN_ID, 'Push/Pull/Legs', ArrowLeftRight],
                   [UPPER_LOWER_PLAN_ID, 'Upper/Lower', ArrowUpDown],
@@ -438,9 +433,9 @@ export function ProfilePage() {
                     key={planId}
                     onClick={() => handleSplitChange(planId)}
                     className={`
-                      flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all
+                      flex flex-col items-center gap-[var(--space-2)] p-[var(--space-3)] rounded-[var(--radius-md)] border-2 transition-all
                       ${currentSplitId === planId
-                        ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
+                        ? 'border-[var(--color-primary)] bg-[var(--color-primary-muted)]'
                         : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
                       }
                     `}
@@ -454,14 +449,14 @@ export function ProfilePage() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </StaggerItem>
 
         {/* Appearance Section */}
-        <motion.div variants={staggerChild}>
+        <StaggerItem>
           <Card>
-            <CardContent className="py-4 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[var(--color-primary)]/20 rounded-full flex items-center justify-center">
+            <CardContent className="py-[var(--space-4)] space-y-[var(--space-4)]">
+              <div className="flex items-center gap-[var(--space-3)]">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--color-primary-muted)' }}>
                   <Monitor className="w-5 h-5 text-[var(--color-primary)]" />
                 </div>
                 <div>
@@ -473,23 +468,23 @@ export function ProfilePage() {
               <ThemePicker />
             </CardContent>
           </Card>
-        </motion.div>
+        </StaggerItem>
 
         {/* Notification Settings */}
-        <motion.div variants={staggerChild}>
+        <StaggerItem>
           <NotificationSettings />
-        </motion.div>
+        </StaggerItem>
 
         {/* Privacy Section */}
-        <motion.div variants={staggerChild}>
+        <StaggerItem>
           <Card>
-            <CardContent className="py-4 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-violet-500/20 rounded-full flex items-center justify-center">
+            <CardContent className="py-[var(--space-4)] space-y-[var(--space-4)]">
+              <div className="flex items-center gap-[var(--space-3)]">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--color-tertiary-muted)' }}>
                   {profile?.hide_weight_details ? (
-                    <EyeOff className="w-5 h-5 text-violet-500" />
+                    <EyeOff className="w-5 h-5" style={{ color: 'var(--color-tertiary)' }} />
                   ) : (
-                    <Eye className="w-5 h-5 text-violet-500" />
+                    <Eye className="w-5 h-5" style={{ color: 'var(--color-tertiary)' }} />
                   )}
                 </div>
                 <div className="flex-1">
@@ -498,8 +493,8 @@ export function ProfilePage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between py-2">
-                <div className="flex-1 pr-4">
+              <div className="flex items-center justify-between py-[var(--space-2)]">
+                <div className="flex-1 pr-[var(--space-4)]">
                   <p className="text-sm font-medium text-[var(--color-text)]">Hide weight details</p>
                   <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                     Others will see your exercises but not weights
@@ -527,19 +522,20 @@ export function ProfilePage() {
                 >
                   <span
                     className={`
-                      absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm
+                      absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full
                       transition-transform duration-200
                       ${profile?.hide_weight_details ? 'translate-x-5' : 'translate-x-0'}
                     `}
+                    style={{ boxShadow: 'var(--shadow-xs)' }}
                   />
                 </button>
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </StaggerItem>
 
         {/* Security Section */}
-        <motion.div variants={staggerChild}>
+        <StaggerItem>
           <CollapsibleSection
             icon={Shield}
             iconColor="bg-[var(--color-primary)]/20 text-[var(--color-primary)]"
@@ -575,19 +571,19 @@ export function ProfilePage() {
               Update Password
             </Button>
 
-            <div className="pt-4 border-t border-[var(--color-border)]">
-              <h4 className="text-sm font-medium text-[var(--color-text)] mb-3">Session Management</h4>
+            <div className="pt-[var(--space-4)] border-t border-[var(--color-border)]">
+              <h4 className="text-sm font-medium text-[var(--color-text)] mb-[var(--space-3)]">Session Management</h4>
               <Button
                 variant="secondary"
                 onClick={handleSignOutAllDevices}
-                className="w-full flex items-center justify-center gap-2"
+                className="w-full flex items-center justify-center gap-[var(--space-2)]"
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out All Devices
               </Button>
             </div>
 
-            <div className="pt-4 border-t border-[var(--color-border)]">
+            <div className="pt-[var(--space-4)] border-t border-[var(--color-border)]">
               <button
                 onClick={() => setShowDeleteModal(true)}
                 className="text-sm text-[var(--color-danger)] hover:underline"
@@ -596,13 +592,13 @@ export function ProfilePage() {
               </button>
             </div>
           </CollapsibleSection>
-        </motion.div>
+        </StaggerItem>
 
         {/* Change Email Section */}
-        <motion.div variants={staggerChild}>
+        <StaggerItem>
           <CollapsibleSection
             icon={Mail}
-            iconColor="bg-blue-500/20 text-blue-500"
+            iconColor="bg-[var(--color-info-muted)] text-[var(--color-info)]"
             title="Email"
             subtitle="Change your email address"
           >
@@ -629,14 +625,14 @@ export function ProfilePage() {
               Update Email
             </Button>
           </CollapsibleSection>
-        </motion.div>
+        </StaggerItem>
 
         {/* Workout Cycle Info */}
-        <motion.div variants={staggerChild}>
+        <StaggerItem>
           <Card>
-            <CardContent className="py-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[var(--color-primary)]/20 rounded-full flex items-center justify-center">
+            <CardContent className="py-[var(--space-4)]">
+              <div className="flex items-center gap-[var(--space-3)]">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--color-primary-muted)' }}>
                   <Calendar className="w-5 h-5 text-[var(--color-primary)]" />
                 </div>
                 <div>
@@ -646,7 +642,7 @@ export function ProfilePage() {
                   </p>
                 </div>
               </div>
-              <div className="relative flex items-center gap-2 mt-3">
+              <div className="relative flex items-center gap-[var(--space-2)] mt-[var(--space-3)]">
                 <p className="text-sm text-[var(--color-text-muted)]">
                   Cycle started {formatCycleStartDate(profile?.cycle_start_date)}
                 </p>
@@ -677,134 +673,136 @@ export function ProfilePage() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </StaggerItem>
 
         {/* Feedback Section */}
-        <motion.div variants={staggerChild} ref={feedbackRef}>
-          <CollapsibleSection
-            icon={MessageSquarePlus}
-            iconColor="bg-amber-500/20 text-amber-500"
-            title="Feedback"
-            subtitle="Report a bug or request a feature"
-            defaultExpanded={openFeedback}
-            onToggle={(expanded) => { if (expanded) setFeedbackSubmitted(false) }}
-          >
-            {feedbackSubmitted ? (
-              <div className="text-center py-4">
-                <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <MessageSquarePlus className="w-6 h-6 text-emerald-500" />
-                </div>
-                <p className="font-medium text-[var(--color-text)]">Thanks for your feedback!</p>
-                <p className="text-sm text-[var(--color-text-muted)] mt-1">We'll review it soon.</p>
-                <button
-                  onClick={() => setFeedbackSubmitted(false)}
-                  className="text-sm font-medium text-[var(--color-primary)] mt-3"
-                >
-                  Submit another
-                </button>
-              </div>
-            ) : (
-              <>
-                {/* Type selector pills */}
-                <div className="flex gap-2">
+        <StaggerItem>
+          <div ref={feedbackRef}>
+            <CollapsibleSection
+              icon={MessageSquarePlus}
+              iconColor="bg-[var(--color-warning-muted)] text-[var(--color-warning)]"
+              title="Feedback"
+              subtitle="Report a bug or request a feature"
+              defaultExpanded={openFeedback}
+              onToggle={(expanded) => { if (expanded) setFeedbackSubmitted(false) }}
+            >
+              {feedbackSubmitted ? (
+                <div className="text-center py-[var(--space-4)]">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-[var(--space-3)]" style={{ background: 'var(--color-success-muted)' }}>
+                    <MessageSquarePlus className="w-6 h-6" style={{ color: 'var(--color-success)' }} />
+                  </div>
+                  <p className="font-medium text-[var(--color-text)]">Thanks for your feedback!</p>
+                  <p className="text-sm text-[var(--color-text-muted)] mt-1">We'll review it soon.</p>
                   <button
-                    onClick={() => setFeedbackType('bug')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border-2 transition-all text-sm font-medium ${
-                      feedbackType === 'bug'
-                        ? 'border-red-500 bg-red-500/10 text-red-500'
-                        : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-border-strong)]'
-                    }`}
+                    onClick={() => setFeedbackSubmitted(false)}
+                    className="text-sm font-medium text-[var(--color-primary)] mt-[var(--space-3)]"
                   >
-                    <Bug className="w-4 h-4" />
-                    Bug Report
-                  </button>
-                  <button
-                    onClick={() => setFeedbackType('feature')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border-2 transition-all text-sm font-medium ${
-                      feedbackType === 'feature'
-                        ? 'border-amber-500 bg-amber-500/10 text-amber-500'
-                        : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-border-strong)]'
-                    }`}
-                  >
-                    <Lightbulb className="w-4 h-4" />
-                    Feature Request
+                    Submit another
                   </button>
                 </div>
+              ) : (
+                <>
+                  {/* Type selector pills */}
+                  <div className="flex gap-[var(--space-2)]">
+                    <button
+                      onClick={() => setFeedbackType('bug')}
+                      className={`flex-1 flex items-center justify-center gap-[var(--space-2)] py-2 px-[var(--space-3)] rounded-[var(--radius-md)] border-2 transition-all text-sm font-medium ${
+                        feedbackType === 'bug'
+                          ? 'border-[var(--color-danger)] bg-[var(--color-danger-muted)] text-[var(--color-danger)]'
+                          : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-border-strong)]'
+                      }`}
+                    >
+                      <Bug className="w-4 h-4" />
+                      Bug Report
+                    </button>
+                    <button
+                      onClick={() => setFeedbackType('feature')}
+                      className={`flex-1 flex items-center justify-center gap-[var(--space-2)] py-2 px-[var(--space-3)] rounded-[var(--radius-md)] border-2 transition-all text-sm font-medium ${
+                        feedbackType === 'feature'
+                          ? 'border-[var(--color-warning)] bg-[var(--color-warning-muted)] text-[var(--color-warning)]'
+                          : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-border-strong)]'
+                      }`}
+                    >
+                      <Lightbulb className="w-4 h-4" />
+                      Feature Request
+                    </button>
+                  </div>
 
-                {/* Message textarea */}
-                <textarea
-                  value={feedbackMessage}
-                  onChange={(e) => setFeedbackMessage(e.target.value)}
-                  placeholder={feedbackType === 'bug' ? 'Describe the bug...' : 'Describe the feature you\'d like...'}
-                  rows={3}
-                  className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none text-sm"
-                />
+                  {/* Message textarea */}
+                  <textarea
+                    value={feedbackMessage}
+                    onChange={(e) => setFeedbackMessage(e.target.value)}
+                    placeholder={feedbackType === 'bug' ? 'Describe the bug...' : 'Describe the feature you\'d like...'}
+                    rows={3}
+                    className="w-full px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none text-sm"
+                  />
 
-                {/* Submit */}
-                <Button
-                  onClick={() => {
-                    submitFeedback(
-                      { type: feedbackType, message: feedbackMessage },
-                      {
-                        onSuccess: () => {
-                          setFeedbackMessage('')
-                          setFeedbackSubmitted(true)
-                          success('Feedback submitted!')
-                        },
-                        onError: () => showError('Failed to submit feedback'),
-                      }
-                    )
-                  }}
-                  loading={isSubmittingFeedback}
-                  disabled={!feedbackMessage.trim()}
-                  className="w-full"
-                >
-                  Submit Feedback
-                </Button>
-              </>
-            )}
+                  {/* Submit */}
+                  <Button
+                    onClick={() => {
+                      submitFeedback(
+                        { type: feedbackType, message: feedbackMessage },
+                        {
+                          onSuccess: () => {
+                            setFeedbackMessage('')
+                            setFeedbackSubmitted(true)
+                            success('Feedback submitted!')
+                          },
+                          onError: () => showError('Failed to submit feedback'),
+                        }
+                      )
+                    }}
+                    loading={isSubmittingFeedback}
+                    disabled={!feedbackMessage.trim()}
+                    className="w-full"
+                  >
+                    Submit Feedback
+                  </Button>
+                </>
+              )}
 
-            {/* Past submissions */}
-            {pastFeedback && pastFeedback.length > 0 && (
-              <div className="pt-4 border-t border-[var(--color-border)]">
-                <h4 className="text-sm font-medium text-[var(--color-text)] mb-3">Past Submissions</h4>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {pastFeedback.map((fb) => (
-                    <div key={fb.id} className="p-3 rounded-lg bg-[var(--color-surface-hover)] text-sm">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                          fb.type === 'bug'
-                            ? 'bg-red-500/10 text-red-500'
-                            : 'bg-amber-500/10 text-amber-500'
-                        }`}>
-                          {fb.type === 'bug' ? <Bug className="w-3 h-3" /> : <Lightbulb className="w-3 h-3" />}
-                          {fb.type === 'bug' ? 'Bug' : 'Feature'}
-                        </span>
-                        <span className="text-xs text-[var(--color-text-muted)]">
-                          {new Date(fb.created_at).toLocaleDateString()}
-                        </span>
+              {/* Past submissions */}
+              {pastFeedback && pastFeedback.length > 0 && (
+                <div className="pt-[var(--space-4)] border-t border-[var(--color-border)]">
+                  <h4 className="text-sm font-medium text-[var(--color-text)] mb-[var(--space-3)]">Past Submissions</h4>
+                  <div className="space-y-[var(--space-2)] max-h-48 overflow-y-auto">
+                    {pastFeedback.map((fb) => (
+                      <div key={fb.id} className="p-[var(--space-3)] rounded-[var(--radius-md)] bg-[var(--color-surface-hover)] text-sm">
+                        <div className="flex items-center gap-[var(--space-2)] mb-1">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                            fb.type === 'bug'
+                              ? 'bg-[var(--color-danger-muted)] text-[var(--color-danger)]'
+                              : 'bg-[var(--color-warning-muted)] text-[var(--color-warning)]'
+                          }`}>
+                            {fb.type === 'bug' ? <Bug className="w-3 h-3" /> : <Lightbulb className="w-3 h-3" />}
+                            {fb.type === 'bug' ? 'Bug' : 'Feature'}
+                          </span>
+                          <span className="text-xs text-[var(--color-text-muted)]">
+                            {new Date(fb.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-[var(--color-text)] line-clamp-2">{fb.message}</p>
                       </div>
-                      <p className="text-[var(--color-text)] line-clamp-2">{fb.message}</p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </CollapsibleSection>
-        </motion.div>
+              )}
+            </CollapsibleSection>
+          </div>
+        </StaggerItem>
 
         {/* Log Out */}
-        <motion.div variants={staggerChild}>
+        <StaggerItem>
           <Button
             variant="secondary"
             onClick={() => signOut()}
-            className="w-full flex items-center justify-center gap-2"
+            className="w-full flex items-center justify-center gap-[var(--space-2)]"
           >
             <LogOut className="w-4 h-4" />
             Log Out
           </Button>
-        </motion.div>
-      </motion.div>
+        </StaggerItem>
+      </StaggerList>
 
       {/* Split Change Confirmation Modal */}
       <Modal
@@ -815,14 +813,14 @@ export function ProfilePage() {
         }}
         title="Change Workout Split"
       >
-        <div className="space-y-4">
+        <div className="space-y-[var(--space-4)]">
           <p className="text-sm text-[var(--color-text-muted)]">
             Changing your workout split will reset your schedule. You'll be able to set up a new schedule for the selected split.
           </p>
           <p className="text-sm text-[var(--color-text-muted)]">
             Your existing workout history will not be affected.
           </p>
-          <div className="flex gap-3">
+          <div className="flex gap-[var(--space-3)]">
             <Button
               variant="secondary"
               onClick={() => {
@@ -857,8 +855,8 @@ export function ProfilePage() {
         }}
         title="Delete Account"
       >
-        <div className="space-y-4">
-          <div className="p-3 bg-[var(--color-danger)]/10 rounded-lg">
+        <div className="space-y-[var(--space-4)]">
+          <div className="p-[var(--space-3)] bg-[var(--color-danger-muted)] rounded-[var(--radius-md)]">
             <p className="text-sm text-[var(--color-danger)] font-medium">
               This action cannot be undone. This will permanently delete your account and all associated data including:
             </p>
@@ -870,7 +868,7 @@ export function ProfilePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+            <label className="block text-sm font-medium text-[var(--color-text)] mb-[var(--space-2)]">
               Type <span className="font-bold">DELETE</span> to confirm
             </label>
             <Input
@@ -880,7 +878,7 @@ export function ProfilePage() {
             />
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-[var(--space-3)]">
             <Button
               variant="secondary"
               onClick={() => {

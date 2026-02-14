@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { motion } from 'motion/react'
 import { AppShell } from '@/components/layout'
 import { ScheduleDayEditor } from '@/components/schedule'
+import { StaggerList, StaggerItem } from '@/components/motion'
 import { useUserSchedule } from '@/hooks/useSchedule'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useCycleDay } from '@/hooks/useCycleDay'
-import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { formatCycleStartDate } from '@/utils/cycleDay'
 import { type ScheduleDay } from '@/services/scheduleService'
-import { staggerContainer, staggerChild } from '@/config/animationConfig'
+import { springPresets } from '@/config/animationConfig'
 import { useToast } from '@/hooks/useToast'
 import { Moon, Plus, ChevronRight } from 'lucide-react'
 import {
@@ -65,7 +65,6 @@ export function SchedulePage() {
   const { data: profile } = useProfile()
   const { mutate: updateProfile } = useUpdateProfile()
   const currentCycleDay = useCycleDay()
-  const prefersReduced = useReducedMotion()
   const { error: showError } = useToast()
 
   const [editingDay, setEditingDay] = useState<number | null>(null)
@@ -81,9 +80,9 @@ export function SchedulePage() {
   if (isLoading) {
     return (
       <AppShell title="Schedule">
-        <div className="p-4 space-y-3">
+        <div className="p-[var(--space-4)] space-y-[var(--space-3)]">
           {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <div key={i} className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-2xl" />
+            <div key={i} className="h-16 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-xl)]" />
           ))}
         </div>
       </AppShell>
@@ -105,19 +104,19 @@ export function SchedulePage() {
 
   return (
     <AppShell title="Schedule">
-      <div className="p-4 space-y-4">
+      <div className="p-[var(--space-4)] space-y-[var(--space-4)]">
         {/* Day Picker */}
-        <div className="flex flex-col items-center gap-3 py-2">
+        <div className="flex flex-col items-center gap-[var(--space-3)] py-[var(--space-2)]">
           <div className="flex items-center gap-1.5">
             <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]" />
             <span className="text-xs font-medium text-[var(--color-text-muted)]">
               Day <span className="text-[var(--color-primary)] font-semibold">{currentCycleDay}</span>
-              <span className="mx-1.5 opacity-40">·</span>
+              <span className="mx-1.5 opacity-40">&middot;</span>
               {formatCycleStartDate(profile?.cycle_start_date)}
             </span>
           </div>
 
-          <div className="flex justify-center gap-3">
+          <div className="flex justify-center gap-[var(--space-3)]">
             {[1, 2, 3, 4, 5, 6, 7].map((day) => {
               const isActive = currentCycleDay === day
               const daySchedules = schedulesByDay.get(day) || []
@@ -135,7 +134,7 @@ export function SchedulePage() {
                     <motion.div
                       layoutId="schedule-day-active"
                       className="absolute -inset-0.5 rounded-full bg-[var(--color-primary)]"
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                      transition={springPresets.snappy}
                     />
                   )}
                   <div
@@ -143,7 +142,7 @@ export function SchedulePage() {
                       relative w-10 h-10 rounded-full flex items-center justify-center
                       transition-colors duration-150
                       ${isActive
-                        ? 'text-white'
+                        ? 'text-[var(--color-primary-text)]'
                         : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]'
                       }
                     `}
@@ -163,12 +162,7 @@ export function SchedulePage() {
         </div>
 
         {/* Schedule List */}
-        <motion.div
-          className="space-y-2"
-          variants={staggerContainer}
-          initial={prefersReduced ? false : 'hidden'}
-          animate="visible"
-        >
+        <StaggerList className="space-y-[var(--space-2)]">
           {[1, 2, 3, 4, 5, 6, 7].map((dayNumber) => {
             const daySchedules = schedulesByDay.get(dayNumber) || []
             const isCurrentDay = currentCycleDay === dayNumber
@@ -176,27 +170,29 @@ export function SchedulePage() {
             const isRestDay = daySchedules.length > 0 && daySchedules[0]?.is_rest_day
 
             return (
-              <motion.div key={dayNumber} variants={staggerChild}>
+              <StaggerItem key={dayNumber}>
                 <div
                   onClick={() => setEditingDay(dayNumber)}
                   className={`
-                    relative rounded-2xl cursor-pointer
+                    relative rounded-[var(--radius-xl)] cursor-pointer
                     transition-all duration-200 active:scale-[0.98]
                     ${isCurrentDay
-                      ? 'bg-[var(--color-primary)]/8 ring-1.5 ring-[var(--color-primary)]/25'
+                      ? 'bg-[var(--color-primary-muted)] ring-1.5 ring-[var(--color-primary)]/25'
                       : 'bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)]'
                     }
                   `}
                 >
-                  <div className="flex items-center gap-3.5 px-4 py-3.5">
+                  <div className="flex items-center gap-3.5 px-[var(--space-4)] py-3.5">
                     {/* Day Number */}
                     <div className={`
                       w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-[15px] font-bold
                       ${isCurrentDay
-                        ? 'bg-[var(--color-primary)] text-white shadow-sm'
+                        ? 'bg-[var(--color-primary)] text-[var(--color-primary-text)]'
                         : 'bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]'
                       }
-                    `}>
+                    `}
+                      style={isCurrentDay ? { boxShadow: 'var(--shadow-primary)' } : undefined}
+                    >
                       {dayNumber}
                     </div>
 
@@ -242,10 +238,10 @@ export function SchedulePage() {
                     <ChevronRight className="w-4.5 h-4.5 text-[var(--color-text-muted)] shrink-0 opacity-40" />
                   </div>
                 </div>
-              </motion.div>
+              </StaggerItem>
             )
           })}
-        </motion.div>
+        </StaggerList>
       </div>
 
       {/* Day Editor */}
