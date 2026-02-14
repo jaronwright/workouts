@@ -64,23 +64,35 @@ export function useFollowUser() {
       const previous = queryClient.getQueryData<boolean>(['is-following', user?.id, followingId])
       queryClient.setQueryData(['is-following', user?.id, followingId], true)
 
-      // Optimistic update: increment follow counts
-      const prevCounts = queryClient.getQueryData<FollowCounts>(['follow-counts', followingId])
-      if (prevCounts) {
+      // Optimistic update: increment target's follower count
+      const prevTargetCounts = queryClient.getQueryData<FollowCounts>(['follow-counts', followingId])
+      if (prevTargetCounts) {
         queryClient.setQueryData<FollowCounts>(['follow-counts', followingId], {
-          ...prevCounts,
-          followers: prevCounts.followers + 1,
+          ...prevTargetCounts,
+          followers: prevTargetCounts.followers + 1,
         })
       }
 
-      return { previous, prevCounts }
+      // Optimistic update: increment current user's following count
+      const prevMyCounts = user ? queryClient.getQueryData<FollowCounts>(['follow-counts', user.id]) : undefined
+      if (prevMyCounts && user) {
+        queryClient.setQueryData<FollowCounts>(['follow-counts', user.id], {
+          ...prevMyCounts,
+          following: prevMyCounts.following + 1,
+        })
+      }
+
+      return { previous, prevTargetCounts, prevMyCounts }
     },
     onError: (_err, followingId, context) => {
       if (context?.previous !== undefined) {
         queryClient.setQueryData(['is-following', user?.id, followingId], context.previous)
       }
-      if (context?.prevCounts) {
-        queryClient.setQueryData(['follow-counts', followingId], context.prevCounts)
+      if (context?.prevTargetCounts) {
+        queryClient.setQueryData(['follow-counts', followingId], context.prevTargetCounts)
+      }
+      if (context?.prevMyCounts && user) {
+        queryClient.setQueryData(['follow-counts', user.id], context.prevMyCounts)
       }
     },
     onSettled: (_data, _err, followingId) => {
@@ -105,22 +117,35 @@ export function useUnfollowUser() {
       const previous = queryClient.getQueryData<boolean>(['is-following', user?.id, followingId])
       queryClient.setQueryData(['is-following', user?.id, followingId], false)
 
-      const prevCounts = queryClient.getQueryData<FollowCounts>(['follow-counts', followingId])
-      if (prevCounts) {
+      // Optimistic update: decrement target's follower count
+      const prevTargetCounts = queryClient.getQueryData<FollowCounts>(['follow-counts', followingId])
+      if (prevTargetCounts) {
         queryClient.setQueryData<FollowCounts>(['follow-counts', followingId], {
-          ...prevCounts,
-          followers: Math.max(0, prevCounts.followers - 1),
+          ...prevTargetCounts,
+          followers: Math.max(0, prevTargetCounts.followers - 1),
         })
       }
 
-      return { previous, prevCounts }
+      // Optimistic update: decrement current user's following count
+      const prevMyCounts = user ? queryClient.getQueryData<FollowCounts>(['follow-counts', user.id]) : undefined
+      if (prevMyCounts && user) {
+        queryClient.setQueryData<FollowCounts>(['follow-counts', user.id], {
+          ...prevMyCounts,
+          following: Math.max(0, prevMyCounts.following - 1),
+        })
+      }
+
+      return { previous, prevTargetCounts, prevMyCounts }
     },
     onError: (_err, followingId, context) => {
       if (context?.previous !== undefined) {
         queryClient.setQueryData(['is-following', user?.id, followingId], context.previous)
       }
-      if (context?.prevCounts) {
-        queryClient.setQueryData(['follow-counts', followingId], context.prevCounts)
+      if (context?.prevTargetCounts) {
+        queryClient.setQueryData(['follow-counts', followingId], context.prevTargetCounts)
+      }
+      if (context?.prevMyCounts && user) {
+        queryClient.setQueryData(['follow-counts', user.id], context.prevMyCounts)
       }
     },
     onSettled: (_data, _err, followingId) => {

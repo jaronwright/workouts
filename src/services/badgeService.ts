@@ -126,6 +126,8 @@ async function getWorkoutCount(userId: string): Promise<number> {
       .eq('user_id', userId)
       .not('completed_at', 'is', null),
   ])
+  if (weights.error) console.warn('Error counting weight sessions:', weights.error.message)
+  if (template.error) console.warn('Error counting template sessions:', template.error.message)
   return (weights.count || 0) + (template.count || 0)
 }
 

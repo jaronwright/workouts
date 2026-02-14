@@ -123,13 +123,17 @@ export async function getSuggestedUsers(limit = 10): Promise<FollowUser[]> {
   const followingIds = await getFollowingIds(user.id)
   const excludeIds = [user.id, ...followingIds]
 
-  // Get users ordered by follower count (most popular first)
-  // Using a subquery approach: get all profiles, then filter
-  const { data: profiles, error } = await supabase
+  // Get users not already followed, excluding self
+  let query = supabase
     .from('user_profiles')
     .select('id, display_name, avatar_url, selected_plan_id')
-    .not('id', 'in', `(${excludeIds.join(',')})`)
     .limit(limit)
+
+  if (excludeIds.length > 0) {
+    query = query.not('id', 'in', `(${excludeIds.join(',')})`)
+  }
+
+  const { data: profiles, error } = await query
 
   if (error) { console.warn('Error fetching suggested users:', error.message); return [] }
   return (profiles || []).map(p => ({

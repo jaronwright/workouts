@@ -260,3 +260,68 @@
 
 ### What's Next
 - Phase 5: Integration & QA — type safety audit, edge case handling, dead code cleanup, final review
+
+---
+
+## Iteration 5: Phase 5 — Integration & QA
+
+**Date**: 2026-02-14
+**Phase**: 5 (Integration & QA)
+**Driver**: DIEGO (backend) + JIN (frontend)
+
+### Issues Found & Fixed
+
+#### 5A. Follow Optimistic Updates — Missing User's Own Following Count (Medium)
+- `useFollowUser` and `useUnfollowUser` only updated the *target's* follower count
+- Fixed: Now also optimistically updates the *current user's* following count
+- Both mutations track `prevTargetCounts` and `prevMyCounts` for proper rollback on error
+
+#### 5B. Unused Import — PublicProfile.tsx (Low)
+- `Users` icon imported from lucide-react but never used
+- Fixed: Removed from imports
+
+#### 5C. getSuggestedUsers Empty Array Guard (Low)
+- `.not('id', 'in', ...)` could generate invalid query if excludeIds was somehow empty
+- Fixed: Conditional application — only applies NOT IN filter when excludeIds has entries
+
+#### 5D. Badge Service Missing Error Logging (Low)
+- `getWorkoutCount()` didn't log errors from parallel Supabase count queries
+- Fixed: Added `console.warn` for each query error (returns 0 gracefully regardless)
+
+### Issues Reviewed & Accepted
+
+- **commentService profile fetch**: Falls back to `null` on failure — acceptable for comment display
+- **Optimistic reaction ID collision**: 'optimistic' string ID is fine — `onSettled` invalidation resolves any conflict
+- **Dynamic import Vite warnings**: Informational only, module already in main chunk
+- **Non-null assertions in hooks**: Protected by `enabled: !!userId` flag, safe pattern
+
+### Build/Test Status
+- `npx vite build` ✅ passes clean (2.20s)
+- ESLint: 0 warnings on modified files
+
+### Final Feature Summary
+
+| Feature | Status | Files |
+|---------|--------|-------|
+| Real streak calculation | ✅ | socialService.ts |
+| Cursor-based pagination | ✅ | socialService.ts, useSocial.ts |
+| Infinite scroll | ✅ | Community.tsx |
+| Following/Discover tabs | ✅ | FeedTabs.tsx, Community.tsx |
+| Follow/Unfollow system | ✅ | followService.ts, useFollow.ts, FollowButton.tsx |
+| User search | ✅ | followService.ts, Community.tsx |
+| Suggested users | ✅ | followService.ts, Community.tsx |
+| Comments | ✅ | commentService.ts, useComments.ts, CommentSection.tsx |
+| Badge system (22 badges) | ✅ | badgeConfig.ts, badgeService.ts, BadgeGrid.tsx |
+| Badge celebrations | ✅ | BadgeCelebration.tsx, Community.tsx |
+| Challenge system | ✅ | challengeService.ts, ChallengeCard.tsx |
+| Leaderboards (4 metrics) | ✅ | leaderboardService.ts, LeaderboardPanel.tsx |
+| Enhanced public profiles | ✅ | PublicProfile.tsx (badges, follow counts) |
+| Session detail comments | ✅ | PublicSessionDetail.tsx |
+| Notification types (comment, follow) | ✅ | NotificationPanel.tsx, notificationService.ts |
+| Reaction micro-interactions | ✅ | ReactionBar.tsx |
+| Optimistic updates (follow, reactions) | ✅ | useFollow.ts, useReactions.ts |
+
+### Ratings (Final)
+- Feature completeness: 9/10
+- Code quality: 9/10 (audit fixed key issues)
+- UX quality: 8/10 (celebration overlay, micro-interactions, smooth transitions)

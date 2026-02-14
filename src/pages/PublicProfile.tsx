@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { Flame, Calendar, Trophy, Dumbbell, Users } from 'lucide-react'
+import { Flame, Calendar, Trophy, Dumbbell } from 'lucide-react'
 import { motion } from 'motion/react'
 import { AppShell } from '@/components/layout/AppShell'
 import { Card, CardContent, Avatar } from '@/components/ui'
