@@ -131,3 +131,38 @@
 - Empty states still generic across the app
 
 ---
+
+## Iteration 4: History Polish + Motion Consistency
+
+### Changes Made
+1. **CalendarGrid editorial month header**: Transformed small centered "February 2026" text into a left-aligned editorial heading — "February" in large Syne at `clamp(1.5rem, 6vw, 2rem)` with "2026" in mono alongside. Navigation arrows compacted to the right.
+2. **History empty state**: Replaced generic Card with a dramatic centered layout — pulsing ProgressRing (empty, yellow, breathing animation), Syne heading "No workouts yet." with yellow period accent, encouraging subtext.
+3. **StatsGrid FadeInOnScroll**: Wrapped rows 3–7 (Weekly Frequency, Total Time/Sessions, Workout Mix, Weekly Target/Completion, Active Days/Longest/Best) in FadeInOnScroll with staggered delays (0–0.2s). Hero stats (rows 1–2) remain immediately visible.
+4. **Home streak pill PressableCard**: Wrapped the streak stat pill in PressableCard matching the other two pills (this week, total). All three now navigate to /history on tap with consistent press feedback.
+5. **PageTransition already applied**: Discovered that PageTransition was already integrated at the router level in App.tsx (AnimatedRoutes component). Updated this note — no longer a pending item.
+
+### What Looks Better
+- History Calendar tab has a dramatic focal point now — the month name commands attention
+- Stats tab has satisfying scroll-triggered reveal animations as you scroll down
+- Empty state feels intentional and beautiful rather than an afterthought
+- Home stat pills are all consistently interactive with press feedback
+
+### After Ratings
+- **Home**: Layout 7/10, Visual Impact 8/10, Animation 7/10, Polish 8/10 (animation up — PressableCard on all pills)
+- **Workout Detail (pre)**: Layout 8/10, Visual Impact 8/10, Animation 5/10, Polish 8/10 (unchanged)
+- **Workout Detail (active)**: Layout 7/10, Visual Impact 7/10, Animation 7/10, Polish 7/10 (unchanged)
+- **Schedule**: Layout 7/10, Visual Impact 7/10, Animation 6/10, Polish 7/10 (unchanged)
+- **Profile**: Layout 7/10, Visual Impact 7/10, Animation 5/10, Polish 7/10 (unchanged)
+- **History (Calendar)**: Layout 7/10, Visual Impact 7/10, Animation 6/10, Polish 8/10 (up from 6/6/6/7 — editorial month, polish)
+- **History (Stats)**: Layout 7/10, Visual Impact 7/10, Animation 7/10, Polish 8/10 (up from 6/6/6/7 — FadeInOnScroll)
+- **Cardio**: Layout 7/10, Visual Impact 6/10, Animation 5/10, Polish 7/10 (unchanged)
+- **Mobility**: Layout 7/10, Visual Impact 7/10, Animation 5/10, Polish 7/10 (unchanged)
+
+### What Still Needs Work
+- Profile animation is still at 5/10 — could use FadeInOnScroll on settings sections
+- Workout Detail (pre) animation at 5/10 — exercise list could use StaggerList
+- Empty states for other screens (Schedule with no workouts, etc.) still generic
+- More micro-interaction opportunities: tap feedback on calendar day cells, animated tab switching
+- Final polish pass: verify all screens at 375px and 428px widths
+
+---
