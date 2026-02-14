@@ -45,3 +45,30 @@
 5. **History** — already decent, needs refinement
 
 ---
+
+## Iteration 1: Layout Restructuring Pass
+
+### Changes Made
+1. **Created FadeInOnScroll** motion component (Intersection Observer + Framer Motion)
+2. **Home Screen**: Removed WeatherCard and Quick Select tabs. Made ScheduleWidget a 38vh cinematic hero card with massive Syne workout name, gradient tint, yellow "Start Workout" CTA. Stat pills redesigned as equal-width number-forward blocks with JetBrains Mono. Recent activity uses FadeInOnScroll with yellow left border on most recent.
+3. **Workout Detail**: Editorial hero with massive Syne workout name (`clamp(2.5rem, 11vw, 3.75rem)`), metadata row (exercise count + duration), clean divider-based exercise list with left-aligned names and right-aligned JetBrains Mono sets/reps, yellow accent bars on section headers, glowing yellow Start Workout CTA.
+4. **Schedule**: Dramatic hero with large yellow cycle day number in JetBrains Mono (`clamp(3rem, 12vw, 4rem)`), larger day selector pills (w-11 h-11) with yellow glow on active, 7-day cycle list with inline muscle group subtitles, color-coded left edge indicators, active day row with hero treatment.
+5. **Profile**: Player card hero with left-aligned avatar + large Syne name with yellow period accent, trophy-style stat blocks (Total, Best Streak, Favorite), workout split section with yellow accent bar and active split yellow glow.
+6. **WorkoutSelect**: Fixed stale Tailwind green colors in active session banner to use design tokens.
+
+### After Ratings
+- **Home**: Layout 7/10, Visual Impact 8/10, Animation 6/10, Polish 7/10 (up from 4/3/5/5)
+- **Workout Detail**: Layout 8/10, Visual Impact 8/10, Animation 5/10, Polish 8/10 (up from 4/3/4/5)
+- **Schedule**: Layout 7/10, Visual Impact 7/10, Animation 5/10, Polish 7/10 (up from 2/2/3/3)
+- **Profile**: Layout 7/10, Visual Impact 7/10, Animation 5/10, Polish 7/10 (up from 4/4/4/5)
+- **History**: Layout 6/10, Visual Impact 6/10, Animation 6/10, Polish 7/10 (unchanged — already decent, needs scroll animations)
+
+### What Still Needs Work
+- Motion is underutilized — need more StaggerList, PressableCard, AnimatedNumber application
+- History/Calendar could use FadeInOnScroll on week rows
+- Empty states across the app could be more dramatic
+- The active workout view (ExerciseCards during a session) hasn't been touched
+- Rest timer screen hasn't been made dramatic yet
+- Need a final polish pass for micro-interactions and consistent spacing
+
+---
