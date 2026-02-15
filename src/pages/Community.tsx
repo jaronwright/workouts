@@ -211,17 +211,21 @@ export function CommunityPage() {
                 </p>
                 <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1">
                   {suggestedUsers.map(u => (
-                    <button
+                    <div
                       key={u.id}
-                      onClick={() => handleUserClick(u.id)}
-                      className="flex flex-col items-center gap-1.5 min-w-[72px] p-2 rounded-[var(--radius-lg)] hover:bg-[var(--color-surface-hover)] transition-colors"
+                      className="flex flex-col items-center gap-1.5 min-w-[72px] p-2 rounded-[var(--radius-lg)] hover:bg-[var(--color-surface-hover)] transition-colors cursor-pointer"
                     >
-                      <Avatar src={u.avatar_url} alt={u.display_name || 'User'} size="md" className="w-12 h-12" />
-                      <span className="text-[10px] font-medium text-[var(--color-text)] truncate max-w-[72px]">
+                      <div onClick={() => handleUserClick(u.id)}>
+                        <Avatar src={u.avatar_url} alt={u.display_name || 'User'} size="md" className="w-12 h-12" />
+                      </div>
+                      <span
+                        onClick={() => handleUserClick(u.id)}
+                        className="text-[10px] font-medium text-[var(--color-text)] truncate max-w-[72px]"
+                      >
                         {u.display_name || 'Anonymous'}
                       </span>
                       <FollowButton userId={u.id} size="sm" />
-                    </button>
+                    </div>
                   ))}
                 </div>
               </div>

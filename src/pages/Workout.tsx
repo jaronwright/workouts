@@ -7,8 +7,10 @@ import { Button, Card, CardContent } from '@/components/ui'
 import { StaggerList, StaggerItem, FadeIn } from '@/components/motion'
 import { CollapsibleSection, ExerciseCard, RestTimer } from '@/components/workout'
 import { PostWorkoutReview } from '@/components/review/PostWorkoutReview'
+import { useQueryClient } from '@tanstack/react-query'
 import { useWorkoutDay } from '@/hooks/useWorkoutPlan'
 import { useStartWorkout, useCompleteWorkout, useLogSet, useDeleteSet, useSessionSets } from '@/hooks/useWorkoutSession'
+import { swapPlanExerciseName } from '@/services/workoutService'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { useReviewStore } from '@/stores/reviewStore'
 import { useAuthStore } from '@/stores/authStore'
@@ -72,6 +74,7 @@ export function WorkoutPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
 
+  const queryClient = useQueryClient()
   const toast = useToast()
   const { data: workoutDay, isLoading } = useWorkoutDay(dayId)
   const { mutate: startWorkout, isPending: isStarting } = useStartWorkout()
@@ -180,6 +183,16 @@ export function WorkoutPage() {
     sets.forEach((s) => deleteSet(s.id))
     // Remove from local store immediately for responsive UI
     useWorkoutStore.getState().removeCompletedSets(exerciseId)
+  }
+
+  const handleSwapExercise = async (exerciseId: string, newName: string) => {
+    const result = await swapPlanExerciseName(exerciseId, newName)
+    if (result) {
+      toast.success(`Swapped to ${newName}`)
+      queryClient.invalidateQueries({ queryKey: ['workout-day', dayId] })
+    } else {
+      toast.error('Could not swap exercise. Try again.')
+    }
   }
 
   if (isLoading) {
@@ -426,6 +439,7 @@ export function WorkoutPage() {
                       handleExerciseComplete(exercise.id, reps, weight, exercise.sets || 1)
                     }
                     onExerciseUncomplete={() => handleExerciseUncomplete(exercise.id)}
+                    onSwapExercise={(newName) => handleSwapExercise(exercise.id, newName)}
                   />
                 ))}
               </CollapsibleSection>
@@ -461,6 +475,7 @@ export function WorkoutPage() {
                       handleExerciseComplete(exercise.id, reps, weight, exercise.sets || 1)
                     }
                     onExerciseUncomplete={() => handleExerciseUncomplete(exercise.id)}
+                    onSwapExercise={(newName) => handleSwapExercise(exercise.id, newName)}
                   />
                 ))}
               </div>

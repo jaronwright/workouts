@@ -156,7 +156,7 @@ Premium fitness brand design system. All tokens defined as CSS custom properties
 ### Typography
 
 - **Headings**: Syne (weights 600-800) — bold, expressive, geometric
-- **Body**: DM Sans (weights 400-700) — clean, highly readable
+- **Body**: Outfit (weights 400-700) — clean, highly readable
 - **Loaded via**: Google Fonts `<link>` in `index.html`
 - Headings get `font-family: var(--font-heading)` automatically via `h1-h6` base styles
 - Body text inherits `var(--font-body)` from `<body>`

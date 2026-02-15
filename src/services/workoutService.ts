@@ -304,6 +304,29 @@ export async function updateExerciseWeightUnit(
   return data as PlanExercise | null
 }
 
+export async function swapPlanExerciseName(
+  exerciseId: string,
+  newName: string
+): Promise<PlanExercise | null> {
+  const { count, error } = await supabase
+    .from('plan_exercises')
+    .update({ name: newName }, { count: 'exact' })
+    .eq('id', exerciseId)
+
+  if (error || count === 0) {
+    if (error) console.warn('Could not swap exercise:', error.message)
+    return null
+  }
+
+  const { data } = await supabase
+    .from('plan_exercises')
+    .select()
+    .eq('id', exerciseId)
+    .maybeSingle()
+
+  return data as PlanExercise | null
+}
+
 // ============================================
 // CRUD Operations for Sessions
 // ============================================

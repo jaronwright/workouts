@@ -507,7 +507,7 @@ export function clearExerciseCache(): void {
 
 const BROWSE_CACHE_KEY = 'exercisedb_browse_v1'
 const BROWSE_CACHE_DURATION = 7 * 24 * 60 * 60 * 1000 // 7 days
-const LIST_CACHE_KEY = 'exercisedb_lists_v1'
+const LIST_CACHE_KEY = 'exercisedb_lists_v2' // v2: normalize objects to strings
 const LIST_CACHE_DURATION = 30 * 24 * 60 * 60 * 1000 // 30 days — categories rarely change
 const MAX_BROWSE_CACHE_ENTRIES = 200
 
@@ -615,6 +615,14 @@ function getCachedList(key: string): string[] | undefined {
 
 // --- Category list endpoints ---
 
+// Normalize API response: handles both string[] and {name: string}[] formats
+function normalizeStringList(raw: unknown): string[] {
+  const arr = Array.isArray(raw) ? raw : []
+  return arr.map(item =>
+    typeof item === 'string' ? item : (item as { name?: string }).name ?? String(item)
+  )
+}
+
 export async function fetchBodyPartList(): Promise<string[]> {
   const cached = getCachedList('bodyparts')
   if (cached) return cached
@@ -623,7 +631,7 @@ export async function fetchBodyPartList(): Promise<string[]> {
     const response = await throttledFetch(`${V1_BASE_URL}/bodyparts`)
     if (!response.ok) throw new Error(`API error: ${response.status}`)
     const json = await response.json()
-    const data: string[] = json.data || json || []
+    const data = normalizeStringList(json.data || json)
     setListCache('bodyparts', data)
     return data
   } catch (error) {
@@ -640,7 +648,7 @@ export async function fetchTargetMuscleList(): Promise<string[]> {
     const response = await throttledFetch(`${V1_BASE_URL}/muscles`)
     if (!response.ok) throw new Error(`API error: ${response.status}`)
     const json = await response.json()
-    const data: string[] = json.data || json || []
+    const data = normalizeStringList(json.data || json)
     setListCache('muscles', data)
     return data
   } catch (error) {
@@ -657,7 +665,7 @@ export async function fetchEquipmentList(): Promise<string[]> {
     const response = await throttledFetch(`${V1_BASE_URL}/equipments`)
     if (!response.ok) throw new Error(`API error: ${response.status}`)
     const json = await response.json()
-    const data: string[] = json.data || json || []
+    const data = normalizeStringList(json.data || json)
     setListCache('equipments', data)
     return data
   } catch (error) {

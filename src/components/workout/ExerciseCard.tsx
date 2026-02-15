@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react'
-import { Info, Check, Circle, Sparkles, Cloud, Dumbbell } from 'lucide-react'
+import { Info, Check, Circle, Sparkles, Cloud, Dumbbell, ArrowLeftRight } from 'lucide-react'
 import type { PlanExercise, ExerciseSet } from '@/types/workout'
 import { formatSetReps } from '@/utils/parseSetReps'
 import { useLastWeight } from '@/hooks/useWorkoutSession'
@@ -9,6 +9,7 @@ import { useExerciseInfo } from '@/hooks/useExerciseGif'
 import { useOfflineStore } from '@/stores/offlineStore'
 import { ProgressionBadge } from './ProgressionBadge'
 import { FormGuideSheet } from './FormGuideSheet'
+import { ExerciseSwapSheet } from './ExerciseSwapSheet'
 import { updateExerciseWeightUnit } from '@/services/workoutService'
 
 interface ExerciseCardProps {
@@ -16,6 +17,7 @@ interface ExerciseCardProps {
   completedSets: ExerciseSet[]
   onExerciseComplete: (reps: number | null, weight: number | null) => void
   onExerciseUncomplete?: () => void
+  onSwapExercise?: (newName: string) => void
 }
 
 function isBodyweightOrCardio(exercise: PlanExercise): boolean {
@@ -81,9 +83,11 @@ export function ExerciseCard({
   exercise,
   completedSets,
   onExerciseComplete,
-  onExerciseUncomplete
+  onExerciseUncomplete,
+  onSwapExercise
 }: ExerciseCardProps) {
   const [showDetailModal, setShowDetailModal] = useState(false)
+  const [showSwapSheet, setShowSwapSheet] = useState(false)
   const [weight, setWeight] = useState<string>(exercise.target_weight?.toString() || '')
   const [weightInitialized, setWeightInitialized] = useState(false)
   const [justCompleted, setJustCompleted] = useState(false)
@@ -253,6 +257,19 @@ export function ExerciseCard({
           </div>
         )}
 
+        {/* Swap button - opens alternatives sheet */}
+        {onSwapExercise && !isCompleted && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setShowSwapSheet(true)
+            }}
+            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform duration-100 text-[var(--color-text-muted)]"
+          >
+            <ArrowLeftRight className="w-4 h-4" />
+          </button>
+        )}
+
         {/* Info button - opens detail modal with GIF and notes */}
         <button
           onClick={(e) => {
@@ -301,6 +318,16 @@ export function ExerciseCard({
         onClose={() => setShowDetailModal(false)}
         exerciseName={exercise.name}
       />
+
+      {/* Exercise Swap Sheet */}
+      {onSwapExercise && (
+        <ExerciseSwapSheet
+          isOpen={showSwapSheet}
+          onClose={() => setShowSwapSheet(false)}
+          exerciseName={exercise.name}
+          onSwap={onSwapExercise}
+        />
+      )}
     </div>
   )
 }
