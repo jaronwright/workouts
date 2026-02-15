@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { ArrowRight } from 'lucide-react'
@@ -9,6 +9,7 @@ import { CollapsibleSection, ExerciseCard, RestTimer } from '@/components/workou
 import { PostWorkoutReview } from '@/components/review/PostWorkoutReview'
 import { useWorkoutDay } from '@/hooks/useWorkoutPlan'
 import { useStartWorkout, useCompleteWorkout, useLogSet, useDeleteSet, useSessionSets } from '@/hooks/useWorkoutSession'
+import { useExercisePrefetch } from '@/hooks/useExercisePrefetch'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { useReviewStore } from '@/stores/reviewStore'
 import { useAuthStore } from '@/stores/authStore'
@@ -89,6 +90,13 @@ export function WorkoutPage() {
   const { data: sessionSets } = useSessionSets(activeSession?.id)
 
   useWakeLock(!!activeSession)
+
+  // Prefetch exercise data (GIFs, instructions, muscles) for all exercises in this workout
+  const allExerciseNames = useMemo(() => {
+    if (!workoutDay) return []
+    return workoutDay.sections.flatMap(s => s.exercises.map(e => e.name))
+  }, [workoutDay])
+  useExercisePrefetch(allExerciseNames)
 
   useEffect(() => {
     if (workoutDay) {

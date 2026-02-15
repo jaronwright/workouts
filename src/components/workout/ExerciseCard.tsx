@@ -8,6 +8,7 @@ import { useProgressionSuggestion } from '@/hooks/useProgression'
 import { useOfflineStore } from '@/stores/offlineStore'
 import { ProgressionBadge } from './ProgressionBadge'
 import { ExerciseDetailModal } from './ExerciseDetailModal'
+import { ExerciseGifThumbnail } from './ExerciseGifThumbnail'
 import { updateExerciseWeightUnit } from '@/services/workoutService'
 
 interface ExerciseCardProps {
@@ -145,6 +146,12 @@ export function ExerciseCard({
             <Circle className="w-5 h-5" strokeWidth={2} />
           )}
         </button>
+
+        {/* Exercise GIF Thumbnail */}
+        <ExerciseGifThumbnail
+          exerciseName={exercise.name}
+          onClick={() => setShowDetailModal(true)}
+        />
 
         {/* Exercise Info */}
         <div className="flex-1 min-w-0">

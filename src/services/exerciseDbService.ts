@@ -497,3 +497,317 @@ function findBestMatch(exercises: ExerciseDbExercise[], searchName: string): Exe
 export function clearExerciseCache(): void {
   localStorage.removeItem(CACHE_KEY)
 }
+
+// --- Browse/Search API methods ---
+// These leverage additional ExerciseDB endpoints for the Exercise Library
+
+const LIST_CACHE_KEY = 'exercisedb_lists_v1'
+const LIST_CACHE_DURATION = 30 * 24 * 60 * 60 * 1000 // 30 days - categories rarely change
+
+interface ListCache {
+  [key: string]: { data: string[]; timestamp: number }
+}
+
+function getListCache(): ListCache {
+  try {
+    const cached = localStorage.getItem(LIST_CACHE_KEY)
+    return cached ? JSON.parse(cached) : {}
+  } catch {
+    return {}
+  }
+}
+
+function setListCache(key: string, data: string[]): void {
+  try {
+    const cache = getListCache()
+    cache[key] = { data, timestamp: Date.now() }
+    localStorage.setItem(LIST_CACHE_KEY, JSON.stringify(cache))
+  } catch {
+    // localStorage might be full
+  }
+}
+
+function getCachedList(key: string): string[] | undefined {
+  const cache = getListCache()
+  const entry = cache[key]
+  if (!entry) return undefined
+  if (Date.now() - entry.timestamp > LIST_CACHE_DURATION) return undefined
+  return entry.data
+}
+
+// Cache for browse results (exercises by category)
+const BROWSE_CACHE_KEY = 'exercisedb_browse_v1'
+const BROWSE_CACHE_DURATION = 7 * 24 * 60 * 60 * 1000 // 7 days
+
+interface BrowseCache {
+  [key: string]: { data: ExerciseDbExercise[]; timestamp: number }
+}
+
+function getBrowseCache(): BrowseCache {
+  try {
+    const cached = localStorage.getItem(BROWSE_CACHE_KEY)
+    return cached ? JSON.parse(cached) : {}
+  } catch {
+    return {}
+  }
+}
+
+function setBrowseCache(key: string, data: ExerciseDbExercise[]): void {
+  try {
+    const cache = getBrowseCache()
+    cache[key] = { data, timestamp: Date.now() }
+    localStorage.setItem(BROWSE_CACHE_KEY, JSON.stringify(cache))
+  } catch {
+    // localStorage might be full
+  }
+}
+
+function getCachedBrowse(key: string): ExerciseDbExercise[] | undefined {
+  const cache = getBrowseCache()
+  const entry = cache[key]
+  if (!entry) return undefined
+  if (Date.now() - entry.timestamp > BROWSE_CACHE_DURATION) return undefined
+  return entry.data
+}
+
+async function fetchListV2(endpoint: string): Promise<string[]> {
+  const apiKey = getRapidApiKey()
+  if (!apiKey) return []
+
+  const response = await throttledFetch(
+    `${V2_BASE_URL}/exercises/${endpoint}`,
+    {
+      'X-RapidAPI-Key': apiKey,
+      'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com',
+    }
+  )
+
+  if (!response.ok) throw new Error(`V2 list API error: ${response.status}`)
+  return await response.json()
+}
+
+async function fetchListV1(endpoint: string): Promise<string[]> {
+  const response = await throttledFetch(`${V1_BASE_URL}/${endpoint}`)
+  if (!response.ok) throw new Error(`V1 list API error: ${response.status}`)
+  const data = await response.json()
+  return data.data || data || []
+}
+
+async function fetchList(endpoint: string): Promise<string[]> {
+  if (getRapidApiKey()) {
+    try {
+      const results = await fetchListV2(endpoint)
+      if (results.length > 0) return results
+    } catch {
+      // Fall through to V1
+    }
+  }
+  return fetchListV1(endpoint)
+}
+
+/** Fetch all available body part categories */
+export async function fetchBodyPartList(): Promise<string[]> {
+  const cached = getCachedList('bodyPartList')
+  if (cached) return cached
+
+  try {
+    const list = await fetchList('bodyPartList')
+    setListCache('bodyPartList', list)
+    return list
+  } catch (error) {
+    console.error('Error fetching body part list:', error)
+    return []
+  }
+}
+
+/** Fetch all available target muscle groups */
+export async function fetchTargetList(): Promise<string[]> {
+  const cached = getCachedList('targetList')
+  if (cached) return cached
+
+  try {
+    const list = await fetchList('targetList')
+    setListCache('targetList', list)
+    return list
+  } catch (error) {
+    console.error('Error fetching target list:', error)
+    return []
+  }
+}
+
+/** Fetch all available equipment types */
+export async function fetchEquipmentList(): Promise<string[]> {
+  const cached = getCachedList('equipmentList')
+  if (cached) return cached
+
+  try {
+    const list = await fetchList('equipmentList')
+    setListCache('equipmentList', list)
+    return list
+  } catch (error) {
+    console.error('Error fetching equipment list:', error)
+    return []
+  }
+}
+
+async function fetchExercisesByV2(endpoint: string, limit: number, offset: number): Promise<ExerciseDbExercise[]> {
+  const apiKey = getRapidApiKey()
+  if (!apiKey) return []
+
+  const response = await throttledFetch(
+    `${V2_BASE_URL}/exercises/${endpoint}?limit=${limit}&offset=${offset}`,
+    {
+      'X-RapidAPI-Key': apiKey,
+      'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com',
+    }
+  )
+
+  if (!response.ok) throw new Error(`V2 browse API error: ${response.status}`)
+  const data: V2Exercise[] = await response.json()
+  return (data || []).map(normalizeV2Exercise)
+}
+
+async function fetchExercisesByV1(endpoint: string, limit: number, offset: number): Promise<ExerciseDbExercise[]> {
+  const response = await throttledFetch(
+    `${V1_BASE_URL}/exercises?${endpoint}&limit=${limit}&offset=${offset}`
+  )
+
+  if (!response.ok) throw new Error(`V1 browse API error: ${response.status}`)
+  const data = await response.json()
+  return data.data || []
+}
+
+async function fetchExercisesBy(
+  v2Endpoint: string,
+  v1QueryParam: string,
+  limit: number,
+  offset: number
+): Promise<ExerciseDbExercise[]> {
+  if (getRapidApiKey()) {
+    try {
+      const results = await fetchExercisesByV2(v2Endpoint, limit, offset)
+      if (results.length > 0) return results
+    } catch {
+      // Fall through to V1
+    }
+  }
+  return fetchExercisesByV1(v1QueryParam, limit, offset)
+}
+
+/** Fetch exercises filtered by body part */
+export async function fetchExercisesByBodyPart(
+  bodyPart: string,
+  limit = 20,
+  offset = 0
+): Promise<ExerciseDbExercise[]> {
+  const cacheKey = `bodyPart:${bodyPart}:${limit}:${offset}`
+  const cached = getCachedBrowse(cacheKey)
+  if (cached) return cached
+
+  try {
+    const encoded = encodeURIComponent(bodyPart)
+    const exercises = await fetchExercisesBy(
+      `bodyPart/${encoded}`,
+      `bodyPart=${encoded}`,
+      limit,
+      offset
+    )
+    setBrowseCache(cacheKey, exercises)
+    return exercises
+  } catch (error) {
+    console.error('Error fetching exercises by body part:', error)
+    return []
+  }
+}
+
+/** Fetch exercises filtered by target muscle */
+export async function fetchExercisesByTarget(
+  target: string,
+  limit = 20,
+  offset = 0
+): Promise<ExerciseDbExercise[]> {
+  const cacheKey = `target:${target}:${limit}:${offset}`
+  const cached = getCachedBrowse(cacheKey)
+  if (cached) return cached
+
+  try {
+    const encoded = encodeURIComponent(target)
+    const exercises = await fetchExercisesBy(
+      `target/${encoded}`,
+      `target=${encoded}`,
+      limit,
+      offset
+    )
+    setBrowseCache(cacheKey, exercises)
+    return exercises
+  } catch (error) {
+    console.error('Error fetching exercises by target:', error)
+    return []
+  }
+}
+
+/** Fetch exercises filtered by equipment type */
+export async function fetchExercisesByEquipment(
+  equipment: string,
+  limit = 20,
+  offset = 0
+): Promise<ExerciseDbExercise[]> {
+  const cacheKey = `equipment:${equipment}:${limit}:${offset}`
+  const cached = getCachedBrowse(cacheKey)
+  if (cached) return cached
+
+  try {
+    const encoded = encodeURIComponent(equipment)
+    const exercises = await fetchExercisesBy(
+      `equipment/${encoded}`,
+      `equipment=${encoded}`,
+      limit,
+      offset
+    )
+    setBrowseCache(cacheKey, exercises)
+    return exercises
+  } catch (error) {
+    console.error('Error fetching exercises by equipment:', error)
+    return []
+  }
+}
+
+/** Fetch a single exercise by its ID */
+export async function fetchExerciseById(id: string): Promise<ExerciseDbExercise | null> {
+  const cacheKey = `id:${id}`
+  const cached = getCachedExercise(cacheKey)
+  if (cached !== undefined) return cached
+
+  try {
+    if (getRapidApiKey()) {
+      try {
+        const apiKey = getRapidApiKey()!
+        const response = await throttledFetch(
+          `${V2_BASE_URL}/exercises/exercise/${id}`,
+          {
+            'X-RapidAPI-Key': apiKey,
+            'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com',
+          }
+        )
+        if (response.ok) {
+          const data: V2Exercise = await response.json()
+          const exercise = normalizeV2Exercise(data)
+          setCache(cacheKey, exercise)
+          return exercise
+        }
+      } catch {
+        // Fall through to V1
+      }
+    }
+
+    const response = await throttledFetch(`${V1_BASE_URL}/exercises/${id}`)
+    if (!response.ok) return null
+    const data = await response.json()
+    const exercise = data.data || data
+    setCache(cacheKey, exercise)
+    return exercise
+  } catch (error) {
+    console.error('Error fetching exercise by ID:', error)
+    return null
+  }
+}

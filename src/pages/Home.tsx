@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import {
   Play, TrendingUp, ChevronRight, Flame, Trophy, Calendar,
-  Heart, X
+  Heart, X, BookOpen
 } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { Button } from '@/components/ui'
@@ -303,6 +303,35 @@ export function HomePage() {
                 </div>
               </PressableCard>
             </div>
+          </section>
+        </FadeIn>
+
+        {/* ─── EXERCISE LIBRARY LINK ─── */}
+        <FadeIn direction="up" delay={0.2}>
+          <section className="mb-[var(--space-6)]">
+            <PressableCard onClick={() => navigate('/exercises')} className="cursor-pointer">
+              <div className="
+                flex items-center gap-[var(--space-4)] p-[var(--space-4)]
+                bg-[var(--color-surface)] border border-[var(--color-border)]
+                rounded-[var(--radius-xl)] shadow-[var(--shadow-xs)]
+              ">
+                <div
+                  className="w-11 h-11 rounded-[var(--radius-lg)] flex items-center justify-center shrink-0"
+                  style={{ background: 'linear-gradient(135deg, var(--color-tertiary), #3DBDB4)' }}
+                >
+                  <BookOpen className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[var(--text-sm)] font-semibold text-[var(--color-text)]">
+                    Exercise Library
+                  </p>
+                  <p className="text-[var(--text-xs)] text-[var(--color-text-muted)]">
+                    Browse 1300+ exercises with demos &amp; instructions
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)] shrink-0" />
+              </div>
+            </PressableCard>
           </section>
         </FadeIn>
 
