@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ChevronRight, Flame, Trophy, Calendar,
-  Heart, Dumbbell, Activity
+  Heart, Dumbbell, Activity, Target
 } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { ScheduleWidget } from '@/components/workout'
@@ -13,6 +13,7 @@ import {
 } from '@/components/motion'
 
 import { OnboardingWizard } from '@/components/onboarding'
+import { useBodyPartList } from '@/hooks/useExerciseLibrary'
 import { useActiveSession, useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
 import { useProfile } from '@/hooks/useProfile'
 import { useUserSchedule } from '@/hooks/useSchedule'
@@ -157,6 +158,7 @@ export function HomePage() {
     }
   }
 
+  const { data: bodyParts } = useBodyPartList()
   const firstName = profile?.display_name?.split(' ')[0]
 
   return (
@@ -287,6 +289,50 @@ export function HomePage() {
             </PressableCard>
           </section>
         </FadeIn>
+
+        {/* ─── EXPLORE EXERCISES ─── */}
+        {bodyParts && bodyParts.length > 0 && (
+          <FadeInOnScroll direction="up">
+            <section className="mb-[var(--space-6)]">
+              <div className="flex items-center justify-between mb-[var(--space-3)]">
+                <h2
+                  className="text-[var(--text-xs)] uppercase font-medium text-[var(--color-text-muted)]"
+                  style={{ letterSpacing: 'var(--tracking-widest)' }}
+                >
+                  Explore Exercises
+                </h2>
+                <PressableButton
+                  onClick={() => navigate('/exercises')}
+                  className="text-[var(--text-xs)] font-semibold text-[var(--color-primary)] flex items-center gap-0.5"
+                >
+                  Browse All
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </PressableButton>
+              </div>
+              <div className="flex gap-[var(--space-2)] overflow-x-auto pb-1 -mx-[var(--space-4)] px-[var(--space-4)] snap-x">
+                {bodyParts.map((part) => (
+                  <PressableCard
+                    key={part}
+                    onClick={() => navigate(`/exercises?bodyPart=${encodeURIComponent(part)}`)}
+                    className="cursor-pointer flex-shrink-0 snap-start"
+                  >
+                    <div className="w-28 bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-3)] py-[var(--space-3)] flex flex-col items-center gap-[var(--space-2)]">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: 'rgba(204, 255, 0, 0.1)' }}
+                      >
+                        <Target className="w-5 h-5 text-[var(--color-primary)]" />
+                      </div>
+                      <span className="text-[var(--text-xs)] font-medium text-[var(--color-text)] capitalize text-center leading-tight">
+                        {part}
+                      </span>
+                    </div>
+                  </PressableCard>
+                ))}
+              </div>
+            </section>
+          </FadeInOnScroll>
+        )}
 
         {/* ─── RECENT ACTIVITY — community feed style ─── */}
         {recentActivity.length > 0 && (

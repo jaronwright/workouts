@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import {
   Search,
@@ -261,9 +261,11 @@ function BrowseResults({
 }
 
 export function ExerciseLibraryPage() {
+  const [searchParams] = useSearchParams()
+  const initialBodyPart = searchParams.get('bodyPart') || ''
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<BrowseTab>('bodyPart')
-  const [selectedCategory, setSelectedCategory] = useState<string>('')
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialBodyPart)
 
   const debouncedSearch = useDebounce(searchQuery, 400)
   const isSearching = debouncedSearch.trim().length >= 2
