@@ -18,15 +18,20 @@ vi.mock('@/services/workoutService', () => ({
   updateExerciseWeightUnit: vi.fn().mockResolvedValue(null),
 }))
 
-// Mock the ExerciseDetailModal to simplify tests
-vi.mock('../ExerciseDetailModal', () => ({
-  ExerciseDetailModal: ({ isOpen, onClose, exerciseName }: any) =>
+// Mock the FormGuideSheet to simplify tests
+vi.mock('../FormGuideSheet', () => ({
+  FormGuideSheet: ({ isOpen, onClose, exerciseName }: any) =>
     isOpen ? (
       <div data-testid="exercise-detail-modal">
         <span>{exerciseName}</span>
         <button onClick={onClose}>Close Modal</button>
       </div>
     ) : null,
+}))
+
+// Mock useExerciseInfo for the GIF thumbnail
+vi.mock('@/hooks/useExerciseGif', () => ({
+  useExerciseInfo: vi.fn().mockReturnValue({ gifUrl: null, exercise: null, instructions: [], isLoading: false, error: null }),
 }))
 
 // Mock ProgressionBadge

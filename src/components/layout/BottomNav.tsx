@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import { Home, History, Calendar, Users } from 'lucide-react'
+import { Home, History, Calendar, Users, Dumbbell } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useUnreadNotificationCount } from '@/hooks/useCommunityNotifications'
 import { springPresets } from '@/config/animationConfig'
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
+  { to: '/exercises', icon: Dumbbell, label: 'Exercises' },
   { to: '/community', icon: Users, label: 'Community', showBadge: true },
   { to: '/schedule', icon: Calendar, label: 'Schedule' },
   { to: '/history', icon: History, label: 'Review' },

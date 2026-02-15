@@ -23,7 +23,9 @@ import {
   CommunityPage,
   PublicProfilePage,
   PublicSessionDetailPage,
-  WorkoutSelectPage
+  WorkoutSelectPage,
+  ExerciseDetailPage,
+  ExerciseLibraryPage
 } from '@/pages'
 
 const queryClient = new QueryClient({
@@ -140,6 +142,22 @@ function AnimatedRoutes() {
           element={
             <ProtectedRoute>
               <WorkoutSelectPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/exercises"
+          element={
+            <ProtectedRoute>
+              <ExerciseLibraryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/exercises/:exerciseId"
+          element={
+            <ProtectedRoute>
+              <ExerciseDetailPage />
             </ProtectedRoute>
           }
         />

@@ -1,13 +1,14 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react'
-import { Info, Check, Circle, Sparkles, Cloud } from 'lucide-react'
+import { Info, Check, Circle, Sparkles, Cloud, Dumbbell } from 'lucide-react'
 import type { PlanExercise, ExerciseSet } from '@/types/workout'
 import { formatSetReps } from '@/utils/parseSetReps'
 import { useLastWeight } from '@/hooks/useWorkoutSession'
 import { useProgressionSuggestion } from '@/hooks/useProgression'
+import { useExerciseInfo } from '@/hooks/useExerciseGif'
 import { useOfflineStore } from '@/stores/offlineStore'
 import { ProgressionBadge } from './ProgressionBadge'
-import { ExerciseDetailModal } from './ExerciseDetailModal'
+import { FormGuideSheet } from './FormGuideSheet'
 import { updateExerciseWeightUnit } from '@/services/workoutService'
 
 interface ExerciseCardProps {
@@ -43,6 +44,37 @@ function PendingSyncIndicator({ setId }: { setId: string }) {
   )
   if (!isPending) return null
   return <Cloud className="w-3 h-3 text-[var(--color-text-muted)] animate-pulse" />
+}
+
+function ExerciseGifThumb({ name, onClick }: { name: string; onClick: () => void }) {
+  const { gifUrl } = useExerciseInfo(name)
+  const [error, setError] = useState(false)
+
+  if (!gifUrl || error) {
+    return (
+      <button
+        onClick={onClick}
+        className="w-10 h-10 rounded-[var(--radius-md)] bg-[var(--color-surface-hover)] flex items-center justify-center flex-shrink-0"
+      >
+        <Dumbbell className="w-4 h-4 text-[var(--color-text-muted)] opacity-40" />
+      </button>
+    )
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-10 h-10 rounded-[var(--radius-md)] bg-[var(--color-surface-hover)] overflow-hidden flex-shrink-0"
+    >
+      <img
+        src={gifUrl}
+        alt={name}
+        className="w-full h-full object-contain"
+        loading="lazy"
+        onError={() => setError(true)}
+      />
+    </button>
+  )
 }
 
 export function ExerciseCard({
@@ -145,6 +177,12 @@ export function ExerciseCard({
             <Circle className="w-5 h-5" strokeWidth={2} />
           )}
         </button>
+
+        {/* GIF Thumbnail */}
+        <ExerciseGifThumb
+          name={exercise.name}
+          onClick={() => setShowDetailModal(true)}
+        />
 
         {/* Exercise Info */}
         <div className="flex-1 min-w-0">
@@ -257,12 +295,11 @@ export function ExerciseCard({
         </div>
       )}
 
-      {/* Exercise Detail Modal */}
-      <ExerciseDetailModal
+      {/* Form Guide Sheet — bottom sheet for mid-workout form checks */}
+      <FormGuideSheet
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
         exerciseName={exercise.name}
-        notes={exercise.notes}
       />
     </div>
   )

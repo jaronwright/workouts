@@ -365,8 +365,9 @@ async function fetchExercisesV2(searchTerm: string): Promise<ExerciseDbExercise[
     throw new Error(`V2 API error: ${response.status}`)
   }
 
-  const data: V2Exercise[] = await response.json()
-  return (data || []).map(normalizeV2Exercise)
+  const data = await response.json()
+  if (!Array.isArray(data)) return []
+  return data.map(normalizeV2Exercise)
 }
 
 async function fetchExercisesV1(searchTerm: string): Promise<ExerciseDbExercise[]> {
@@ -496,4 +497,327 @@ function findBestMatch(exercises: ExerciseDbExercise[], searchName: string): Exe
 
 export function clearExerciseCache(): void {
   localStorage.removeItem(CACHE_KEY)
+  localStorage.removeItem(BROWSE_CACHE_KEY)
+  localStorage.removeItem(LIST_CACHE_KEY)
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Browse, Search & Filter — V1 OSS API (primary for library)
+// ═══════════════════════════════════════════════════════════════
+
+const BROWSE_CACHE_KEY = 'exercisedb_browse_v1'
+const BROWSE_CACHE_DURATION = 7 * 24 * 60 * 60 * 1000 // 7 days
+const LIST_CACHE_KEY = 'exercisedb_lists_v1'
+const LIST_CACHE_DURATION = 30 * 24 * 60 * 60 * 1000 // 30 days — categories rarely change
+const MAX_BROWSE_CACHE_ENTRIES = 200
+
+// --- V1 response types ---
+
+export interface V1PaginationMeta {
+  totalExercises: number
+  totalPages: number
+  currentPage: number
+  previousPage: string | null
+  nextPage: string | null
+}
+
+export interface V1Response {
+  success: boolean
+  metadata: V1PaginationMeta
+  data: ExerciseDbExercise[]
+}
+
+export interface ExerciseBrowseResult {
+  exercises: ExerciseDbExercise[]
+  pagination: V1PaginationMeta
+}
+
+// --- Browse cache (separate from individual exercise cache) ---
+
+interface BrowseCacheEntry {
+  data: ExerciseBrowseResult
+  timestamp: number
+}
+
+interface BrowseCacheStorage {
+  [key: string]: BrowseCacheEntry
+}
+
+function getBrowseCache(): BrowseCacheStorage {
+  try {
+    const cached = localStorage.getItem(BROWSE_CACHE_KEY)
+    return cached ? JSON.parse(cached) : {}
+  } catch {
+    return {}
+  }
+}
+
+function setBrowseCache(key: string, data: ExerciseBrowseResult): void {
+  try {
+    const cache = getBrowseCache()
+    // Enforce size limit with LRU eviction
+    const entries = Object.entries(cache)
+    if (entries.length >= MAX_BROWSE_CACHE_ENTRIES) {
+      // Remove oldest 20% of entries
+      entries.sort((a, b) => a[1].timestamp - b[1].timestamp)
+      const toRemove = Math.ceil(entries.length * 0.2)
+      for (let i = 0; i < toRemove; i++) {
+        delete cache[entries[i][0]]
+      }
+    }
+    cache[key] = { data, timestamp: Date.now() }
+    localStorage.setItem(BROWSE_CACHE_KEY, JSON.stringify(cache))
+  } catch {
+    // localStorage might be full
+  }
+}
+
+function getCachedBrowse(key: string): ExerciseBrowseResult | undefined {
+  const cache = getBrowseCache()
+  const entry = cache[key]
+  if (!entry) return undefined
+  if (Date.now() - entry.timestamp > BROWSE_CACHE_DURATION) return undefined
+  return entry.data
+}
+
+// --- Category list cache ---
+
+interface ListCacheStorage {
+  [key: string]: { data: string[]; timestamp: number }
+}
+
+function getListCache(): ListCacheStorage {
+  try {
+    const cached = localStorage.getItem(LIST_CACHE_KEY)
+    return cached ? JSON.parse(cached) : {}
+  } catch {
+    return {}
+  }
+}
+
+function setListCache(key: string, data: string[]): void {
+  try {
+    const cache = getListCache()
+    cache[key] = { data, timestamp: Date.now() }
+    localStorage.setItem(LIST_CACHE_KEY, JSON.stringify(cache))
+  } catch {
+    // localStorage might be full
+  }
+}
+
+function getCachedList(key: string): string[] | undefined {
+  const cache = getListCache()
+  const entry = cache[key]
+  if (!entry) return undefined
+  if (Date.now() - entry.timestamp > LIST_CACHE_DURATION) return undefined
+  return entry.data
+}
+
+// --- Category list endpoints ---
+
+export async function fetchBodyPartList(): Promise<string[]> {
+  const cached = getCachedList('bodyparts')
+  if (cached) return cached
+
+  try {
+    const response = await throttledFetch(`${V1_BASE_URL}/bodyparts`)
+    if (!response.ok) throw new Error(`API error: ${response.status}`)
+    const json = await response.json()
+    const data: string[] = json.data || json || []
+    setListCache('bodyparts', data)
+    return data
+  } catch (error) {
+    console.error('Failed to fetch body parts:', error)
+    return []
+  }
+}
+
+export async function fetchTargetMuscleList(): Promise<string[]> {
+  const cached = getCachedList('muscles')
+  if (cached) return cached
+
+  try {
+    const response = await throttledFetch(`${V1_BASE_URL}/muscles`)
+    if (!response.ok) throw new Error(`API error: ${response.status}`)
+    const json = await response.json()
+    const data: string[] = json.data || json || []
+    setListCache('muscles', data)
+    return data
+  } catch (error) {
+    console.error('Failed to fetch target muscles:', error)
+    return []
+  }
+}
+
+export async function fetchEquipmentList(): Promise<string[]> {
+  const cached = getCachedList('equipments')
+  if (cached) return cached
+
+  try {
+    const response = await throttledFetch(`${V1_BASE_URL}/equipments`)
+    if (!response.ok) throw new Error(`API error: ${response.status}`)
+    const json = await response.json()
+    const data: string[] = json.data || json || []
+    setListCache('equipments', data)
+    return data
+  } catch (error) {
+    console.error('Failed to fetch equipment:', error)
+    return []
+  }
+}
+
+// --- Browse exercises by category ---
+
+export async function fetchExercisesByBodyPart(
+  bodyPart: string,
+  offset = 0,
+  limit = 20
+): Promise<ExerciseBrowseResult> {
+  const cacheKey = `bp:${bodyPart}:${offset}:${limit}`
+  const cached = getCachedBrowse(cacheKey)
+  if (cached) return cached
+
+  try {
+    const encoded = encodeURIComponent(bodyPart)
+    const response = await throttledFetch(
+      `${V1_BASE_URL}/bodyparts/${encoded}/exercises?offset=${offset}&limit=${limit}`
+    )
+    if (!response.ok) throw new Error(`API error: ${response.status}`)
+
+    const json: V1Response = await response.json()
+    const result: ExerciseBrowseResult = {
+      exercises: json.data || [],
+      pagination: json.metadata || { totalExercises: 0, totalPages: 0, currentPage: 1, previousPage: null, nextPage: null },
+    }
+    setBrowseCache(cacheKey, result)
+    return result
+  } catch (error) {
+    console.error(`Failed to fetch exercises for body part "${bodyPart}":`, error)
+    return { exercises: [], pagination: { totalExercises: 0, totalPages: 0, currentPage: 1, previousPage: null, nextPage: null } }
+  }
+}
+
+export async function fetchExercisesByMuscle(
+  muscle: string,
+  offset = 0,
+  limit = 20,
+  includeSecondary = false
+): Promise<ExerciseBrowseResult> {
+  const cacheKey = `mu:${muscle}:${offset}:${limit}:${includeSecondary}`
+  const cached = getCachedBrowse(cacheKey)
+  if (cached) return cached
+
+  try {
+    const encoded = encodeURIComponent(muscle)
+    const url = `${V1_BASE_URL}/muscles/${encoded}/exercises?offset=${offset}&limit=${limit}${includeSecondary ? '&includeSecondary=true' : ''}`
+    const response = await throttledFetch(url)
+    if (!response.ok) throw new Error(`API error: ${response.status}`)
+
+    const json: V1Response = await response.json()
+    const result: ExerciseBrowseResult = {
+      exercises: json.data || [],
+      pagination: json.metadata || { totalExercises: 0, totalPages: 0, currentPage: 1, previousPage: null, nextPage: null },
+    }
+    setBrowseCache(cacheKey, result)
+    return result
+  } catch (error) {
+    console.error(`Failed to fetch exercises for muscle "${muscle}":`, error)
+    return { exercises: [], pagination: { totalExercises: 0, totalPages: 0, currentPage: 1, previousPage: null, nextPage: null } }
+  }
+}
+
+export async function fetchExercisesByEquipment(
+  equipment: string,
+  offset = 0,
+  limit = 20
+): Promise<ExerciseBrowseResult> {
+  const cacheKey = `eq:${equipment}:${offset}:${limit}`
+  const cached = getCachedBrowse(cacheKey)
+  if (cached) return cached
+
+  try {
+    const encoded = encodeURIComponent(equipment)
+    const response = await throttledFetch(
+      `${V1_BASE_URL}/equipments/${encoded}/exercises?offset=${offset}&limit=${limit}`
+    )
+    if (!response.ok) throw new Error(`API error: ${response.status}`)
+
+    const json: V1Response = await response.json()
+    const result: ExerciseBrowseResult = {
+      exercises: json.data || [],
+      pagination: json.metadata || { totalExercises: 0, totalPages: 0, currentPage: 1, previousPage: null, nextPage: null },
+    }
+    setBrowseCache(cacheKey, result)
+    return result
+  } catch (error) {
+    console.error(`Failed to fetch exercises for equipment "${equipment}":`, error)
+    return { exercises: [], pagination: { totalExercises: 0, totalPages: 0, currentPage: 1, previousPage: null, nextPage: null } }
+  }
+}
+
+// --- Fuzzy search ---
+
+export async function searchExercises(
+  query: string,
+  offset = 0,
+  limit = 20
+): Promise<ExerciseBrowseResult> {
+  const cacheKey = `search:${query.toLowerCase()}:${offset}:${limit}`
+  const cached = getCachedBrowse(cacheKey)
+  if (cached) return cached
+
+  try {
+    const encoded = encodeURIComponent(query)
+    const response = await throttledFetch(
+      `${V1_BASE_URL}/exercises/search?q=${encoded}&offset=${offset}&limit=${limit}`
+    )
+    if (!response.ok) throw new Error(`API error: ${response.status}`)
+
+    const json: V1Response = await response.json()
+    const result: ExerciseBrowseResult = {
+      exercises: json.data || [],
+      pagination: json.metadata || { totalExercises: 0, totalPages: 0, currentPage: 1, previousPage: null, nextPage: null },
+    }
+    setBrowseCache(cacheKey, result)
+    return result
+  } catch (error) {
+    console.error(`Failed to search exercises for "${query}":`, error)
+    return { exercises: [], pagination: { totalExercises: 0, totalPages: 0, currentPage: 1, previousPage: null, nextPage: null } }
+  }
+}
+
+// --- Get single exercise by ID ---
+
+export async function fetchExerciseById(exerciseId: string): Promise<ExerciseDbExercise | null> {
+  // Check individual cache first
+  const cached = getCachedExercise(`id:${exerciseId}`)
+  if (cached !== undefined) return cached
+
+  try {
+    const response = await throttledFetch(`${V1_BASE_URL}/exercises/${encodeURIComponent(exerciseId)}`)
+    if (!response.ok) throw new Error(`API error: ${response.status}`)
+
+    const json = await response.json()
+    const exercise: ExerciseDbExercise = json.data || json
+    setCache(`id:${exerciseId}`, exercise)
+    return exercise
+  } catch (error) {
+    console.error(`Failed to fetch exercise ${exerciseId}:`, error)
+    return null
+  }
+}
+
+// --- Find alternatives (same target muscle) ---
+
+export async function fetchAlternativeExercises(
+  targetMuscle: string,
+  excludeId?: string,
+  limit = 10
+): Promise<ExerciseDbExercise[]> {
+  const result = await fetchExercisesByMuscle(targetMuscle, 0, limit + 1)
+  let exercises = result.exercises
+  if (excludeId) {
+    exercises = exercises.filter(e => e.exerciseId !== excludeId)
+  }
+  return exercises.slice(0, limit)
 }

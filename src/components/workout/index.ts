@@ -1,6 +1,8 @@
 export { CardioLogCard } from './CardioLogCard'
 export { CollapsibleSection } from './CollapsibleSection'
 export { ExerciseCard } from './ExerciseCard'
+export { ExerciseDetailModal } from './ExerciseDetailModal'
+export { FormGuideSheet } from './FormGuideSheet'
 export { ProgressionBadge } from './ProgressionBadge'
 export { RestTimer } from './RestTimer'
 export { ScheduleWidget } from './ScheduleWidget'
