@@ -89,9 +89,45 @@ export interface FeedWorkout {
   streak_days: number | null
 }
 
+// ─── Paginated Feed ─────────────────────────────────
+
+export interface PaginatedFeed {
+  items: FeedWorkout[]
+  nextCursor: string | null
+}
+
+// ─── Social Graph Types ─────────────────────────────
+
+export type FeedMode = 'following' | 'discover'
+
+export interface FollowUser {
+  id: string
+  display_name: string | null
+  avatar_url: string | null
+  selected_plan_id: string | null
+}
+
+export interface FollowCounts {
+  followers: number
+  following: number
+}
+
+export interface ActivityComment {
+  id: string
+  user_id: string
+  session_id: string | null
+  template_session_id: string | null
+  content: string
+  created_at: string
+  user_profile: {
+    display_name: string | null
+    avatar_url: string | null
+  } | null
+}
+
 // ─── Notification Types ──────────────────────────────
 
-export type NotificationType = 'reaction' | 'photo_reaction'
+export type NotificationType = 'reaction' | 'photo_reaction' | 'comment' | 'new_follower'
 
 export interface CommunityNotification {
   id: string
@@ -128,6 +164,57 @@ export interface PublicProfile {
     this_week: number
   }
   recent_workouts: FeedWorkout[]
+}
+
+// ─── Gamification Types ─────────────────────────────
+
+export interface UserBadge {
+  id: string
+  user_id: string
+  badge_key: string
+  earned_at: string
+}
+
+export interface Challenge {
+  id: string
+  title: string
+  description: string
+  challenge_type: 'weekly' | 'monthly' | 'community'
+  target_value: number
+  metric: 'workouts' | 'streak' | 'volume' | 'duration' | 'distance'
+  starts_at: string
+  ends_at: string
+  badge_key: string | null
+  created_at: string
+}
+
+export interface ChallengeParticipant {
+  id: string
+  challenge_id: string
+  user_id: string
+  progress: number
+  completed_at: string | null
+  joined_at: string
+}
+
+export interface ChallengeWithProgress extends Challenge {
+  participant: ChallengeParticipant | null
+  participant_count: number
+}
+
+export interface LeaderboardEntry {
+  user_id: string
+  display_name: string | null
+  avatar_url: string | null
+  value: number
+  rank: number
+}
+
+export interface EnhancedPublicProfile extends PublicProfile {
+  bio: string | null
+  badges: UserBadge[]
+  pr_count: number
+  total_reactions_received: number
 }
 
 // ─── Photo Types ─────────────────────────────────────

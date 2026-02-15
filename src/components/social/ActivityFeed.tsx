@@ -3,10 +3,10 @@ import { useSocialFeed } from '@/hooks/useSocial'
 import { formatRelativeTime } from '@/utils/formatters'
 import { getWorkoutDisplayName } from '@/config/workoutConfig'
 import { Dumbbell, Heart, Activity, User } from 'lucide-react'
-import type { SocialWorkout } from '@/services/socialService'
+import type { FeedWorkout } from '@/types/community'
 
-function getWorkoutIcon(workout: SocialWorkout) {
-  switch (workout.type) {
+function getWorkoutIcon(type: string) {
+  switch (type) {
     case 'cardio':
       return { Icon: Heart, color: 'var(--color-cardio)' }
     case 'mobility':
@@ -16,28 +16,14 @@ function getWorkoutIcon(workout: SocialWorkout) {
   }
 }
 
-function getWorkoutName(workout: SocialWorkout): string {
-  if (workout.workout_day?.name) {
-    return getWorkoutDisplayName(workout.workout_day.name)
-  }
-  if (workout.template?.name) {
-    return workout.template.name
-  }
-  return 'Workout'
-}
-
-function getUserDisplayName(workout: SocialWorkout): string {
-  return workout.user_profile?.display_name || 'Anonymous'
-}
-
 interface ActivityFeedItemProps {
-  workout: SocialWorkout
+  workout: FeedWorkout
 }
 
-function ActivityFeedItem({ workout }: ActivityFeedItemProps) {
-  const { Icon, color } = getWorkoutIcon(workout)
-  const workoutName = getWorkoutName(workout)
-  const userName = getUserDisplayName(workout)
+export function ActivityFeedItem({ workout }: ActivityFeedItemProps) {
+  const { Icon, color } = getWorkoutIcon(workout.type)
+  const workoutName = getWorkoutDisplayName(workout.workout_name)
+  const userName = workout.user_profile?.display_name || 'Anonymous'
 
   return (
     <Card>
@@ -80,7 +66,10 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ limit }: ActivityFeedProps) {
-  const { data: workouts, isLoading, error } = useSocialFeed()
+  const { data, isLoading, error } = useSocialFeed()
+
+  // Flatten infinite query pages
+  const workouts = data?.pages.flatMap(p => p.items) ?? []
 
   if (isLoading) {
     return (
@@ -92,7 +81,7 @@ export function ActivityFeed({ limit }: ActivityFeedProps) {
     )
   }
 
-  if (error || !workouts || workouts.length === 0) {
+  if (error || workouts.length === 0) {
     return (
       <Card>
         <CardContent className="py-6 text-center">

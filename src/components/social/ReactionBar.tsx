@@ -49,7 +49,9 @@ export function ReactionBar({ workout }: ReactionBarProps) {
               key={option.type}
               type="button"
               onClick={() => handleReaction(option.type)}
-              whileTap={{ scale: 0.9 }}
+              whileTap={{ scale: 0.85 }}
+              animate={isActive ? { scale: [1, 1.15, 1] } : { scale: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
               className={`
                 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors
                 ${isActive
@@ -58,7 +60,13 @@ export function ReactionBar({ workout }: ReactionBarProps) {
                 }
               `}
             >
-              <span className="text-sm">{option.emoji}</span>
+              <motion.span
+                className="text-sm"
+                animate={isActive ? { scale: [1, 1.3, 1], rotate: [0, -15, 15, 0] } : {}}
+                transition={{ duration: 0.4 }}
+              >
+                {option.emoji}
+              </motion.span>
               <AnimatePresence mode="wait">
                 {count > 0 && (
                   <motion.span

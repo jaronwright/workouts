@@ -1,9 +1,25 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { InfiniteData } from '@tanstack/react-query'
 import { addReaction, removeReaction } from '@/services/reactionService'
 import { createReactionNotification } from '@/services/notificationService'
-import { FEED_PAGE_SIZE } from '@/config/communityConfig'
-import type { FeedWorkout, ReactionType } from '@/types/community'
+import type { FeedWorkout, ReactionType, PaginatedFeed } from '@/types/community'
 import { useAuthStore } from '@/stores/authStore'
+
+// Helper: update a workout across all paginated feed queries
+function updateFeedWorkout(
+  old: InfiniteData<PaginatedFeed> | undefined,
+  workoutId: string,
+  updater: (workout: FeedWorkout) => FeedWorkout
+): InfiniteData<PaginatedFeed> | undefined {
+  if (!old) return old
+  return {
+    ...old,
+    pages: old.pages.map(page => ({
+      ...page,
+      items: page.items.map(w => w.id === workoutId ? updater(w) : w),
+    })),
+  }
+}
 
 export function useAddReaction() {
   const queryClient = useQueryClient()
@@ -37,41 +53,37 @@ export function useAddReaction() {
 
       return result
     },
-    // Optimistic update
+    // Optimistic update: update all social feed queries matching the prefix
     onMutate: async ({ workout, reactionType }) => {
       await queryClient.cancelQueries({ queryKey: ['social-feed'] })
-      const previousFeed = queryClient.getQueryData<FeedWorkout[]>(['social-feed', FEED_PAGE_SIZE])
+      const previousQueries = queryClient.getQueriesData<InfiniteData<PaginatedFeed>>({ queryKey: ['social-feed'] })
 
-      if (previousFeed && user) {
-        queryClient.setQueryData<FeedWorkout[]>(['social-feed', FEED_PAGE_SIZE], old => {
-          if (!old) return old
-          return old.map(w => {
-            if (w.id !== workout.id) return w
-            // Remove existing reaction from this user, add new one
-            const filtered = w.reactions.filter(r => r.user_id !== user.id)
-            return {
-              ...w,
-              reactions: [
-                ...filtered,
-                {
-                  id: 'optimistic',
-                  user_id: user.id,
-                  reaction_type: reactionType,
-                  created_at: new Date().toISOString(),
-                  user_profile: null,
-                },
-              ],
-            }
-          })
-        })
+      if (user) {
+        queryClient.setQueriesData<InfiniteData<PaginatedFeed>>(
+          { queryKey: ['social-feed'] },
+          (old) => updateFeedWorkout(old, workout.id, w => ({
+            ...w,
+            reactions: [
+              ...w.reactions.filter(r => r.user_id !== user.id),
+              {
+                id: 'optimistic',
+                user_id: user.id,
+                reaction_type: reactionType,
+                created_at: new Date().toISOString(),
+                user_profile: null,
+              },
+            ],
+          }))
+        )
       }
 
-      return { previousFeed }
+      return { previousQueries }
     },
     onError: (_err, _vars, context) => {
-      if (context?.previousFeed) {
-        queryClient.setQueryData(['social-feed', FEED_PAGE_SIZE], context.previousFeed)
-      }
+      // Restore all feed queries on error
+      context?.previousQueries?.forEach(([key, data]) => {
+        if (data) queryClient.setQueryData(key, data)
+      })
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['social-feed'] })
@@ -96,27 +108,24 @@ export function useRemoveReaction() {
     },
     onMutate: async ({ workout }) => {
       await queryClient.cancelQueries({ queryKey: ['social-feed'] })
-      const previousFeed = queryClient.getQueryData<FeedWorkout[]>(['social-feed', FEED_PAGE_SIZE])
+      const previousQueries = queryClient.getQueriesData<InfiniteData<PaginatedFeed>>({ queryKey: ['social-feed'] })
 
-      if (previousFeed && user) {
-        queryClient.setQueryData<FeedWorkout[]>(['social-feed', FEED_PAGE_SIZE], old => {
-          if (!old) return old
-          return old.map(w => {
-            if (w.id !== workout.id) return w
-            return {
-              ...w,
-              reactions: w.reactions.filter(r => r.user_id !== user.id),
-            }
-          })
-        })
+      if (user) {
+        queryClient.setQueriesData<InfiniteData<PaginatedFeed>>(
+          { queryKey: ['social-feed'] },
+          (old) => updateFeedWorkout(old, workout.id, w => ({
+            ...w,
+            reactions: w.reactions.filter(r => r.user_id !== user.id),
+          }))
+        )
       }
 
-      return { previousFeed }
+      return { previousQueries }
     },
     onError: (_err, _vars, context) => {
-      if (context?.previousFeed) {
-        queryClient.setQueryData(['social-feed', FEED_PAGE_SIZE], context.previousFeed)
-      }
+      context?.previousQueries?.forEach(([key, data]) => {
+        if (data) queryClient.setQueryData(key, data)
+      })
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['social-feed'] })
