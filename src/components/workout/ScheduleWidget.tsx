@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, ChevronLeft, Calendar, Check, Play, type LucideIcon } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Calendar, Check, Play, X, Dumbbell, type LucideIcon } from 'lucide-react'
 import { motion, AnimatePresence, type PanInfo } from 'motion/react'
 import { Button, StreakBar } from '@/components/ui'
 import { useUserSchedule } from '@/hooks/useSchedule'
@@ -17,9 +17,13 @@ import {
   getWorkoutDisplayName,
 } from '@/config/workoutConfig'
 import type { ScheduleDay } from '@/services/scheduleService'
+import type { SessionWithDay } from '@/services/workoutService'
 
 interface ScheduleWidgetProps {
   onSetupSchedule?: () => void
+  activeSession?: SessionWithDay | null
+  onContinueSession?: () => void
+  onDismissSession?: () => void
 }
 
 /** Stable date key for comparing calendar days (YYYY-MM-DD) */
@@ -36,7 +40,7 @@ interface CompletedSessionInfo {
   templateType?: string
 }
 
-export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
+export function ScheduleWidget({ onSetupSchedule, activeSession, onContinueSession, onDismissSession }: ScheduleWidgetProps) {
   const navigate = useNavigate()
   const { data: schedule, isLoading } = useUserSchedule()
   const currentCycleDay = useCycleDay()
@@ -303,8 +307,22 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
   }
 
   // ─── MAIN HERO ─────────────────────────────────────────────────
+  const hasActiveSession = !!activeSession && !activeSession.completed_at
   const activeInfo = todayDisplayInfos[clampedTab] || todayDisplayInfos[0]
   const ActiveIcon = activeInfo.icon
+
+  // Derive the active session workout style for hero display
+  const activeSessionName = hasActiveSession
+    ? getWorkoutDisplayName(activeSession!.workout_day?.name ?? 'Workout')
+    : null
+  const activeSessionStyle = hasActiveSession && activeSession!.workout_day
+    ? getWeightsStyleByName(activeSession!.workout_day.name)
+    : null
+
+  // When there's an active session, the hero color comes from the active workout
+  const heroColor = hasActiveSession && activeSessionStyle
+    ? activeSessionStyle.color
+    : activeInfo.color
 
   const handleActiveClick = () => {
     handleDayClick(activeInfo)
@@ -325,18 +343,18 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `linear-gradient(170deg, ${activeInfo.color}10 0%, transparent 50%)`,
+            background: `linear-gradient(170deg, ${heroColor}10 0%, transparent 50%)`,
           }}
         />
         {/* Subtle top glow orb */}
         <div
           className="absolute -top-16 left-1/2 -translate-x-1/2 w-[80%] h-32 rounded-full blur-3xl pointer-events-none"
-          style={{ backgroundColor: activeInfo.color, opacity: 0.06 }}
+          style={{ backgroundColor: heroColor, opacity: 0.06 }}
         />
 
         <div className="relative z-10 flex flex-col h-full" style={{ minHeight: '38vh' }}>
-          {/* Multi-workout tabs (only shown when >1 workout today) */}
-          {displayWorkoutCount > 1 && (
+          {/* Multi-workout tabs (only shown when >1 workout today AND no active session) */}
+          {!hasActiveSession && displayWorkoutCount > 1 && (
             <div className="flex border-b border-[var(--color-border)]">
               {todayDisplayInfos.map((info, i) => {
                 const isActive = i === clampedTab
@@ -369,8 +387,8 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
           <div className="flex-1 flex flex-col justify-center px-[var(--space-6)] py-[var(--space-6)]">
             <AnimatePresence mode="wait">
               <motion.div
-                key={clampedTab}
-                initial={displayWorkoutCount > 1 && !prefersReduced ? { opacity: 0, x: 8 } : false}
+                key={hasActiveSession ? 'active-session' : clampedTab}
+                initial={!prefersReduced ? { opacity: 0, x: 8 } : false}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -8 }}
                 transition={{ duration: 0.15 }}
@@ -378,9 +396,11 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
                 {/* Workout type icon — large, prominent */}
                 <div
                   className="w-14 h-14 rounded-[var(--radius-lg)] flex items-center justify-center mb-[var(--space-4)]"
-                  style={{ backgroundColor: `${activeInfo.color}18` }}
+                  style={{ backgroundColor: `${heroColor}18` }}
                 >
-                  {todayCompleted ? (
+                  {hasActiveSession ? (
+                    <Play className="w-7 h-7 ml-0.5" style={{ color: 'var(--color-success)' }} fill="var(--color-success)" />
+                  ) : todayCompleted ? (
                     <Check className="w-7 h-7" style={{ color: activeInfo.color }} strokeWidth={2.5} />
                   ) : (
                     <ActiveIcon className="w-7 h-7" style={{ color: activeInfo.color }} strokeWidth={2} />
@@ -388,7 +408,14 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
                 </div>
 
                 {/* Status label */}
-                {todayCompleted ? (
+                {hasActiveSession ? (
+                  <p
+                    className="text-[var(--text-xs)] uppercase font-semibold mb-[var(--space-2)]"
+                    style={{ color: 'var(--color-success)', letterSpacing: 'var(--tracking-wider)' }}
+                  >
+                    In Progress
+                  </p>
+                ) : todayCompleted ? (
                   <p
                     className="text-[var(--text-xs)] uppercase font-semibold mb-[var(--space-2)]"
                     style={{ color: 'var(--color-success)', letterSpacing: 'var(--tracking-wider)' }}
@@ -420,7 +447,7 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
                     letterSpacing: 'var(--tracking-tighter)',
                   }}
                 >
-                  {activeInfo.name}
+                  {hasActiveSession ? activeSessionName : activeInfo.name}
                 </h2>
               </motion.div>
             </AnimatePresence>
@@ -428,8 +455,40 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
 
           {/* Bottom section: CTA + 7-day streak bar */}
           <div className="px-[var(--space-6)] pb-[var(--space-5)]">
-            {/* ★ Glowing yellow "Start Workout" CTA */}
-            {!todayCompleted && !activeInfo.isRest && (
+            {/* ★ IN PROGRESS: Continue + Dismiss */}
+            {hasActiveSession && (
+              <div className="flex items-center gap-[var(--space-3)] mb-[var(--space-5)]">
+                <motion.button
+                  onClick={onContinueSession}
+                  whileTap={prefersReduced ? undefined : { scale: 0.97 }}
+                  className="flex-1 py-[var(--space-4)] rounded-[var(--radius-lg)] font-bold text-[var(--text-base)] transition-shadow"
+                  style={{
+                    backgroundColor: 'var(--color-primary)',
+                    color: 'var(--color-primary-text)',
+                    boxShadow: 'var(--shadow-primary)',
+                    fontFamily: 'var(--font-heading)',
+                    letterSpacing: 'var(--tracking-wide)',
+                  }}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <Play className="w-4 h-4" fill="currentColor" />
+                    Continue
+                  </span>
+                </motion.button>
+                <motion.button
+                  onClick={onDismissSession}
+                  whileTap={prefersReduced ? undefined : { scale: 0.9 }}
+                  className="w-12 h-12 rounded-[var(--radius-lg)] flex items-center justify-center border transition-colors active:opacity-70"
+                  style={{ borderColor: 'var(--color-border-strong)', color: 'var(--color-text-muted)' }}
+                  title="Dismiss session"
+                >
+                  <X className="w-5 h-5" />
+                </motion.button>
+              </div>
+            )}
+
+            {/* ★ Start Workout CTA (not in progress, not completed, not rest) */}
+            {!hasActiveSession && !todayCompleted && !activeInfo.isRest && (
               <motion.button
                 onClick={handleActiveClick}
                 whileTap={prefersReduced ? undefined : { scale: 0.97 }}
@@ -450,7 +509,7 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
             )}
 
             {/* Completed state: subtle "View Details" button */}
-            {todayCompleted && (
+            {!hasActiveSession && todayCompleted && (
               <motion.button
                 onClick={handleActiveClick}
                 whileTap={prefersReduced ? undefined : { scale: 0.97 }}
@@ -465,7 +524,7 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
             )}
 
             {/* Rest day: link to rest day page */}
-            {activeInfo.isRest && !todayCompleted && (
+            {!hasActiveSession && activeInfo.isRest && !todayCompleted && (
               <motion.button
                 onClick={handleActiveClick}
                 whileTap={prefersReduced ? undefined : { scale: 0.97 }}
@@ -481,6 +540,17 @@ export function ScheduleWidget({ onSetupSchedule }: ScheduleWidgetProps) {
                 </span>
               </motion.button>
             )}
+
+
+            {/* ─── Choose a workout — navigate to workout picker ─── */}
+            <button
+              onClick={() => navigate('/workouts')}
+              className="w-full flex items-center justify-center gap-1.5 py-[var(--space-1)] mb-[var(--space-4)] text-[11px] font-medium text-[var(--color-text-muted)] active:text-[var(--color-text)] transition-colors"
+            >
+              <Dumbbell className="w-3 h-3 opacity-60" />
+              <span>Choose a workout</span>
+              <ChevronRight className="w-3 h-3 opacity-60" />
+            </button>
 
             {/* ─── Rolling 7-day schedule strip — swipeable ─── */}
             <div className="overflow-hidden">

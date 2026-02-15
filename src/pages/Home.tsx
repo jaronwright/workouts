@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'motion/react'
 import {
-  Play, TrendingUp, ChevronRight, Flame, Trophy, Calendar,
-  Heart, X
+  ChevronRight, Flame, Trophy, Calendar,
+  Heart, Dumbbell, Activity
 } from 'lucide-react'
 import { AppShell } from '@/components/layout'
-import { Button } from '@/components/ui'
 import { ScheduleWidget } from '@/components/workout'
+import { WeatherCard } from '@/components/weather'
 import {
   FadeIn, StaggerList, StaggerItem, AnimatedNumber,
   PressableButton, PressableCard, FadeInOnScroll
@@ -184,129 +183,112 @@ export function HomePage() {
               </h1>
             )}
 
-            {/* Today's Workout — Cinematic Hero Card */}
+            {/* Today's Workout — Cinematic Hero Card (includes active session state) */}
             <FadeIn direction="up" delay={0.1}>
               <div className="mt-[var(--space-5)]">
-                <ScheduleWidget onSetupSchedule={() => setShowOnboarding(true)} />
+                <ScheduleWidget
+                  onSetupSchedule={() => setShowOnboarding(true)}
+                  activeSession={activeSession}
+                  onContinueSession={handleContinueWorkout}
+                  onDismissSession={handleDismissSession}
+                />
               </div>
             </FadeIn>
           </section>
         </FadeIn>
 
-        {/* ─── ACTIVE SESSION BANNER ─── */}
-        {activeSession && (
-          <FadeIn direction="up" delay={0.05}>
-            <section className="mb-[var(--space-6)]">
-              <div
-                className="rounded-[var(--radius-xl)] px-[var(--space-4)] py-[var(--space-4)] relative overflow-hidden"
-                style={{ background: 'var(--gradient-hero)' }}
-              >
-                <div className="warm-glow" />
-                <div className="flex items-center gap-[var(--space-4)] relative z-10">
-                  <div
-                    className="w-11 h-11 rounded-[var(--radius-lg)] flex items-center justify-center shrink-0"
-                    style={{ background: 'linear-gradient(135deg, var(--color-success), #10b981)' }}
-                  >
-                    <Play className="w-5 h-5 text-white ml-0.5" fill="white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className="text-[var(--text-xs)] font-semibold uppercase"
-                      style={{ color: 'var(--color-success)', letterSpacing: 'var(--tracking-wider)' }}
-                    >
-                      In Progress
-                    </p>
-                    <p className="text-[var(--text-base)] font-bold text-[var(--color-text)]">
-                      {getWorkoutDisplayName(activeSession.workout_day?.name ?? 'Workout')}
-                    </p>
-                  </div>
-                  <Button size="sm" onClick={handleContinueWorkout}>
-                    Continue
-                  </Button>
-                  <button
-                    onClick={handleDismissSession}
-                    className="p-2 rounded-full hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] transition-colors"
-                    title="Dismiss session"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </section>
-          </FadeIn>
-        )}
+        {/* ─── WEATHER ─── */}
+        <section className="mb-[var(--space-6)]">
+          <WeatherCard />
+        </section>
 
-        {/* ─── STAT PILLS — number-forward, JetBrains Mono ─── */}
+        {/* ─── STATS — icon-led, unified surface ─── */}
         <FadeIn direction="up" delay={0.15}>
           <section className="mb-[var(--space-6)]">
-            <div className="flex gap-[var(--space-3)]">
-              {/* Streak — yellow glow when active */}
-              <PressableCard onClick={() => navigate('/history')} className="flex-1 cursor-pointer">
-                <div
-                  className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]"
-                  style={streak > 0 ? { boxShadow: '0 0 16px rgba(232, 255, 0, 0.08)', borderColor: 'rgba(232, 255, 0, 0.15)' } : undefined}
-                >
-                  {statsLoading ? (
-                    <div className="h-7 w-8 mx-auto rounded-[var(--radius-sm)] skeleton" />
-                  ) : (
-                    <AnimatedNumber
-                      value={streak}
-                      className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
-                    />
-                  )}
-                  <p
-                    className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
-                    style={{ letterSpacing: 'var(--tracking-widest)' }}
-                  >
-                    streak
-                  </p>
-                </div>
-              </PressableCard>
+            <PressableCard onClick={() => navigate('/history')} className="cursor-pointer">
+              <div className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] overflow-hidden">
+                <div className="flex divide-x divide-[var(--color-border)]">
+                  {/* Streak */}
+                  <div className="flex-1 flex flex-col items-center py-[var(--space-4)] relative">
+                    {streak > 0 && (
+                      <div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{ background: 'radial-gradient(circle at 50% 30%, rgba(204, 255, 0, 0.06) 0%, transparent 70%)' }}
+                      />
+                    )}
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center mb-[var(--space-2)]"
+                      style={{ backgroundColor: streak > 0 ? 'rgba(204, 255, 0, 0.12)' : 'var(--color-surface-hover)' }}
+                    >
+                      <Flame
+                        className="w-4 h-4"
+                        style={{ color: streak > 0 ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
+                      />
+                    </div>
+                    {statsLoading ? (
+                      <div className="h-7 w-8 rounded-[var(--radius-sm)] skeleton" />
+                    ) : (
+                      <AnimatedNumber
+                        value={streak}
+                        className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
+                      />
+                    )}
+                    <p
+                      className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
+                      style={{ letterSpacing: 'var(--tracking-widest)' }}
+                    >
+                      streak
+                    </p>
+                  </div>
 
-              {/* This Week */}
-              <PressableCard onClick={() => navigate('/history')} className="flex-1 cursor-pointer">
-                <div className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]">
-                  {statsLoading ? (
-                    <div className="h-7 w-8 mx-auto rounded-[var(--radius-sm)] skeleton" />
-                  ) : (
-                    <AnimatedNumber
-                      value={thisWeek}
-                      className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
-                    />
-                  )}
-                  <p
-                    className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
-                    style={{ letterSpacing: 'var(--tracking-widest)' }}
-                  >
-                    this week
-                  </p>
-                </div>
-              </PressableCard>
+                  {/* This Week */}
+                  <div className="flex-1 flex flex-col items-center py-[var(--space-4)]">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center mb-[var(--space-2)] bg-[var(--color-surface-hover)]">
+                      <Calendar className="w-4 h-4 text-[var(--color-text-muted)]" />
+                    </div>
+                    {statsLoading ? (
+                      <div className="h-7 w-8 rounded-[var(--radius-sm)] skeleton" />
+                    ) : (
+                      <AnimatedNumber
+                        value={thisWeek}
+                        className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
+                      />
+                    )}
+                    <p
+                      className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
+                      style={{ letterSpacing: 'var(--tracking-widest)' }}
+                    >
+                      this week
+                    </p>
+                  </div>
 
-              {/* Total */}
-              <PressableCard onClick={() => navigate('/history')} className="flex-1 cursor-pointer">
-                <div className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]">
-                  {statsLoading ? (
-                    <div className="h-7 w-8 mx-auto rounded-[var(--radius-sm)] skeleton" />
-                  ) : (
-                    <AnimatedNumber
-                      value={totalWorkouts}
-                      className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
-                    />
-                  )}
-                  <p
-                    className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
-                    style={{ letterSpacing: 'var(--tracking-widest)' }}
-                  >
-                    total
-                  </p>
+                  {/* Total */}
+                  <div className="flex-1 flex flex-col items-center py-[var(--space-4)]">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center mb-[var(--space-2)] bg-[var(--color-surface-hover)]">
+                      <Trophy className="w-4 h-4 text-[var(--color-text-muted)]" />
+                    </div>
+                    {statsLoading ? (
+                      <div className="h-7 w-8 rounded-[var(--radius-sm)] skeleton" />
+                    ) : (
+                      <AnimatedNumber
+                        value={totalWorkouts}
+                        className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
+                      />
+                    )}
+                    <p
+                      className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"
+                      style={{ letterSpacing: 'var(--tracking-widest)' }}
+                    >
+                      total
+                    </p>
+                  </div>
                 </div>
-              </PressableCard>
-            </div>
+              </div>
+            </PressableCard>
           </section>
         </FadeIn>
 
-        {/* ─── RECENT ACTIVITY ─── */}
+        {/* ─── RECENT ACTIVITY — community feed style ─── */}
         {recentActivity.length > 0 && (
           <FadeInOnScroll direction="up">
             <section>
@@ -325,8 +307,8 @@ export function HomePage() {
                   <ChevronRight className="w-3.5 h-3.5" />
                 </PressableButton>
               </div>
-              <StaggerList className="space-y-[var(--space-1)]">
-                {recentActivity.map((item, idx) => {
+              <StaggerList className="space-y-[var(--space-2)]">
+                {recentActivity.map((item) => {
                   const isWeights = item.kind === 'weights'
                   const session = item.session
                   const name = isWeights
@@ -335,37 +317,52 @@ export function HomePage() {
                   const historyPath = isWeights
                     ? `/history/${session.id}`
                     : `/history/cardio/${session.id}`
-                  const IconComp = isWeights ? TrendingUp : Heart
+
+                  // Workout type icon + color — matches community feed pattern
+                  const templateType = !isWeights
+                    ? (session as TemplateWorkoutSession).template?.type
+                    : undefined
+                  const { IconComp, iconColor } = isWeights
+                    ? { IconComp: Dumbbell, iconColor: 'var(--color-weights)' }
+                    : templateType === 'mobility'
+                      ? { IconComp: Activity, iconColor: 'var(--color-mobility)' }
+                      : { IconComp: Heart, iconColor: 'var(--color-cardio)' }
+
+                  // Duration from completed_at - started_at
+                  const durationMin = session.completed_at
+                    ? Math.round((new Date(session.completed_at).getTime() - new Date(session.started_at).getTime()) / 60000)
+                    : null
 
                   return (
                     <StaggerItem key={session.id}>
                       <PressableCard onClick={() => navigate(historyPath)} className="cursor-pointer">
-                        <div
-                          className="flex items-center gap-[var(--space-3)] py-[var(--space-3)] pl-[var(--space-3)]"
-                          style={idx === 0 ? { borderLeft: '2px solid var(--color-primary)' } : undefined}
-                        >
-                          <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                            style={{
-                              background: isWeights
-                                ? 'linear-gradient(135deg, var(--color-success), #10b981)'
-                                : 'linear-gradient(135deg, var(--color-tertiary), #3DBDB4)'
-                            }}
-                          >
-                            <IconComp className="w-3.5 h-3.5 text-white" />
+                        <div className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)]">
+                          <div className="flex items-center gap-[var(--space-3)]">
+                            {/* Workout type icon — tinted background like community cards */}
+                            <div
+                              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                              style={{ backgroundColor: `${iconColor}20` }}
+                            >
+                              <IconComp className="w-5 h-5" style={{ color: iconColor }} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <p className="text-[var(--text-sm)] font-semibold text-[var(--color-text)] truncate">
+                                  {name}
+                                </p>
+                                <span className="text-[var(--text-xs)] text-[var(--color-text-muted)] opacity-70 shrink-0 ml-2">
+                                  {formatRelativeTime(session.completed_at || session.started_at)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                {durationMin && durationMin > 0 && (
+                                  <span className="text-[var(--text-xs)] text-[var(--color-text-muted)]">
+                                    {durationMin} min
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[var(--text-sm)] font-semibold text-[var(--color-text)] truncate">
-                              {name}
-                            </p>
-                            <p className="text-[var(--text-xs)] text-[var(--color-text-muted)]">
-                              {formatRelativeTime(session.started_at)}
-                            </p>
-                          </div>
-                          <div
-                            className="w-2 h-2 rounded-full shrink-0"
-                            style={{ backgroundColor: 'var(--color-success)' }}
-                          />
                         </div>
                       </PressableCard>
                     </StaggerItem>
