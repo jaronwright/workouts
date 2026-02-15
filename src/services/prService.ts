@@ -70,7 +70,7 @@ export async function checkAndUpdatePR(
         user_id: userId,
         plan_exercise_id: exerciseId,
         weight,
-        reps: reps || null,
+        reps: reps ?? null,
         achieved_at: new Date().toISOString()
       })
 
@@ -81,7 +81,7 @@ export async function checkAndUpdatePR(
 
   return {
     isNewPR,
-    previousPR: currentPR?.weight || null,
+    previousPR: currentPR?.weight ?? null,
     newWeight: weight,
     improvement: currentPR ? weight - currentPR.weight : null,
     exerciseName

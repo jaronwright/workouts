@@ -37,6 +37,7 @@ export function CollapsibleSection({
       <CardContent className="py-4">
         <button
           onClick={toggle}
+          aria-expanded={expanded}
           className="w-full flex items-center justify-between"
         >
           <div className="flex items-center gap-3">

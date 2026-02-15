@@ -87,7 +87,7 @@ export function CardioSessionDetailPage() {
     )
   }
 
-  const durationMinutes = session.duration_minutes ||
+  const durationMinutes = session.duration_minutes ??
     (session.completed_at && session.started_at
       ? Math.round((new Date(session.completed_at).getTime() - new Date(session.started_at).getTime()) / 60000)
       : null)
@@ -154,7 +154,7 @@ export function CardioSessionDetailPage() {
 
         {/* Metrics Row */}
         <div className="flex justify-around px-[var(--space-4)] -mt-1 mb-[var(--space-4)]">
-          {durationMinutes && (
+          {durationMinutes != null && (
             <div className="flex flex-col items-center">
               <div className="w-10 h-10 rounded-[var(--radius-lg)] flex items-center justify-center mb-1.5" style={{ background: 'var(--color-info-muted)' }}>
                 <Timer className="w-5 h-5 text-[var(--color-info)]" />
@@ -176,7 +176,7 @@ export function CardioSessionDetailPage() {
               <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Distance</span>
             </div>
           )}
-          {durationMinutes && session.distance_value && (
+          {durationMinutes != null && session.distance_value && (
             <div className="flex flex-col items-center">
               <div className="w-10 h-10 rounded-[var(--radius-lg)] flex items-center justify-center mb-1.5" style={{ background: 'var(--color-tertiary-muted)' }}>
                 <Clock className="w-5 h-5 text-[var(--color-tertiary)]" />

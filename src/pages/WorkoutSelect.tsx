@@ -45,12 +45,14 @@ function CardioCard({ template, lastSession, onClick }: CardioCardProps) {
           {lastSession ? (
             <div className="flex items-center gap-2 mt-1">
               <span className="text-xs text-[var(--color-text-muted)]">
-                Last: {lastSession.duration_minutes ? `${lastSession.duration_minutes} min` : '—'}
+                Last: {lastSession.duration_minutes != null ? `${lastSession.duration_minutes} min` : '—'}
                 {lastSession.distance_value ? ` · ${lastSession.distance_value} ${lastSession.distance_unit || 'mi'}` : ''}
               </span>
-              <span className="text-[10px] text-[var(--color-text-muted)] opacity-70">
-                {formatRelativeTime(lastSession.completed_at!)}
-              </span>
+              {lastSession.completed_at && (
+                <span className="text-[10px] text-[var(--color-text-muted)] opacity-70">
+                  {formatRelativeTime(lastSession.completed_at)}
+                </span>
+              )}
             </div>
           ) : (
             <p className="text-xs text-[var(--color-text-muted)] mt-1">
@@ -96,9 +98,11 @@ function MobilityCategoryCard({ category, template, lastSession, onClick }: Mobi
               <span className="text-xs text-[var(--color-text-muted)]">
                 Last: {lastSession.duration_minutes ?? '—'} min
               </span>
-              <span className="text-[10px] text-[var(--color-text-muted)] opacity-70">
-                {formatRelativeTime(lastSession.completed_at!)}
-              </span>
+              {lastSession.completed_at && (
+                <span className="text-[10px] text-[var(--color-text-muted)] opacity-70">
+                  {formatRelativeTime(lastSession.completed_at)}
+                </span>
+              )}
             </div>
           ) : (
             <p className="text-xs text-[var(--color-text-muted)] mt-1 flex items-center gap-1">
@@ -134,7 +138,7 @@ export function WorkoutSelectPage() {
     for (const s of templateSessions) {
       if (!s.completed_at) continue
       const existing = map.get(s.template_id)
-      if (!existing || new Date(s.completed_at) > new Date(existing.completed_at!)) {
+      if (!existing || !existing.completed_at || new Date(s.completed_at) > new Date(existing.completed_at)) {
         map.set(s.template_id, s)
       }
     }
@@ -151,7 +155,7 @@ export function WorkoutSelectPage() {
       const cat = s.template.category
       if (!cat) continue
       const existing = map.get(cat)
-      if (!existing || new Date(s.completed_at) > new Date(existing.completed_at!)) {
+      if (!existing || !existing.completed_at || new Date(s.completed_at) > new Date(existing.completed_at)) {
         map.set(cat, s)
       }
     }

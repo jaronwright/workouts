@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { ArrowRight } from 'lucide-react'
@@ -112,6 +112,14 @@ export function WorkoutPage() {
 
   const [showSplash, setShowSplash] = useState(false)
   const [splashQuote] = useState(() => MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)])
+  const splashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Cleanup splash timer on unmount
+  useEffect(() => {
+    return () => {
+      if (splashTimerRef.current) clearTimeout(splashTimerRef.current)
+    }
+  }, [])
 
   const handleStart = useCallback(() => {
     if (!dayId || !user) return
@@ -119,7 +127,7 @@ export function WorkoutPage() {
 
     // After splash animation, actually start the workout
     // Network errors are handled by the hook (returns optimistic session)
-    setTimeout(() => {
+    splashTimerRef.current = setTimeout(() => {
       startWorkout(dayId, {
         onSuccess: (session) => {
           setActiveSession(session)
@@ -186,11 +194,15 @@ export function WorkoutPage() {
   }
 
   const handleSwapExercise = async (exerciseId: string, newName: string) => {
-    const result = await swapPlanExerciseName(exerciseId, newName)
-    if (result) {
-      toast.success(`Swapped to ${newName}`)
-      queryClient.invalidateQueries({ queryKey: ['workout-day', dayId] })
-    } else {
+    try {
+      const result = await swapPlanExerciseName(exerciseId, newName)
+      if (result) {
+        toast.success(`Swapped to ${newName}`)
+        queryClient.invalidateQueries({ queryKey: ['workout-day', dayId] })
+      } else {
+        toast.error('Could not swap exercise. Try again.')
+      }
+    } catch {
       toast.error('Could not swap exercise. Try again.')
     }
   }

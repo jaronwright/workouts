@@ -25,7 +25,7 @@ function getWorkoutSubtitle(schedule: ScheduleDay): string | null {
     const match = schedule.workout_day.name.match(/\(([^)]+)\)/)
     if (match) return match[1]
   }
-  if (schedule.template?.duration_minutes) {
+  if (schedule.template?.duration_minutes != null) {
     return `~${schedule.template.duration_minutes} min`
   }
   return null

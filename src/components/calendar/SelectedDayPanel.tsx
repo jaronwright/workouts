@@ -183,9 +183,9 @@ export function SelectedDayPanel({ day }: SelectedDayPanelProps) {
               {Icon && (
                 <div
                   className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: projected!.bgColor }}
+                  style={{ backgroundColor: projected?.bgColor }}
                 >
-                  <Icon className="w-4 h-4" style={{ color: projected!.color }} />
+                  <Icon className="w-4 h-4" style={{ color: projected?.color }} />
                 </div>
               )}
               <p className="text-sm text-[var(--color-text-muted)]">Rest day</p>

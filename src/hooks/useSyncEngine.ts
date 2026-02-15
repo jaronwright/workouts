@@ -67,7 +67,9 @@ export function useSyncEngine() {
       wasOfflineRef.current = false
     }
 
-    sync()
+    sync().catch((err) => {
+      console.error('Sync engine error:', err)
+    })
 
     return () => {
       cancelled = true

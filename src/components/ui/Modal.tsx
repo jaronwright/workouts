@@ -44,10 +44,14 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
+            aria-hidden="true"
           />
 
           {/* Modal */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
             className="
               relative w-full sm:max-w-md sm:mx-4
               max-h-[85vh] overflow-auto
@@ -71,6 +75,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
                 <h2 className="text-lg font-bold text-[var(--color-text)]">{title}</h2>
                 <button
                   onClick={onClose}
+                  aria-label="Close"
                   className="
                     w-8 h-8 flex items-center justify-center
                     text-[var(--color-text-muted)]

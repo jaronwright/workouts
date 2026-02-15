@@ -84,7 +84,11 @@ export function CardioWorkoutPage() {
       onSuccess: (session) => {
         setSessionId(session.id)
         setIsRunning(true)
+        // Reset accumulated time for fresh session
+        accumulatedSecondsRef.current = 0
+        setElapsedSeconds(0)
         startTimeRef.current = Date.now()
+        if (intervalRef.current) clearInterval(intervalRef.current)
         intervalRef.current = setInterval(() => {
           if (startTimeRef.current === null) return
           setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000))
@@ -259,10 +263,10 @@ export function CardioWorkoutPage() {
               <p className="text-[var(--text-sm)] text-[var(--color-text-muted)]">
                 {lastSession ? (
                   <>
-                    Last: {lastSession.duration_minutes ? `${lastSession.duration_minutes} min` : ''}
-                    {lastSession.duration_minutes && lastSession.distance_value ? ' · ' : ''}
-                    {lastSession.distance_value ? `${lastSession.distance_value} ${lastSession.distance_unit || ''}` : ''}
-                    {!lastSession.duration_minutes && !lastSession.distance_value ? 'Completed' : ''}
+                    Last: {lastSession.duration_minutes != null ? `${lastSession.duration_minutes} min` : ''}
+                    {lastSession.duration_minutes != null && lastSession.distance_value != null ? ' · ' : ''}
+                    {lastSession.distance_value != null ? `${lastSession.distance_value} ${lastSession.distance_unit || ''}` : ''}
+                    {lastSession.duration_minutes == null && lastSession.distance_value == null ? 'Completed' : ''}
                   </>
                 ) : (
                   'No previous sessions'

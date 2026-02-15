@@ -571,6 +571,7 @@ export function SessionDetailPage() {
                           <h4 className="text-sm font-medium text-[var(--color-text)]">{exercise.name}</h4>
                           <div className="flex flex-wrap gap-1.5 mt-1.5">
                             {(() => {
+                              if (sets.length === 0) return null
                               const allSameReps = sets.every(s => s.reps_completed === sets[0].reps_completed)
                               const allSameWeight = sets.every(s => s.weight_used === sets[0].weight_used)
 

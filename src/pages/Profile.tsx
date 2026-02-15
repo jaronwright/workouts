@@ -139,12 +139,12 @@ export function ProfilePage() {
   const { mutate: submitFeedback, isPending: isSubmittingFeedback } = useSubmitFeedback()
   const { data: pastFeedback } = useUserFeedback()
 
-  // Initialize form from profile data
+  // Initialize form from profile data (skip if user is actively editing)
   useEffect(() => {
-    if (profile) {
+    if (profile && !isEditingName) {
       setDisplayName(profile.display_name || '')
     }
-  }, [profile])
+  }, [profile, isEditingName])
 
   // Scroll to feedback section when navigated with openFeedback state
   useEffect(() => {

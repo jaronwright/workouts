@@ -28,8 +28,8 @@ interface CardioShareData {
 
 export function formatCardioShareText(data: CardioShareData): string {
   const stats: string[] = []
-  if (data.durationMinutes) stats.push(`${data.durationMinutes} min`)
-  if (data.distanceValue) stats.push(`${data.distanceValue} ${data.distanceUnit || 'miles'}`)
+  if (data.durationMinutes != null) stats.push(`${data.durationMinutes} min`)
+  if (data.distanceValue != null) stats.push(`${data.distanceValue} ${data.distanceUnit || 'miles'}`)
 
   const lines = [
     `${data.workoutName} - ${formatDate(data.date)}`,

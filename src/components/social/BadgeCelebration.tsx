@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { BADGE_MAP, RARITY_COLORS } from '@/config/badgeConfig'
 import { springPresets } from '@/config/animationConfig'
@@ -15,9 +15,17 @@ interface BadgeCelebrationProps {
 export function BadgeCelebration({ badgeKeys, onComplete }: BadgeCelebrationProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [visible, setVisible] = useState(true)
+  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const currentKey = badgeKeys[currentIndex]
   const badge = currentKey ? BADGE_MAP[currentKey] : null
+
+  // Cleanup dismiss timer on unmount
+  useEffect(() => {
+    return () => {
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     if (!badge) {
@@ -31,7 +39,7 @@ export function BadgeCelebration({ badgeKeys, onComplete }: BadgeCelebrationProp
         setCurrentIndex(i => i + 1)
       } else {
         setVisible(false)
-        setTimeout(onComplete, 300)
+        dismissTimerRef.current = setTimeout(onComplete, 300)
       }
     }, 2500)
 
@@ -43,7 +51,7 @@ export function BadgeCelebration({ badgeKeys, onComplete }: BadgeCelebrationProp
       setCurrentIndex(i => i + 1)
     } else {
       setVisible(false)
-      setTimeout(onComplete, 300)
+      dismissTimerRef.current = setTimeout(onComplete, 300)
     }
   }
 

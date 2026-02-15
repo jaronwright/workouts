@@ -10,7 +10,7 @@ export function ProgressionBadge({ suggestion, onClick }: ProgressionBadgeProps)
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-1 text-xs bg-[var(--color-success)]/10 text-[var(--color-success)] px-2 py-1 rounded-full hover:bg-[var(--color-success)]/20 transition-colors"
+      className="inline-flex items-center gap-1 text-xs bg-[var(--color-success)]/10 text-[var(--color-success)] px-2.5 py-2 rounded-full hover:bg-[var(--color-success)]/20 transition-colors min-h-[44px]"
       title={suggestion.reason}
     >
       <TrendingUp className="w-3 h-3" />

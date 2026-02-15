@@ -137,7 +137,8 @@ export function ExerciseCard({
       return
     }
     const reps = exercise.reps_min
-    const weightValue = noWeight ? null : (weight ? parseFloat(weight) : null)
+    const parsed = weight ? parseFloat(weight) : NaN
+    const weightValue = noWeight ? null : (Number.isFinite(parsed) ? parsed : null)
     setJustCompleted(true)
     onExerciseComplete(reps, weightValue)
     setTimeout(() => setJustCompleted(false), 300)
@@ -214,8 +215,11 @@ export function ExerciseCard({
               placeholder="0"
               value={weight}
               onChange={(e) => {
-                // Only allow numbers and decimal point
-                const val = e.target.value.replace(/[^0-9.]/g, '')
+                // Only allow numbers and a single decimal point
+                let val = e.target.value.replace(/[^0-9.]/g, '')
+                // Prevent multiple decimal points
+                const parts = val.split('.')
+                if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('')
                 setWeight(val)
               }}
               onClick={(e) => e.stopPropagation()}
@@ -247,7 +251,7 @@ export function ExerciseCard({
         )}
 
         {/* Weight shown when completed */}
-        {!noWeight && isCompleted && completedSets[0]?.weight_used && (
+        {!noWeight && isCompleted && completedSets[0]?.weight_used != null && (
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--color-success)]/15 flex-shrink-0">
             <Sparkles className="w-3.5 h-3.5 text-[var(--color-success)]" />
             <span className="text-sm text-[var(--color-success)] font-bold">

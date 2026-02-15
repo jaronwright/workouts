@@ -40,37 +40,42 @@ function getHourFromIso(iso: string): number {
 export function UvIndexChart({ data, sunrise, sunset }: UvIndexChartProps) {
   const prefersReduced = useReducedMotion()
 
-  const { points, linePath, areaPath, maxUv, currentHour, nowX, nowY, sunriseHour, sunsetHour } = useMemo(() => {
+  const { points, linePath, areaPath, maxUv, currentHour, nowX, nowY, sunriseHour, sunsetHour, lastIdx } = useMemo(() => {
     const now = new Date()
     const currentHour = now.getHours()
     const maxUv = Math.max(3, ...data.map(d => d.uvIndex)) // min 3 so low UV days still show
     const usableH = CHART_H - PADDING_TOP - PADDING_BOTTOM
 
+    const lastIdx = Math.max(1, data.length - 1)
     const pts = data.map((entry, i) => ({
-      x: (i / 23) * CHART_W,
+      x: (i / lastIdx) * CHART_W,
       y: PADDING_TOP + usableH - (entry.uvIndex / maxUv) * usableH,
     }))
 
     const line = buildSmoothPath(pts)
     // Area: same path but close to bottom
-    const area = `${line} L ${pts[pts.length - 1].x},${CHART_H} L ${pts[0].x},${CHART_H} Z`
+    const area = pts.length > 0
+      ? `${line} L ${pts[pts.length - 1].x},${CHART_H} L ${pts[0].x},${CHART_H} Z`
+      : ''
 
     // "Now" indicator position (interpolate between hours)
     const fraction = currentHour + now.getMinutes() / 60
-    const nx = (fraction / 23) * CHART_W
+    const nx = (fraction / lastIdx) * CHART_W
     // Interpolate Y between current and next hour
-    const floorH = Math.floor(fraction)
-    const ceilH = Math.min(23, floorH + 1)
-    const t = fraction - floorH
-    const ny = pts[floorH].y + (pts[ceilH].y - pts[floorH].y) * t
+    const floorH = Math.min(Math.floor(fraction), lastIdx)
+    const ceilH = Math.min(lastIdx, floorH + 1)
+    const t = fraction - Math.floor(fraction)
+    const ny = pts.length > 0
+      ? pts[floorH].y + (pts[ceilH].y - pts[floorH].y) * t
+      : CHART_H / 2
 
     const srH = sunrise ? getHourFromIso(sunrise) : 6
     const ssH = sunset ? getHourFromIso(sunset) : 18
 
-    return { points: pts, linePath: line, areaPath: area, maxUv, currentHour, nowX: nx, nowY: ny, sunriseHour: srH, sunsetHour: ssH }
+    return { points: pts, linePath: line, areaPath: area, maxUv, currentHour, nowX: nx, nowY: ny, sunriseHour: srH, sunsetHour: ssH, lastIdx }
   }, [data, sunrise, sunset])
 
-  const currentUv = data[Math.min(currentHour, 23)]?.uvIndex ?? 0
+  const currentUv = data[Math.min(currentHour, data.length - 1)]?.uvIndex ?? 0
   const currentUvRounded = Math.round(currentUv)
 
   return (
@@ -113,18 +118,18 @@ export function UvIndexChart({ data, sunrise, sunset }: UvIndexChartProps) {
           <rect
             x={0}
             y={0}
-            width={(sunriseHour / 23) * CHART_W}
+            width={(sunriseHour / lastIdx) * CHART_W}
             height={CHART_H}
             fill="var(--color-text)"
             opacity={0.06}
             rx={2}
           />
         )}
-        {sunsetHour < 23 && (
+        {sunsetHour < lastIdx && (
           <rect
-            x={(sunsetHour / 23) * CHART_W}
+            x={(sunsetHour / lastIdx) * CHART_W}
             y={0}
-            width={((23 - sunsetHour) / 23) * CHART_W}
+            width={((lastIdx - sunsetHour) / lastIdx) * CHART_W}
             height={CHART_H}
             fill="var(--color-text)"
             opacity={0.06}
@@ -191,13 +196,13 @@ export function UvIndexChart({ data, sunrise, sunset }: UvIndexChartProps) {
         )}
 
         {/* Time labels */}
-        <text x={(6 / 23) * CHART_W} y={CHART_H + 11} textAnchor="middle" className="fill-[var(--color-text-muted)]" fontSize="8" fontWeight="500">
+        <text x={(6 / lastIdx) * CHART_W} y={CHART_H + 11} textAnchor="middle" className="fill-[var(--color-text-muted)]" fontSize="8" fontWeight="500">
           6AM
         </text>
-        <text x={(12 / 23) * CHART_W} y={CHART_H + 11} textAnchor="middle" className="fill-[var(--color-text-muted)]" fontSize="8" fontWeight="500">
+        <text x={(12 / lastIdx) * CHART_W} y={CHART_H + 11} textAnchor="middle" className="fill-[var(--color-text-muted)]" fontSize="8" fontWeight="500">
           12PM
         </text>
-        <text x={(18 / 23) * CHART_W} y={CHART_H + 11} textAnchor="middle" className="fill-[var(--color-text-muted)]" fontSize="8" fontWeight="500">
+        <text x={(18 / lastIdx) * CHART_W} y={CHART_H + 11} textAnchor="middle" className="fill-[var(--color-text-muted)]" fontSize="8" fontWeight="500">
           6PM
         </text>
       </svg>

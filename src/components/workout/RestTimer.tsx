@@ -172,6 +172,7 @@ export function RestTimer() {
           <div className="flex justify-center gap-4 mt-5">
             <button
               onClick={() => isRestTimerActive ? pauseRestTimer() : startRestTimer(restTimerSeconds || restTimerInitialSeconds)}
+              aria-label={isRestTimerActive ? 'Pause timer' : 'Start timer'}
               className={`
                 p-3.5 rounded-full active:scale-90 transition-transform duration-100
                 ${isFinished
@@ -189,6 +190,7 @@ export function RestTimer() {
             </button>
             <button
               onClick={resetRestTimer}
+              aria-label="Reset timer"
               className={`
                 p-3.5 rounded-full active:scale-90 transition-transform duration-100
                 ${isFinished

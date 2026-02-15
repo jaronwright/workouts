@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { X, ChevronLeft, ChevronRight, Check, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -51,6 +51,14 @@ export function PostWorkoutReview({ onComplete }: PostWorkoutReviewProps) {
   const createReview = useCreateReview()
   const [direction, setDirection] = useState(0)
   const [submitted, setSubmitted] = useState(false)
+  const submittedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (submittedTimerRef.current) clearTimeout(submittedTimerRef.current)
+    }
+  }, [])
 
   const handleNext = useCallback(() => {
     setDirection(1)
@@ -78,7 +86,7 @@ export function PostWorkoutReview({ onComplete }: PostWorkoutReviewProps) {
       workout_duration_minutes: workoutDurationMinutes ?? undefined,
     })
     setSubmitted(true)
-    setTimeout(() => {
+    submittedTimerRef.current = setTimeout(() => {
       setSubmitted(false)
       closeReview()
       onComplete?.()
