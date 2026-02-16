@@ -29,6 +29,7 @@ dist-ssr
 # Supabase temp files
 supabase/.temp/
 
-# Test coverage
+# Test coverage & results
 coverage/
+test-results/
 .vercel
