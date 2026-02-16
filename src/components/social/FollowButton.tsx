@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react'
-import { UserPlus, Check } from 'lucide-react'
+import { UserPlus, Check } from '@phosphor-icons/react'
 import { useIsFollowing, useFollowUser, useUnfollowUser } from '@/hooks/useFollow'
 import { useAuthStore } from '@/stores/authStore'
 

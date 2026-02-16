@@ -4,7 +4,7 @@ import { BottomSheet, Button } from '@/components/ui'
 import { useWorkoutTemplates, useSaveScheduleDayWorkouts } from '@/hooks/useSchedule'
 import { useSelectedPlanDays } from '@/hooks/useWorkoutPlan'
 import { type ScheduleDay, type ScheduleWorkoutItem } from '@/services/scheduleService'
-import { Moon, Plus, X, Trash2 } from 'lucide-react'
+import { Moon, Plus, X, Trash } from '@phosphor-icons/react'
 import {
   WEIGHTS_CONFIG,
   getCardioStyle,
@@ -180,8 +180,8 @@ export function ScheduleDayEditor({
           ) : isRestDay ? (
             <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--color-surface-hover)]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-500/10 flex items-center justify-center">
-                  <Moon className="w-5 h-5 text-gray-500" />
+                <div className="w-10 h-10 rounded-full bg-[var(--color-text-muted)]/10 flex items-center justify-center">
+                  <Moon className="w-5 h-5 text-[var(--color-text-muted)]" />
                 </div>
                 <span className="font-medium text-[var(--color-text)]">Rest Day</span>
               </div>
@@ -220,7 +220,7 @@ export function ScheduleDayEditor({
                     onClick={(e) => { e.stopPropagation(); removeWorkout(index) }}
                     className="p-2 rounded-full hover:bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-error)]"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash className="w-4 h-4" />
                   </button>
                 </div>
               )
@@ -230,9 +230,9 @@ export function ScheduleDayEditor({
 
         {/* Overtraining Warning */}
         {selectedWorkouts.length >= 3 && selectedWorkouts[0]?.type !== 'rest' && (
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-            <span className="text-amber-500 text-lg flex-shrink-0">⚠️</span>
-            <p className="text-sm text-amber-600 dark:text-amber-400">
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-[var(--color-warning-muted)] border border-[var(--color-warning)]/20">
+            <span className="text-[var(--color-warning)] text-lg flex-shrink-0">⚠️</span>
+            <p className="text-sm text-[var(--color-warning)]">
               Scheduling {selectedWorkouts.length} sessions in one day increases injury and overtraining risk. Consider spreading workouts across multiple days.
             </p>
           </div>
@@ -260,7 +260,7 @@ export function ScheduleDayEditor({
                   onClick={(e) => { e.stopPropagation(); addWorkout({ type: 'rest' }) }}
                   className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--color-surface)] text-left"
                 >
-                  <Moon className="w-5 h-5 text-gray-500" />
+                  <Moon className="w-5 h-5 text-[var(--color-text-muted)]" />
                   <span className="text-sm">Rest Day</span>
                 </button>
 
@@ -370,7 +370,7 @@ export function ScheduleDayEditor({
 
         {/* Error Display */}
         {error && (
-          <div className="p-3 rounded-lg bg-red-500/10 text-red-500 text-sm">
+          <div className="p-3 rounded-lg bg-[var(--color-danger-muted)] text-[var(--color-danger)] text-sm">
             {error}
           </div>
         )}

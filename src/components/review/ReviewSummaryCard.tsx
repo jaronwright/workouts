@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Star, ChevronDown, Pencil, Trash2, ArrowRight } from 'lucide-react'
+import { Star, CaretDown, PencilSimple, Trash, ArrowRight } from '@phosphor-icons/react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { springs } from '@/config/animationConfig'
 import {
@@ -41,11 +41,12 @@ export function ReviewSummaryCard({ review, onEdit, onDelete }: ReviewSummaryCar
               {[1, 2, 3, 4, 5].map((i) => (
                 <Star
                   key={i}
-                  className={`w-4 h-4 ${
+                  className="w-4 h-4"
+                  style={
                     i <= review.overall_rating
-                      ? 'fill-amber-400 text-amber-400'
-                      : 'fill-none text-gray-300 dark:text-gray-600'
-                  }`}
+                      ? { fill: 'var(--color-reward)', color: 'var(--color-reward)' }
+                      : { fill: 'none', color: 'var(--color-border)' }
+                  }
                 />
               ))}
             </div>
@@ -62,15 +63,15 @@ export function ReviewSummaryCard({ review, onEdit, onDelete }: ReviewSummaryCar
                 onClick={onEdit}
                 className="p-1.5 rounded-lg hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] transition-colors"
               >
-                <Pencil className="w-3.5 h-3.5" />
+                <PencilSimple className="w-3.5 h-3.5" />
               </button>
             )}
             {onDelete && (
               <button
                 onClick={onDelete}
-                className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--color-text-muted)] hover:text-red-500 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-[var(--color-danger-muted)] text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -151,7 +152,7 @@ export function ReviewSummaryCard({ review, onEdit, onDelete }: ReviewSummaryCar
                   animate={{ rotate: showFullReflection ? 180 : 0 }}
                   transition={springs.default}
                 >
-                  <ChevronDown className="w-3 h-3" />
+                  <CaretDown className="w-3 h-3" />
                 </motion.div>
               </button>
             )}

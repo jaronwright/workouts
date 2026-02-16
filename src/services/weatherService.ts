@@ -174,7 +174,7 @@ export function getUvColor(uvIndex: number): string {
   if (uvIndex < 3) return '#22C55E'   // green - Low
   if (uvIndex < 6) return '#EAB308'   // yellow - Moderate
   if (uvIndex < 8) return '#F97316'   // orange - High
-  if (uvIndex < 11) return '#EF4444'  // red - Very High
+  if (uvIndex < 11) return '#E63B57'  // rose - Very High
   return '#A855F7'                     // purple - Extreme
 }
 

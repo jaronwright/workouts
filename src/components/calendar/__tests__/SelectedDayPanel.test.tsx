@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@/test/utils'
 import { SelectedDayPanel } from '../SelectedDayPanel'
-import { Dumbbell } from 'lucide-react'
+import { Barbell } from '@phosphor-icons/react'
 import type { CalendarDay } from '@/hooks/useCalendarData'
 import type { UnifiedSession } from '@/utils/calendarGrid'
 
@@ -76,7 +76,7 @@ describe('SelectedDayPanel', () => {
       sessions: [],
       projected: {
         dayNumber: 1,
-        icon: Dumbbell,
+        icon: Barbell,
         color: '#ccc',
         bgColor: '#eee',
         name: 'Not set',
@@ -114,7 +114,7 @@ describe('SelectedDayPanel', () => {
       sessions: [],
       projected: {
         dayNumber: 1,
-        icon: Dumbbell,
+        icon: Barbell,
         color: '#3B82F6',
         bgColor: 'rgba(59, 130, 246, 0.15)',
         name: 'Push Day',
@@ -134,7 +134,7 @@ describe('SelectedDayPanel', () => {
       sessions: [],
       projected: {
         dayNumber: 1,
-        icon: Dumbbell,
+        icon: Barbell,
         color: '#3B82F6',
         bgColor: 'rgba(59, 130, 246, 0.15)',
         name: 'Push Day',
@@ -153,7 +153,7 @@ describe('SelectedDayPanel', () => {
       sessions: [],
       projected: {
         dayNumber: 2,
-        icon: Dumbbell,
+        icon: Barbell,
         color: '#3B82F6',
         bgColor: 'rgba(59, 130, 246, 0.15)',
         name: 'Pull Day',
@@ -173,7 +173,7 @@ describe('SelectedDayPanel', () => {
       sessions: [],
       projected: {
         dayNumber: 3,
-        icon: Dumbbell,
+        icon: Barbell,
         color: '#6B7280',
         bgColor: 'rgba(107, 114, 128, 0.15)',
         name: 'Rest',
@@ -191,7 +191,7 @@ describe('SelectedDayPanel', () => {
       sessions: [],
       projected: {
         dayNumber: 1,
-        icon: Dumbbell,
+        icon: Barbell,
         color: '#3B82F6',
         bgColor: 'rgba(59, 130, 246, 0.15)',
         name: 'Push Day',

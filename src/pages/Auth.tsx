@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Dumbbell, ArrowLeft, CheckCircle } from 'lucide-react'
+import { Barbell, ArrowLeft, CheckCircle } from '@phosphor-icons/react'
 import { Button, Input, Card, CardContent } from '@/components/ui'
 import { FadeIn } from '@/components/motion'
 import { useAuth } from '@/hooks/useAuth'
@@ -218,7 +218,7 @@ export function AuthPage() {
                 boxShadow: 'var(--shadow-primary)',
               }}
             >
-              <Dumbbell className="w-8 h-8" style={{ color: 'var(--color-primary-text)' }} />
+              <Barbell className="w-8 h-8" style={{ color: 'var(--color-primary-text)' }} />
             </div>
             <h1
               className="text-[var(--text-3xl)] text-[var(--color-text)] mb-[var(--space-2)]"

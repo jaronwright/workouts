@@ -1,16 +1,16 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion } from 'motion/react'
 import { AppShell } from '@/components/layout'
+import { SectionLabel } from '@/components/ui'
 import { ScheduleDayEditor } from '@/components/schedule'
 import { StaggerList, StaggerItem, FadeIn, FadeInOnScroll, PressableCard } from '@/components/motion'
 import { useUserSchedule } from '@/hooks/useSchedule'
-import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
+import { useProfile } from '@/hooks/useProfile'
 import { useCycleDay } from '@/hooks/useCycleDay'
-import { formatCycleStartDate } from '@/utils/cycleDay'
+import { getTodayInTimezone, detectUserTimezone } from '@/utils/cycleDay'
 import { type ScheduleDay } from '@/services/scheduleService'
 import { springPresets } from '@/config/animationConfig'
-import { useToast } from '@/hooks/useToast'
-import { Moon, Plus, ChevronRight } from 'lucide-react'
+import { Moon, Plus, CaretRight } from '@phosphor-icons/react'
 import {
   getWeightsStyleByName,
   getWorkoutDisplayName,
@@ -35,9 +35,9 @@ function getWorkoutChip(schedule: ScheduleDay) {
   if (schedule.is_rest_day) {
     return {
       Icon: Moon,
-      color: '#6B7280',
+      color: 'var(--color-text-muted)',
       label: 'Rest',
-      bgColor: 'rgba(107, 114, 128, 0.15)'
+      bgColor: 'var(--color-surface-hover)'
     }
   }
   if (schedule.workout_day) {
@@ -76,11 +76,25 @@ function getWorkoutChip(schedule: ScheduleDay) {
 export function SchedulePage() {
   const { data: schedule, isLoading } = useUserSchedule()
   const { data: profile } = useProfile()
-  const { mutate: updateProfile } = useUpdateProfile()
   const currentCycleDay = useCycleDay()
-  const { error: showError } = useToast()
 
   const [editingDay, setEditingDay] = useState<number | null>(null)
+  const [selectedDay, setSelectedDay] = useState<number | null>(null)
+
+  // The day shown in the header — defaults to the auto-computed current day
+  const displayDay = selectedDay ?? currentCycleDay
+
+  // Compute the calendar date for the displayed day
+  const displayDate = useMemo(() => {
+    const tz = profile?.timezone || detectUserTimezone()
+    const today = getTodayInTimezone(tz)
+    const dayOffset = displayDay - currentCycleDay
+    const date = new Date(today)
+    date.setDate(date.getDate() + dayOffset)
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric'
+    }).format(date)
+  }, [displayDay, currentCycleDay, profile?.timezone])
 
   // Group schedules by day number (supports multiple workouts per day)
   const schedulesByDay = new Map<number, ScheduleDay[]>()
@@ -102,19 +116,6 @@ export function SchedulePage() {
     )
   }
 
-  const handleDayClick = (day: number) => {
-    const today = new Date()
-    const startDate = new Date(today)
-    startDate.setDate(today.getDate() - (day - 1))
-    const y = startDate.getFullYear()
-    const m = String(startDate.getMonth() + 1).padStart(2, '0')
-    const d = String(startDate.getDate()).padStart(2, '0')
-    updateProfile(
-      { cycle_start_date: `${y}-${m}-${d}` },
-      { onError: () => showError('Failed to update cycle day') }
-    )
-  }
-
   return (
     <AppShell title="Schedule">
       <div className="pb-[var(--space-8)]">
@@ -126,26 +127,28 @@ export function SchedulePage() {
               className="text-[var(--text-xs)] uppercase font-semibold text-[var(--color-text-muted)] mb-[var(--space-1)]"
               style={{ letterSpacing: 'var(--tracking-widest)' }}
             >
-              Current Day
+              {displayDay === currentCycleDay ? 'Current Day' : 'Day'}
             </p>
             <div className="flex items-baseline gap-[var(--space-3)]">
               <motion.span
-                animate={{ scale: [1, 1.03, 1], opacity: [0.85, 1, 0.85] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                key={displayDay}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
                 className="text-[clamp(3rem,12vw,4rem)] font-extrabold font-mono-stats leading-none inline-block"
                 style={{ color: 'var(--color-primary)' }}
               >
-                {currentCycleDay}
+                {displayDay}
               </motion.span>
               <span className="text-[var(--text-sm)] text-[var(--color-text-muted)]">
-                of 7 · {formatCycleStartDate(profile?.cycle_start_date)}
+                of 7 · {displayDate}
               </span>
             </div>
 
             {/* Day selector pills — larger, more prominent */}
             <div className="flex justify-between mt-[var(--space-5)]">
               {[1, 2, 3, 4, 5, 6, 7].map((day) => {
-                const isActive = currentCycleDay === day
+                const isActive = displayDay === day
+                const isToday = currentCycleDay === day
                 const daySchedules = schedulesByDay.get(day) || []
                 const firstSchedule = daySchedules[0]
                 const chip = firstSchedule ? getWorkoutChip(firstSchedule) : null
@@ -154,8 +157,8 @@ export function SchedulePage() {
                   <button
                     key={day}
                     type="button"
-                    onClick={() => handleDayClick(day)}
-                    className="relative flex flex-col items-center"
+                    onClick={() => setSelectedDay(day === currentCycleDay ? null : day)}
+                    className="relative flex flex-col items-center focus-visible:outline-none"
                   >
                     {isActive && (
                       <motion.div
@@ -173,16 +176,20 @@ export function SchedulePage() {
                           : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
                         }
                       `}
-                      style={isActive ? { boxShadow: '0 0 12px rgba(232, 255, 0, 0.2)' } : undefined}
+                      style={isActive ? { boxShadow: '0 0 12px var(--color-primary-glow)' } : undefined}
                     >
                       {daySchedules.length > 1 ? (
                         <span className="text-sm font-bold">{daySchedules.length}</span>
                       ) : chip?.Icon ? (
-                        <chip.Icon className="w-[18px] h-[18px]" strokeWidth={2} />
+                        <chip.Icon className="w-[18px] h-[18px]" />
                       ) : (
                         <span className="text-sm font-semibold">{day}</span>
                       )}
                     </div>
+                    {/* Today dot indicator */}
+                    {isToday && !isActive && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] mt-1" />
+                    )}
                   </button>
                 )
               })}
@@ -193,17 +200,12 @@ export function SchedulePage() {
         {/* ═══ 7-DAY CYCLE LIST ═══ */}
         <FadeInOnScroll direction="up">
         <div className="px-[var(--space-4)]">
-          <h3
-            className="text-[var(--text-xs)] text-[var(--color-text-muted)] uppercase mb-[var(--space-4)] px-[var(--space-1)]"
-            style={{ letterSpacing: 'var(--tracking-widest)', fontWeight: 600 }}
-          >
-            7-Day Cycle
-          </h3>
+          <SectionLabel className="mb-[var(--space-4)] px-[var(--space-1)]">7-Day Cycle</SectionLabel>
 
           <StaggerList className="space-y-[var(--space-2)]">
             {[1, 2, 3, 4, 5, 6, 7].map((dayNumber) => {
               const daySchedules = schedulesByDay.get(dayNumber) || []
-              const isCurrentDay = currentCycleDay === dayNumber
+              const isCurrentDay = displayDay === dayNumber
               const hasWorkouts = daySchedules.length > 0 && !daySchedules[0]?.is_rest_day
               const isRestDay = daySchedules.length > 0 && daySchedules[0]?.is_rest_day
 
@@ -226,7 +228,7 @@ export function SchedulePage() {
                         : 'bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)]'
                       }
                     `}
-                    style={isCurrentDay ? { boxShadow: '0 0 20px rgba(232, 255, 0, 0.06)' } : undefined}
+                    style={isCurrentDay ? { boxShadow: '0 0 20px var(--color-primary-muted)' } : undefined}
                   >
                     {/* Left edge color indicator */}
                     {edgeColor && (
@@ -257,7 +259,7 @@ export function SchedulePage() {
                       <div className="flex-1 min-w-0">
                         {isRestDay ? (
                           <div className="flex items-center gap-[var(--space-3)] text-[var(--color-text-muted)]">
-                            <Moon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
+                            <Moon className="w-[18px] h-[18px] shrink-0" weight="light" />
                             <span className="text-[15px]">Rest Day</span>
                           </div>
                         ) : hasWorkouts ? (
@@ -272,7 +274,6 @@ export function SchedulePage() {
                                   <Icon
                                     className="w-[18px] h-[18px] shrink-0"
                                     style={{ color }}
-                                    strokeWidth={2}
                                   />
                                   <div className="min-w-0">
                                     <span
@@ -295,14 +296,14 @@ export function SchedulePage() {
                           </div>
                         ) : (
                           <div className="flex items-center gap-[var(--space-3)] text-[var(--color-text-muted)]">
-                            <Plus className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
+                            <Plus className="w-[18px] h-[18px] shrink-0" weight="light" />
                             <span className="text-[15px]">Add workout</span>
                           </div>
                         )}
                       </div>
 
                       {/* Chevron */}
-                      <ChevronRight className="w-4.5 h-4.5 text-[var(--color-text-muted)] shrink-0 opacity-40" />
+                      <CaretRight className="w-4.5 h-4.5 text-[var(--color-text-muted)] shrink-0 opacity-40" />
                     </div>
                   </div>
                   </PressableCard>

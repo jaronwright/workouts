@@ -11,8 +11,8 @@ import { useSessionReview } from '@/hooks/useReview'
 import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
 import { getWorkoutDisplayName, getWeightsStyleByName } from '@/config/workoutConfig'
 import {
-  Clock, CheckCircle, Dumbbell, Trash2, Edit2, X, Save, MoreVertical, Share2, Layers, StickyNote, Camera
-} from 'lucide-react'
+  Clock, CheckCircle, Barbell, Trash, PencilSimple, X, FloppyDisk, DotsThreeVertical, ShareNetwork, Stack, Note, Camera
+} from '@phosphor-icons/react'
 import { WorkoutPhotos } from '@/components/social/WorkoutPhotos'
 import { useShare } from '@/hooks/useShare'
 import { formatSessionShareText } from '@/utils/shareFormatters'
@@ -188,7 +188,7 @@ function EditSetModal({ set, isOpen, onClose, onSave, onDelete, isLoading }: Edi
               onClick={() => setShowDeleteConfirm(true)}
               className="w-12"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash className="w-4 h-4" />
             </Button>
             <Button
               variant="secondary"
@@ -203,7 +203,7 @@ function EditSetModal({ set, isOpen, onClose, onSave, onDelete, isLoading }: Edi
               loading={isLoading}
               className="flex-1"
             >
-              <Save className="w-4 h-4 mr-1" />
+              <FloppyDisk className="w-4 h-4 mr-1" />
               Save
             </Button>
           </div>
@@ -348,7 +348,7 @@ export function SessionDetailPage() {
               onClick={() => setShowActionsMenu(!showActionsMenu)}
               className="p-2 rounded-[var(--radius-md)] hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]"
             >
-              <MoreVertical className="w-5 h-5" />
+              <DotsThreeVertical className="w-5 h-5" />
             </PressableButton>
             {showActionsMenu && (
               <>
@@ -374,14 +374,14 @@ export function SessionDetailPage() {
                     }}
                     className="w-full px-4 py-3 text-left text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] flex items-center gap-2"
                   >
-                    <Share2 className="w-4 h-4" />
+                    <ShareNetwork className="w-4 h-4" />
                     Share Workout
                   </button>
                   <button
                     onClick={handleStartEditNotes}
                     className="w-full px-4 py-3 text-left text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] flex items-center gap-2"
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <PencilSimple className="w-4 h-4" />
                     Edit Notes
                   </button>
                   <button
@@ -391,7 +391,7 @@ export function SessionDetailPage() {
                     }}
                     className="w-full px-4 py-3 text-left text-sm text-[var(--color-danger)] hover:bg-[var(--color-surface-hover)] flex items-center gap-2"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash className="w-4 h-4" />
                     Delete Workout
                   </button>
                 </div>
@@ -426,7 +426,7 @@ export function SessionDetailPage() {
                 {workoutStyle?.icon ? (
                   <workoutStyle.icon className="w-8 h-8" style={{ color: accentColor }} />
                 ) : (
-                  <Dumbbell className="w-8 h-8" style={{ color: accentColor }} />
+                  <Barbell className="w-8 h-8" style={{ color: accentColor }} />
                 )}
               </div>
 
@@ -458,14 +458,14 @@ export function SessionDetailPage() {
             )}
             <div className="flex flex-col items-center">
               <div className="w-10 h-10 rounded-[var(--radius-lg)] flex items-center justify-center mb-1.5" style={{ background: 'var(--color-tertiary-muted)' }}>
-                <Layers className="w-5 h-5 text-[var(--color-tertiary)]" />
+                <Stack className="w-5 h-5 text-[var(--color-tertiary)]" />
               </div>
               <span className="text-sm font-bold text-[var(--color-text)]">{sortedExercises.length}</span>
               <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Exercises</span>
             </div>
             <div className="flex flex-col items-center">
               <div className="w-10 h-10 rounded-[var(--radius-lg)] flex items-center justify-center mb-1.5" style={{ background: 'var(--color-accent-muted)' }}>
-                <Dumbbell className="w-5 h-5 text-[var(--color-accent)]" />
+                <Barbell className="w-5 h-5 text-[var(--color-accent)]" />
               </div>
               <span className="text-sm font-bold text-[var(--color-text)]">{data.sets.length}</span>
               <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Sets</span>
@@ -498,7 +498,7 @@ export function SessionDetailPage() {
                     onClick={handleSaveNotes}
                     loading={isUpdatingNotes}
                   >
-                    <Save className="w-4 h-4 mr-1" />
+                    <FloppyDisk className="w-4 h-4 mr-1" />
                     Save
                   </Button>
                 </div>
@@ -511,7 +511,7 @@ export function SessionDetailPage() {
                 className="w-full text-left bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-[var(--space-4)] active:scale-[0.98] transition-transform"
               >
                 <div className="flex items-start gap-3">
-                  <StickyNote className="w-4 h-4 text-[var(--color-text-muted)] mt-0.5 flex-shrink-0" />
+                  <Note className="w-4 h-4 text-[var(--color-text-muted)] mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">{data.session.notes}</p>
                     <span className="text-xs text-[var(--color-primary)] mt-1 block">Tap to edit</span>
@@ -525,7 +525,7 @@ export function SessionDetailPage() {
                 onClick={handleStartEditNotes}
                 className="w-full flex items-center justify-center gap-2 py-3 text-sm text-[var(--color-primary)] bg-[var(--color-surface)] rounded-[var(--radius-xl)] active:scale-[0.98] transition-transform"
               >
-                <StickyNote className="w-4 h-4" />
+                <Note className="w-4 h-4" />
                 Add notes
               </button>
             </div>
@@ -565,7 +565,7 @@ export function SessionDetailPage() {
                           className="w-9 h-9 rounded-[var(--radius-lg)] flex items-center justify-center flex-shrink-0"
                           style={{ backgroundColor: `${accentColor}15` }}
                         >
-                          <Dumbbell className="w-4 h-4" style={{ color: accentColor }} />
+                          <Barbell className="w-4 h-4" style={{ color: accentColor }} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="text-sm font-medium text-[var(--color-text)]">{exercise.name}</h4>
@@ -632,7 +632,7 @@ export function SessionDetailPage() {
 
             {sortedExercises.length === 0 && (
               <div className="text-center py-12">
-                <Dumbbell className="w-10 h-10 text-[var(--color-text-muted)] opacity-30 mx-auto mb-3" />
+                <Barbell className="w-10 h-10 text-[var(--color-text-muted)] opacity-30 mx-auto mb-3" />
                 <p className="text-sm text-[var(--color-text-muted)]">No exercises logged for this session.</p>
               </div>
             )}
@@ -674,7 +674,7 @@ export function SessionDetailPage() {
               loading={isDeleting}
               className="flex-1"
             >
-              <Trash2 className="w-4 h-4 mr-1" />
+              <Trash className="w-4 h-4 mr-1" />
               Delete
             </Button>
           </div>

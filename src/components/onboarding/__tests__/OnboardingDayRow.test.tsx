@@ -110,13 +110,13 @@ describe('OnboardingDayRow', () => {
         selections: [{ type: 'rest' }],
       })
       // Check icon should appear (green check)
-      const checkCircle = container.querySelector('.bg-green-500\\/20')
+      const checkCircle = container.querySelector('.bg-\\[var\\(--color-success\\)\\]\\/20')
       expect(checkCircle).toBeInTheDocument()
     })
 
     it('does not show check icon when empty', () => {
       const { container } = renderDayRow({ selections: [] })
-      const checkCircle = container.querySelector('.bg-green-500\\/20')
+      const checkCircle = container.querySelector('.bg-\\[var\\(--color-success\\)\\]\\/20')
       expect(checkCircle).not.toBeInTheDocument()
     })
   })
@@ -284,7 +284,7 @@ describe('OnboardingDayRow', () => {
       // Find the remove (X) button - it should be inside the workout item
       const removeButtons = screen.getAllByRole('button').filter(btn => {
         const svg = btn.querySelector('svg')
-        return svg && btn.className.includes('hover:text-red-500')
+        return svg && btn.className.includes('hover:text-[var(--color-danger)]')
       })
       expect(removeButtons.length).toBeGreaterThan(0)
       fireEvent.click(removeButtons[0])

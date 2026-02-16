@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/services/supabase'
 import { useAuthStore } from '@/stores/authStore'
-import { Loader2 } from 'lucide-react'
+import { SpinnerGap } from '@phosphor-icons/react'
 
 export function AuthCallbackPage() {
   const navigate = useNavigate()
@@ -63,7 +63,7 @@ export function AuthCallbackPage() {
   return (
     <div className="min-h-screen bg-[var(--color-background)] flex flex-col items-center justify-center p-4">
       <div className="text-center space-y-4">
-        <Loader2 className="w-12 h-12 text-[var(--color-primary)] animate-spin mx-auto" />
+        <SpinnerGap className="w-12 h-12 text-[var(--color-primary)] animate-spin mx-auto" />
         <h1 className="text-xl font-bold text-[var(--color-text)]">
           Completing sign in...
         </h1>

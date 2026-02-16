@@ -29,7 +29,7 @@ describe('Toast', () => {
     it('renders success icon', () => {
       const toast: ToastType = { ...baseToast, type: 'success' }
       const { container } = render(<Toast toast={toast} onDismiss={vi.fn()} />)
-      // CheckCircle icon from lucide-react renders as an SVG
+      // CheckCircle icon from @phosphor-icons/react renders as an SVG
       const svgs = container.querySelectorAll('svg')
       expect(svgs.length).toBeGreaterThanOrEqual(1)
     })

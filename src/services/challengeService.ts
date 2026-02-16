@@ -204,7 +204,6 @@ async function calculateProgress(userId: string, challenge: Challenge): Promise<
       const { data } = await supabase
         .from('exercise_sets')
         .select('weight_used, reps_completed, session_id')
-        .eq('completed', true)
         .in(
           'session_id',
           (await supabase

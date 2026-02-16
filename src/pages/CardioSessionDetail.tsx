@@ -6,7 +6,7 @@ import { FadeIn, PressableButton } from '@/components/motion'
 import { ReviewSummaryCard } from '@/components/review/ReviewSummaryCard'
 import { supabase } from '@/services/supabase'
 import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
-import { Clock, MapPin, Timer, CheckCircle, Circle, Trash2, Share2, Zap, Activity, StickyNote, Camera } from 'lucide-react'
+import { Clock, MapPin, Timer, CheckCircle, Circle, Trash, ShareNetwork, Lightning, Heartbeat, Note, Camera } from '@phosphor-icons/react'
 import { WorkoutPhotos } from '@/components/social/WorkoutPhotos'
 import { useShare } from '@/hooks/useShare'
 import { useTemplateSessionReview } from '@/hooks/useReview'
@@ -99,7 +99,7 @@ export function CardioSessionDetailPage() {
     ? (category ? getMobilityStyle(category) : null)
     : (category ? getCardioStyle(category) : null)
   const accentColor = workoutStyle?.color || 'var(--color-cardio)'
-  const WorkoutIcon = workoutStyle?.icon || (templateType === 'mobility' ? Activity : Zap)
+  const WorkoutIcon = workoutStyle?.icon || (templateType === 'mobility' ? Heartbeat : Lightning)
 
   return (
     <AppShell title={session.template?.name || 'Workout'} showBack>
@@ -205,7 +205,7 @@ export function CardioSessionDetailPage() {
           <div className="px-[var(--space-4)] mb-[var(--space-4)]">
             <div className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-[var(--space-4)]">
               <div className="flex items-start gap-[var(--space-3)]">
-                <StickyNote className="w-4 h-4 text-[var(--color-text-muted)] mt-0.5 flex-shrink-0" />
+                <Note className="w-4 h-4 text-[var(--color-text-muted)] mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">{session.notes}</p>
               </div>
             </div>
@@ -248,7 +248,7 @@ export function CardioSessionDetailPage() {
             className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-[var(--color-primary)] rounded-[var(--radius-xl)]"
             style={{ background: 'var(--color-primary-muted)' } as React.CSSProperties}
           >
-            <Share2 className="w-4 h-4" />
+            <ShareNetwork className="w-4 h-4" />
             Share Workout
           </PressableButton>
 
@@ -258,7 +258,7 @@ export function CardioSessionDetailPage() {
             className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-[var(--color-danger)] rounded-[var(--radius-xl)]"
             style={{ background: 'var(--color-danger-muted)' } as React.CSSProperties}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash className="w-4 h-4" />
             {isDeleting ? 'Deleting...' : 'Delete Workout'}
           </PressableButton>
         </div>
@@ -294,7 +294,7 @@ export function CardioSessionDetailPage() {
               loading={isDeleting}
               className="flex-1"
             >
-              <Trash2 className="w-4 h-4 mr-1" />
+              <Trash className="w-4 h-4 mr-1" />
               Delete
             </Button>
           </div>

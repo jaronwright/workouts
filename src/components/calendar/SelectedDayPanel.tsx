@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
-import { Calendar, Clock, ChevronRight } from 'lucide-react'
+import { Calendar, Clock, CaretRight } from '@phosphor-icons/react'
 import { Card, CardContent, Badge } from '@/components/ui'
 import { formatTime } from '@/utils/formatters'
 import {
@@ -8,8 +8,7 @@ import {
   getCardioStyle,
   getMobilityStyle
 } from '@/config/workoutConfig'
-import type { CalendarDay } from '@/hooks/useCalendarData'
-import type { UnifiedSession } from '@/utils/calendarGrid'
+import type { CalendarDay, UnifiedSession } from '@/utils/calendarGrid'
 
 interface SelectedDayPanelProps {
   day: CalendarDay
@@ -71,7 +70,7 @@ function SessionCard({ session }: { session: UnifiedSession }) {
               {session.completed_at && (
                 <Badge variant="completed">Completed</Badge>
               )}
-              <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)]" />
+              <CaretRight className="w-4 h-4 text-[var(--color-text-muted)]" />
             </div>
           </div>
         </CardContent>

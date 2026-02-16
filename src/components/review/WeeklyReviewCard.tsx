@@ -1,5 +1,5 @@
 import { motion } from 'motion/react'
-import { Star, TrendingUp, TrendingDown, Minus, Hash } from 'lucide-react'
+import { Star, TrendUp, TrendDown, Minus, Hash } from '@phosphor-icons/react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { useWeeklyReview } from '@/hooks/useReview'
 import { springs } from '@/config/animationConfig'
@@ -36,9 +36,9 @@ export function WeeklyReviewCard({ weekStart }: WeeklyReviewCardProps) {
   const ratingColor = RATING_COLORS[Math.round(summary.averageRating)] || RATING_COLORS[3]
   const moodTrendIcon =
     summary.moodImprovement > 0.2 ? (
-      <TrendingUp className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
+      <TrendUp className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
     ) : summary.moodImprovement < -0.2 ? (
-      <TrendingDown className="w-4 h-4 text-red-500" />
+      <TrendDown className="w-4 h-4 text-[var(--color-danger)]" />
     ) : (
       <Minus className="w-4 h-4 text-[var(--color-text-muted)]" />
     )
@@ -50,12 +50,12 @@ export function WeeklyReviewCard({ weekStart }: WeeklyReviewCardProps) {
       transition={springs.default}
     >
       <Card>
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-reward)]/5 to-transparent pointer-events-none" />
         <CardContent className="py-4 relative">
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-1.5">
-              <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+              <Star className="w-4 h-4" style={{ color: 'var(--color-reward)', fill: 'var(--color-reward)' }} />
               <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wide">
                 Weekly Review
               </span>
@@ -75,11 +75,12 @@ export function WeeklyReviewCard({ weekStart }: WeeklyReviewCardProps) {
                 {[1, 2, 3, 4, 5].map((i) => (
                   <Star
                     key={i}
-                    className={`w-5 h-5 ${
+                    className="w-5 h-5"
+                    style={
                       i <= Math.round(summary.averageRating)
-                        ? 'fill-amber-400 text-amber-400'
-                        : 'fill-none text-gray-300 dark:text-gray-600'
-                    }`}
+                        ? { fill: 'var(--color-reward)', color: 'var(--color-reward)' }
+                        : { fill: 'none', color: 'var(--color-border)' }
+                    }
                   />
                 ))}
               </div>

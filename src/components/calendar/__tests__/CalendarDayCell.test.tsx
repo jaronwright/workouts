@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@/test/utils'
 import { CalendarDayCell } from '../CalendarDayCell'
-import { Dumbbell } from 'lucide-react'
+import { Barbell } from '@phosphor-icons/react'
 import type { CalendarDay } from '@/hooks/useCalendarData'
 
 vi.mock('motion/react', () => ({
@@ -83,7 +83,7 @@ describe('CalendarDayCell', () => {
     const { container } = render(
       <CalendarDayCell day={day} isSelected={false} onSelect={vi.fn()} />
     )
-    const greenDot = container.querySelector('.bg-\\[var\\(--color-success\\)\\]')
+    const greenDot = container.querySelector('.bg-\\[var\\(--color-primary\\)\\]')
     expect(greenDot).toBeInTheDocument()
   })
 
@@ -95,7 +95,7 @@ describe('CalendarDayCell', () => {
     const { container } = render(
       <CalendarDayCell day={day} isSelected={false} onSelect={vi.fn()} />
     )
-    const greenDot = container.querySelector('.bg-\\[var\\(--color-success\\)\\]')
+    const greenDot = container.querySelector('.bg-\\[var\\(--color-primary\\)\\]')
     expect(greenDot).not.toBeInTheDocument()
   })
 
@@ -103,7 +103,7 @@ describe('CalendarDayCell', () => {
     const day = makeCalendarDay({
       projected: {
         dayNumber: 1,
-        icon: Dumbbell,
+        icon: Barbell,
         color: '#3B82F6',
         bgColor: 'rgba(59, 130, 246, 0.15)',
         name: 'Push Day',
@@ -120,11 +120,11 @@ describe('CalendarDayCell', () => {
     expect(svg).toBeInTheDocument()
   })
 
-  it('does not show workout icon when projected is a rest day', () => {
+  it('shows rest day icon with reduced opacity', () => {
     const day = makeCalendarDay({
       projected: {
         dayNumber: 1,
-        icon: Dumbbell,
+        icon: Barbell,
         color: '#6B7280',
         bgColor: 'rgba(107, 114, 128, 0.15)',
         name: 'Rest',
@@ -135,9 +135,9 @@ describe('CalendarDayCell', () => {
     const { container } = render(
       <CalendarDayCell day={day} isSelected={false} onSelect={vi.fn()} />
     )
-    // Rest days render a small muted dot, not the Icon SVG
+    // Rest days render an icon with reduced opacity (0.5)
     const svg = container.querySelector('svg')
-    expect(svg).not.toBeInTheDocument()
+    expect(svg).toBeInTheDocument()
   })
 
   it('does not show workout icon when projected is null', () => {
@@ -149,13 +149,15 @@ describe('CalendarDayCell', () => {
     expect(svg).not.toBeInTheDocument()
   })
 
-  it('reduces opacity for days outside the current month', () => {
+  it('renders invisible spacer for days outside the current month', () => {
     const day = makeCalendarDay({ isCurrentMonth: false })
-    render(
+    const { container } = render(
       <CalendarDayCell day={day} isSelected={false} onSelect={vi.fn()} />
     )
-    const button = screen.getByRole('button')
-    expect(button.className).toContain('opacity-30')
+    // Non-current-month cells are invisible spacers, not interactive buttons
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    const spacer = container.querySelector('[aria-hidden="true"]')
+    expect(spacer).toBeInTheDocument()
   })
 
   it('shows count badge when multiple sessions exist', () => {
@@ -198,7 +200,7 @@ describe('CalendarDayCell', () => {
     const day = makeCalendarDay({
       projected: {
         dayNumber: 1,
-        icon: Dumbbell,
+        icon: Barbell,
         color: '#3B82F6',
         bgColor: 'rgba(59, 130, 246, 0.15)',
         name: 'Push Day',
@@ -233,7 +235,7 @@ describe('CalendarDayCell', () => {
     // Count badge
     expect(screen.getByText('2')).toBeInTheDocument()
     // Green completion dot should still be present
-    const greenDot = container.querySelector('.bg-\\[var\\(--color-success\\)\\]')
+    const greenDot = container.querySelector('.bg-\\[var\\(--color-primary\\)\\]')
     expect(greenDot).toBeInTheDocument()
   })
 })

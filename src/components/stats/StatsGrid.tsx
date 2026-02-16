@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { motion, useMotionValue, useTransform, animate as motionAnimate } from 'motion/react'
-import { startOfWeek, endOfWeek, isWithinInterval, differenceInMinutes, parseISO, subDays, format } from 'date-fns'
+import { startOfWeek, endOfWeek, isWithinInterval, differenceInMinutes, parseISO, subDays, format, addMonths, subMonths, isSameMonth } from 'date-fns'
 import { AnimatedCounter } from '@/components/ui'
 import { FadeInOnScroll } from '@/components/motion'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
@@ -8,26 +8,30 @@ import { staggerContainer, staggerChild } from '@/config/animationConfig'
 import { CATEGORY_DEFAULTS } from '@/config/workoutConfig'
 import {
   Target,
-  Flame,
-  BarChart3,
+  Fire,
+  ChartBar,
   Clock,
-  Layers,
-  CalendarDays,
+  Stack,
+  CalendarDots,
   Hash,
   Timer,
   Crown,
   Info,
   Calendar,
-  Dumbbell,
-  Zap,
-  Activity,
-} from 'lucide-react'
+  Barbell,
+  Lightning,
+  Heartbeat,
+  CaretLeft,
+  CaretRight,
+} from '@phosphor-icons/react'
 import type { CalendarDay } from '@/hooks/useCalendarData'
 import type { UnifiedSession } from '@/utils/calendarGrid'
 
 interface StatsGridProps {
   calendarDays: CalendarDay[]
   allSessions: UnifiedSession[]
+  currentMonth: Date
+  onMonthChange: (month: Date) => void
 }
 
 function computeSessionDuration(session: { started_at: string; completed_at: string | null; duration_minutes?: number | null }): number {
@@ -127,8 +131,9 @@ function ConicRing({
   )
 }
 
-export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
+export function StatsGrid({ calendarDays, allSessions, currentMonth, onMonthChange }: StatsGridProps) {
   const prefersReduced = useReducedMotion()
+  const isCurrentMonthToday = isSameMonth(currentMonth, new Date())
 
   const stats = useMemo(() => {
     const now = new Date()
@@ -300,6 +305,43 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
       initial={prefersReduced ? false : 'hidden'}
       animate="visible"
     >
+      {/* -- Month Navigation Header -- */}
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-baseline gap-[var(--space-2)]">
+          <h2
+            className="text-[clamp(1.5rem,6vw,2rem)] font-extrabold text-[var(--color-text)]"
+            style={{ fontFamily: 'var(--font-heading)', lineHeight: 'var(--leading-tight)' }}
+          >
+            {format(currentMonth, 'MMMM')}
+          </h2>
+          <span className="text-[var(--text-sm)] text-[var(--color-text-muted)] font-medium font-mono-stats">
+            {format(currentMonth, 'yyyy')}
+          </span>
+          {!isCurrentMonthToday && (
+            <button
+              onClick={() => onMonthChange(new Date())}
+              className="text-[var(--text-xs)] font-semibold text-[var(--color-primary)] px-2.5 py-0.5 rounded-full bg-[var(--color-primary-muted)] transition-colors ml-1"
+            >
+              Today
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => onMonthChange(subMonths(currentMonth, 1))}
+            className="p-2 rounded-full hover:bg-[var(--color-surface-hover)] active:scale-95 transition-all"
+          >
+            <CaretLeft className="w-4.5 h-4.5 text-[var(--color-text-muted)]" />
+          </button>
+          <button
+            onClick={() => onMonthChange(addMonths(currentMonth, 1))}
+            className="p-2 rounded-full hover:bg-[var(--color-surface-hover)] active:scale-95 transition-all"
+          >
+            <CaretRight className="w-4.5 h-4.5 text-[var(--color-text-muted)]" />
+          </button>
+        </div>
+      </div>
+
       {/* -- Row 1: Hero Stats (2-column) -- */}
       <div className="grid grid-cols-2 gap-[var(--space-3)]">
         {/* Momentum Score */}
@@ -336,7 +378,7 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
             {stats.isAtBest ? (
               <Crown className="w-6 h-6 mb-1" style={{ color: 'var(--color-accent)' }} />
             ) : (
-              <Flame className="w-6 h-6 mb-1" style={{ color: 'var(--color-primary)' }} />
+              <Fire className="w-6 h-6 mb-1" style={{ color: 'var(--color-primary)' }} />
             )}
             <AnimatedCounter
               value={stats.currentStreak}
@@ -365,9 +407,9 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
             {stats.last30Days.map((day, index) => {
               let bg: string
               if (day.sessionCount === 0) bg = 'var(--color-surface-hover)'
-              else if (day.sessionCount === 1) bg = 'rgba(232, 255, 0, 0.25)'
-              else if (day.sessionCount === 2) bg = 'rgba(232, 255, 0, 0.50)'
-              else bg = 'rgba(232, 255, 0, 0.80)'
+              else if (day.sessionCount === 1) bg = 'var(--heatmap-1)'
+              else if (day.sessionCount === 2) bg = 'var(--heatmap-2)'
+              else bg = 'var(--heatmap-3)'
 
               return (
                 <motion.div
@@ -392,9 +434,9 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
           <div className="flex items-center justify-end gap-1.5 mt-2">
             <span className="text-[8px] text-[var(--color-text-muted)] font-medium">Less</span>
             <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'var(--color-surface-hover)' }} />
-            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(232, 255, 0, 0.25)' }} />
-            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(232, 255, 0, 0.50)' }} />
-            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'rgba(232, 255, 0, 0.80)' }} />
+            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'var(--heatmap-1)' }} />
+            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'var(--heatmap-2)' }} />
+            <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: 'var(--heatmap-3)' }} />
             <span className="text-[8px] text-[var(--color-text-muted)] font-medium">More</span>
           </div>
         </div>
@@ -406,7 +448,7 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
         <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--color-primary-muted), transparent)' }} />
         <div className="relative">
           <div className="flex items-center gap-1.5 mb-2">
-            <BarChart3 className="w-3.5 h-3.5" style={{ color: 'var(--color-primary)' }} />
+            <ChartBar className="w-3.5 h-3.5" style={{ color: 'var(--color-primary)' }} />
             <span
               className="text-[10px] text-[var(--color-text-muted)] uppercase font-medium"
               style={{ letterSpacing: 'var(--tracking-wide)' }}
@@ -492,7 +534,7 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
       <StatWidget info="Weights / cardio / mobility split this month" className="w-full">
         <div className="relative">
           <div className="flex items-center gap-1.5 mb-2">
-            <Layers className="w-3.5 h-3.5" style={{ color: 'var(--color-weights)' }} />
+            <Stack className="w-3.5 h-3.5" style={{ color: 'var(--color-weights)' }} />
             <span
               className="text-[10px] text-[var(--color-text-muted)] uppercase font-medium"
               style={{ letterSpacing: 'var(--tracking-wide)' }}
@@ -533,9 +575,9 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
           {/* Legend with icons */}
           <div className="flex gap-4">
             {[
-              { label: 'Weights', color: CATEGORY_DEFAULTS.weights.color, pct: stats.mixPcts.weights, Icon: Dumbbell },
-              { label: 'Cardio', color: CATEGORY_DEFAULTS.cardio.color, pct: stats.mixPcts.cardio, Icon: Zap },
-              { label: 'Mobility', color: CATEGORY_DEFAULTS.mobility.color, pct: stats.mixPcts.mobility, Icon: Activity },
+              { label: 'Weights', color: CATEGORY_DEFAULTS.weights.color, pct: stats.mixPcts.weights, Icon: Barbell },
+              { label: 'Cardio', color: CATEGORY_DEFAULTS.cardio.color, pct: stats.mixPcts.cardio, Icon: Lightning },
+              { label: 'Mobility', color: CATEGORY_DEFAULTS.mobility.color, pct: stats.mixPcts.mobility, Icon: Heartbeat },
             ].map(item => (
               <div key={item.label} className="flex items-center gap-1">
                 <item.Icon className="w-3 h-3" style={{ color: item.color }} />
@@ -613,7 +655,7 @@ export function StatsGrid({ calendarDays, allSessions }: StatsGridProps) {
         {/* Active Days */}
         <StatWidget info="Days with at least one workout" className="flex flex-col items-center justify-center">
           <div className="relative flex flex-col items-center">
-            <CalendarDays className="w-4 h-4 mb-1" style={{ color: 'var(--color-info)' }} />
+            <CalendarDots className="w-4 h-4 mb-1" style={{ color: 'var(--color-info)' }} />
             <AnimatedCounter
               value={stats.activeDays}
               className="text-[var(--text-xl)] font-bold text-[var(--color-text)] font-mono-stats"

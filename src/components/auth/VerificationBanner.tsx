@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Mail, X, RefreshCw } from 'lucide-react'
+import { Envelope, X, ArrowClockwise } from '@phosphor-icons/react'
 import { useAuthStore } from '@/stores/authStore'
 import { useToast } from '@/hooks/useToast'
 
@@ -50,12 +50,12 @@ export function VerificationBanner() {
 
   return (
     <div className="
-      bg-amber-500/10 border-b border-amber-500/20
+      bg-[var(--color-warning-muted)] border-b border-[var(--color-warning)]/20
       px-4 py-3
     ">
       <div className="max-w-4xl mx-auto flex items-center gap-3">
-        <Mail className="w-5 h-5 text-amber-500 flex-shrink-0" />
-        <p className="flex-1 text-sm text-amber-700 dark:text-amber-300">
+        <Envelope className="w-5 h-5 text-[var(--color-warning)] flex-shrink-0" />
+        <p className="flex-1 text-sm text-[var(--color-warning)]">
           Please verify your email address. Check your inbox for a verification link.
         </p>
         <div className="flex items-center gap-2">
@@ -63,31 +63,31 @@ export function VerificationBanner() {
             onClick={handleResend}
             disabled={isResending}
             className="
-              text-xs font-medium text-amber-600 dark:text-amber-400
+              text-xs font-medium text-[var(--color-warning)]
               hover:underline disabled:opacity-50
               flex items-center gap-1
             "
           >
-            {isResending && <RefreshCw className="w-3 h-3 animate-spin" />}
+            {isResending && <ArrowClockwise className="w-3 h-3 animate-spin" />}
             Resend
           </button>
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
             className="
-              text-xs font-medium text-amber-600 dark:text-amber-400
+              text-xs font-medium text-[var(--color-warning)]
               hover:underline disabled:opacity-50
               flex items-center gap-1
             "
           >
-            {isRefreshing && <RefreshCw className="w-3 h-3 animate-spin" />}
+            {isRefreshing && <ArrowClockwise className="w-3 h-3 animate-spin" />}
             I've verified
           </button>
           <button
             onClick={() => setIsDismissed(true)}
             className="
               p-1 rounded
-              text-amber-500 hover:bg-amber-500/20
+              text-[var(--color-warning)] hover:bg-[var(--color-warning)]/20
               transition-colors
             "
             aria-label="Dismiss"

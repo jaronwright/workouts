@@ -1,15 +1,13 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react'
-import { Info, Check, Circle, Sparkles, Cloud, Dumbbell, ArrowLeftRight } from 'lucide-react'
+import { Info, Check, Circle, Sparkle, Cloud } from '@phosphor-icons/react'
 import type { PlanExercise, ExerciseSet } from '@/types/workout'
 import { formatSetReps } from '@/utils/parseSetReps'
 import { useLastWeight } from '@/hooks/useWorkoutSession'
 import { useProgressionSuggestion } from '@/hooks/useProgression'
-import { useExerciseInfo } from '@/hooks/useExerciseGif'
 import { useOfflineStore } from '@/stores/offlineStore'
 import { ProgressionBadge } from './ProgressionBadge'
 import { FormGuideSheet } from './FormGuideSheet'
-import { ExerciseSwapSheet } from './ExerciseSwapSheet'
 import { updateExerciseWeightUnit } from '@/services/workoutService'
 
 interface ExerciseCardProps {
@@ -17,7 +15,6 @@ interface ExerciseCardProps {
   completedSets: ExerciseSet[]
   onExerciseComplete: (reps: number | null, weight: number | null) => void
   onExerciseUncomplete?: () => void
-  onSwapExercise?: (newName: string) => void
 }
 
 function isBodyweightOrCardio(exercise: PlanExercise): boolean {
@@ -48,46 +45,13 @@ function PendingSyncIndicator({ setId }: { setId: string }) {
   return <Cloud className="w-3 h-3 text-[var(--color-text-muted)] animate-pulse" />
 }
 
-function ExerciseGifThumb({ name, onClick }: { name: string; onClick: () => void }) {
-  const { gifUrl } = useExerciseInfo(name)
-  const [error, setError] = useState(false)
-
-  if (!gifUrl || error) {
-    return (
-      <button
-        onClick={onClick}
-        className="w-10 h-10 rounded-[var(--radius-md)] bg-[var(--color-surface-hover)] flex items-center justify-center flex-shrink-0"
-      >
-        <Dumbbell className="w-4 h-4 text-[var(--color-text-muted)] opacity-40" />
-      </button>
-    )
-  }
-
-  return (
-    <button
-      onClick={onClick}
-      className="w-10 h-10 rounded-[var(--radius-md)] bg-[var(--color-surface-hover)] overflow-hidden flex-shrink-0"
-    >
-      <img
-        src={gifUrl}
-        alt={name}
-        className="w-full h-full object-contain"
-        loading="lazy"
-        onError={() => setError(true)}
-      />
-    </button>
-  )
-}
-
 export function ExerciseCard({
   exercise,
   completedSets,
   onExerciseComplete,
-  onExerciseUncomplete,
-  onSwapExercise
+  onExerciseUncomplete
 }: ExerciseCardProps) {
   const [showDetailModal, setShowDetailModal] = useState(false)
-  const [showSwapSheet, setShowSwapSheet] = useState(false)
   const [weight, setWeight] = useState<string>(exercise.target_weight?.toString() || '')
   const [weightInitialized, setWeightInitialized] = useState(false)
   const [justCompleted, setJustCompleted] = useState(false)
@@ -177,17 +141,11 @@ export function ExerciseCard({
           `}
         >
           {isCompleted ? (
-            <Check className={`w-5 h-5 ${justCompleted ? 'animate-checkmark' : ''}`} strokeWidth={3} />
+            <Check className={`w-5 h-5 ${justCompleted ? 'animate-checkmark' : ''}`} weight="bold" />
           ) : (
-            <Circle className="w-5 h-5" strokeWidth={2} />
+            <Circle className="w-5 h-5" />
           )}
         </button>
-
-        {/* GIF Thumbnail */}
-        <ExerciseGifThumb
-          name={exercise.name}
-          onClick={() => setShowDetailModal(true)}
-        />
 
         {/* Exercise Info */}
         <div className="flex-1 min-w-0">
@@ -253,7 +211,7 @@ export function ExerciseCard({
         {/* Weight shown when completed */}
         {!noWeight && isCompleted && completedSets[0]?.weight_used != null && (
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--color-success)]/15 flex-shrink-0">
-            <Sparkles className="w-3.5 h-3.5 text-[var(--color-success)]" />
+            <Sparkle className="w-3.5 h-3.5 text-[var(--color-success)]" />
             <span className="text-sm text-[var(--color-success)] font-bold">
               {completedSets[0].weight_used} {localWeightUnit}
             </span>
@@ -261,20 +219,7 @@ export function ExerciseCard({
           </div>
         )}
 
-        {/* Swap button - opens alternatives sheet */}
-        {onSwapExercise && !isCompleted && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              setShowSwapSheet(true)
-            }}
-            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform duration-100 text-[var(--color-text-muted)]"
-          >
-            <ArrowLeftRight className="w-4 h-4" />
-          </button>
-        )}
-
-        {/* Info button - opens detail modal with GIF and notes */}
+        {/* Info button - opens exercise guide */}
         <button
           onClick={(e) => {
             e.stopPropagation()
@@ -323,15 +268,6 @@ export function ExerciseCard({
         exerciseName={exercise.name}
       />
 
-      {/* Exercise Swap Sheet */}
-      {onSwapExercise && (
-        <ExerciseSwapSheet
-          isOpen={showSwapSheet}
-          onClose={() => setShowSwapSheet(false)}
-          exerciseName={exercise.name}
-          onSwap={onSwapExercise}
-        />
-      )}
     </div>
   )
 }

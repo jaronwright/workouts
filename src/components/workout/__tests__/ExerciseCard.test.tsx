@@ -29,11 +29,6 @@ vi.mock('../FormGuideSheet', () => ({
     ) : null,
 }))
 
-// Mock useExerciseInfo for the GIF thumbnail
-vi.mock('@/hooks/useExerciseGif', () => ({
-  useExerciseInfo: vi.fn().mockReturnValue({ gifUrl: null, exercise: null, instructions: [], isLoading: false, error: null }),
-}))
-
 // Mock ProgressionBadge
 vi.mock('../ProgressionBadge', () => ({
   ProgressionBadge: ({ suggestion, onClick }: any) => (

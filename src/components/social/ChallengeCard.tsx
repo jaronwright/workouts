@@ -1,5 +1,5 @@
 import { motion } from 'motion/react'
-import { Target, Users, Trophy, Clock } from 'lucide-react'
+import { Target, Users, Trophy, Clock } from '@phosphor-icons/react'
 import { Card, CardContent } from '@/components/ui'
 import { PressableButton } from '@/components/motion'
 import { BADGE_MAP } from '@/config/badgeConfig'

@@ -134,7 +134,7 @@ describe('getWeightsStyleByName', () => {
 
   it('returns style for "chest"', () => {
     const style = getWeightsStyleByName('chest')
-    expect(style.color).toBe('#EF4444') // red
+    expect(style.color).toBe('#E63B57') // rose
   })
 
   it('returns default style for unknown name', () => {

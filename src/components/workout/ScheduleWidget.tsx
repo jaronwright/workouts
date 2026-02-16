@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, ChevronLeft, Calendar, Check, Play, X, Dumbbell, type LucideIcon } from 'lucide-react'
+import { CaretRight, CaretLeft, Calendar, Check, Play, X, Barbell, type Icon } from '@phosphor-icons/react'
 import { motion, AnimatePresence, type PanInfo } from 'motion/react'
 import { Button, StreakBar } from '@/components/ui'
 import { useUserSchedule } from '@/hooks/useSchedule'
@@ -33,7 +33,7 @@ function toDateKey(d: Date): string {
 
 interface CompletedSessionInfo {
   name: string
-  icon: LucideIcon
+  icon: Icon
   color: string
   workoutDayId?: string
   templateId?: string
@@ -367,7 +367,7 @@ export function ScheduleWidget({ onSetupSchedule, activeSession, onContinueSessi
                       isActive ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'
                     }`}
                   >
-                    <TabIcon className="w-3.5 h-3.5" style={{ color: isActive ? info.color : undefined }} strokeWidth={2} />
+                    <TabIcon className="w-3.5 h-3.5" style={{ color: isActive ? info.color : undefined }} />
                     <span className="truncate">{getWorkoutShortName(info.name)}</span>
                     {isActive && (
                       <motion.div
@@ -401,9 +401,9 @@ export function ScheduleWidget({ onSetupSchedule, activeSession, onContinueSessi
                   {hasActiveSession ? (
                     <Play className="w-7 h-7 ml-0.5" style={{ color: 'var(--color-success)' }} fill="var(--color-success)" />
                   ) : todayCompleted ? (
-                    <Check className="w-7 h-7" style={{ color: activeInfo.color }} strokeWidth={2.5} />
+                    <Check className="w-7 h-7" style={{ color: activeInfo.color }} weight="bold" />
                   ) : (
-                    <ActiveIcon className="w-7 h-7" style={{ color: activeInfo.color }} strokeWidth={2} />
+                    <ActiveIcon className="w-7 h-7" style={{ color: activeInfo.color }} />
                   )}
                 </div>
 
@@ -536,7 +536,7 @@ export function ScheduleWidget({ onSetupSchedule, activeSession, onContinueSessi
               >
                 <span className="flex items-center justify-center gap-2">
                   Rest Day Activities
-                  <ChevronRight className="w-4 h-4" />
+                  <CaretRight className="w-4 h-4" />
                 </span>
               </motion.button>
             )}
@@ -547,9 +547,9 @@ export function ScheduleWidget({ onSetupSchedule, activeSession, onContinueSessi
               onClick={() => navigate('/workouts')}
               className="w-full flex items-center justify-center gap-1.5 py-[var(--space-1)] mb-[var(--space-4)] text-[11px] font-medium text-[var(--color-text-muted)] active:text-[var(--color-text)] transition-colors"
             >
-              <Dumbbell className="w-3 h-3 opacity-60" />
+              <Barbell className="w-3 h-3 opacity-60" />
               <span>Choose a workout</span>
-              <ChevronRight className="w-3 h-3 opacity-60" />
+              <CaretRight className="w-3 h-3 opacity-60" />
             </button>
 
             {/* ─── Rolling 7-day schedule strip — swipeable ─── */}
@@ -581,7 +581,7 @@ export function ScheduleWidget({ onSetupSchedule, activeSession, onContinueSessi
                         transition={{ duration: 0.2 }}
                         className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 z-10 pointer-events-none"
                       >
-                        <ChevronLeft className="w-3 h-3 text-[var(--color-text-muted)]" />
+                        <CaretLeft className="w-3 h-3 text-[var(--color-text-muted)]" />
                       </motion.div>
                       <motion.div
                         initial={{ opacity: 0 }}
@@ -590,7 +590,7 @@ export function ScheduleWidget({ onSetupSchedule, activeSession, onContinueSessi
                         transition={{ duration: 0.2 }}
                         className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 z-10 pointer-events-none"
                       >
-                        <ChevronRight className="w-3 h-3 text-[var(--color-text-muted)]" />
+                        <CaretRight className="w-3 h-3 text-[var(--color-text-muted)]" />
                       </motion.div>
                     </>
                   )}

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Send, Trash2, MessageCircle } from 'lucide-react'
+import { PaperPlaneTilt, Trash, ChatCircle } from '@phosphor-icons/react'
 import { Avatar } from '@/components/ui'
 import { useComments, useAddComment, useDeleteComment } from '@/hooks/useComments'
 import { useAuthStore } from '@/stores/authStore'
@@ -52,7 +52,7 @@ export function CommentSection({ sessionId, templateSessionId, workoutOwnerId }:
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <MessageCircle className="w-4 h-4 text-[var(--color-text-muted)]" />
+        <ChatCircle className="w-4 h-4 text-[var(--color-text-muted)]" />
         <h4 className="text-sm font-semibold text-[var(--color-text)]">
           Comments {comments && comments.length > 0 && `(${comments.length})`}
         </h4>
@@ -103,7 +103,7 @@ export function CommentSection({ sessionId, templateSessionId, workoutOwnerId }:
                       onClick={() => handleDelete(comment)}
                       className="opacity-0 group-hover:opacity-100 p-1 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-all flex-shrink-0"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </motion.div>
@@ -142,7 +142,7 @@ export function CommentSection({ sessionId, templateSessionId, workoutOwnerId }:
               disabled={!newComment.trim() || addComment.isPending}
               className="p-1 text-[var(--color-primary)] disabled:opacity-30 transition-opacity"
             >
-              <Send className="w-4 h-4" />
+              <PaperPlaneTilt className="w-4 h-4" />
             </button>
           </div>
         </div>

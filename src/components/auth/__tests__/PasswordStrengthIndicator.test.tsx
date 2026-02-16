@@ -23,7 +23,7 @@ describe('PasswordStrengthIndicator', () => {
     it('marks the lowercase requirement as met for a lowercase password', () => {
       render(<PasswordStrengthIndicator password="abc" />)
       const lowercaseLabel = screen.getByText('Lowercase letter')
-      expect(lowercaseLabel.className).toContain('text-green-500')
+      expect(lowercaseLabel.className).toContain('text-[var(--color-success)]')
     })
 
     it('marks the uppercase requirement as unmet for a lowercase-only password', () => {
@@ -35,19 +35,19 @@ describe('PasswordStrengthIndicator', () => {
     it('marks the number requirement as met when password contains a number', () => {
       render(<PasswordStrengthIndicator password="abc123" />)
       const numberLabel = screen.getByText('Number')
-      expect(numberLabel.className).toContain('text-green-500')
+      expect(numberLabel.className).toContain('text-[var(--color-success)]')
     })
 
     it('marks the special character requirement as met when password contains one', () => {
       render(<PasswordStrengthIndicator password="abc!" />)
       const specialLabel = screen.getByText('Special character')
-      expect(specialLabel.className).toContain('text-green-500')
+      expect(specialLabel.className).toContain('text-[var(--color-success)]')
     })
 
     it('marks the length requirement as met when password is 8+ characters', () => {
       render(<PasswordStrengthIndicator password="abcdefgh" />)
       const lengthLabel = screen.getByText('8+ characters')
-      expect(lengthLabel.className).toContain('text-green-500')
+      expect(lengthLabel.className).toContain('text-[var(--color-success)]')
     })
   })
 
@@ -58,7 +58,7 @@ describe('PasswordStrengthIndicator', () => {
       const greenSpans = screen.getAllByText((_, element) => {
         if (element?.tagName !== 'SPAN') return false
         const cls = typeof element.className === 'string' ? element.className : ''
-        return cls.includes('text-green-500')
+        return cls.includes('text-[var(--color-success)]')
       })
       expect(greenSpans.length).toBeGreaterThanOrEqual(2)
     })
@@ -67,9 +67,12 @@ describe('PasswordStrengthIndicator', () => {
       render(<PasswordStrengthIndicator password="Abc12345!" />)
       // All 5 requirements should be met for this password
       const container = document.querySelector('.grid')
-      const checkIcons = container?.querySelectorAll('.text-green-500')
-      // Each met requirement has both an icon and label with green text
-      expect(checkIcons?.length).toBeGreaterThanOrEqual(5)
+      const allElements = container?.querySelectorAll('*') || []
+      const checkIcons = Array.from(allElements).filter(el =>
+        typeof el.className === 'string' && el.className.includes('text-[var(--color-success)]')
+      )
+      // Each met requirement has both an icon and label with success text
+      expect(checkIcons.length).toBeGreaterThanOrEqual(5)
     })
   })
 

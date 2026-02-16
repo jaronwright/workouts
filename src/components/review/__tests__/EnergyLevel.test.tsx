@@ -27,14 +27,14 @@ vi.mock('@/config/animationConfig', () => ({
 
 vi.mock('@/config/reviewConfig', () => ({
   ENERGY_LABELS: { 1: 'Drained', 2: 'Low', 3: 'Normal', 4: 'High', 5: 'Energized' } as Record<number, string>,
-  ENERGY_COLORS: { 1: '#EF4444', 2: '#F97316', 3: '#EAB308', 4: '#84CC16', 5: '#22C55E' } as Record<number, string>,
+  ENERGY_COLORS: { 1: '#E63B57', 2: '#F97316', 3: '#EAB308', 4: '#84CC16', 5: '#22C55E' } as Record<number, string>,
 }))
 
-// Mock lucide-react
-vi.mock('lucide-react', () => ({
-  Battery: (props: any) => createElement('svg', { ...props, 'data-testid': 'battery-icon' }),
+// Mock @phosphor-icons/react
+vi.mock('@phosphor-icons/react', () => ({
+  BatteryMedium: (props: any) => createElement('svg', { ...props, 'data-testid': 'battery-icon' }),
   BatteryFull: (props: any) => createElement('svg', { ...props, 'data-testid': 'battery-full-icon' }),
-  Zap: (props: any) => createElement('svg', { ...props, 'data-testid': 'zap-icon' }),
+  Lightning: (props: any) => createElement('svg', { ...props, 'data-testid': 'zap-icon' }),
 }))
 
 describe('EnergyLevel', () => {

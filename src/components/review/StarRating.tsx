@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
-import { Star } from 'lucide-react'
+import { Star } from '@phosphor-icons/react'
 import { springs } from '@/config/animationConfig'
 import { RATING_LABELS } from '@/config/reviewConfig'
 
@@ -45,11 +45,12 @@ export function StarRating({ value, onChange, size = 'md', readonly = false }: S
               transition={springs.snappy}
             >
               <Star
-                className={`${star} transition-colors duration-150 ${
+                className={`${star} transition-colors duration-150`}
+                style={
                   filled
-                    ? 'fill-amber-400 text-amber-400'
-                    : 'fill-none text-gray-300 dark:text-gray-600'
-                }`}
+                    ? { fill: 'var(--color-reward)', color: 'var(--color-reward)' }
+                    : { fill: 'none', color: 'var(--color-border)' }
+                }
               />
             </motion.button>
           )

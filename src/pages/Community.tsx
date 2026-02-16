@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, Bell, RefreshCw, Search, X } from 'lucide-react'
+import { Users, Bell, ArrowClockwise, MagnifyingGlass, X } from '@phosphor-icons/react'
 import { motion } from 'motion/react'
 import { AppShell } from '@/components/layout/AppShell'
 import { Card, CardContent, Avatar } from '@/components/ui'
@@ -21,8 +21,6 @@ import { useAuthStore } from '@/stores/authStore'
 import { springPresets } from '@/config/animationConfig'
 import type { FeedMode } from '@/types/community'
 import {
-  EMPTY_FEED_TITLE,
-  EMPTY_FEED_MESSAGE,
   PRIVACY_EXPLAINER_TITLE,
   PRIVACY_EXPLAINER_MESSAGE,
 } from '@/config/communityConfig'
@@ -163,15 +161,15 @@ export function CommunityPage() {
         {/* Discover: Search bar */}
         {showDiscoverExtras && (
           <div className="space-y-[var(--space-3)]">
-            <div className="flex items-center gap-2 bg-[var(--color-surface-hover)] rounded-[var(--radius-lg)] px-3 py-2">
-              <Search className="w-4 h-4 text-[var(--color-text-muted)] flex-shrink-0" />
+            <div className="flex items-center gap-2 bg-[var(--color-surface-sunken)] rounded-[var(--radius-lg)] px-3 py-2.5 transition-colors focus-within:bg-[var(--color-surface-hover)]">
+              <MagnifyingGlass className="w-4 h-4 text-[var(--color-text-muted)] flex-shrink-0" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => { setSearchQuery(e.target.value); setShowSearch(true) }}
                 onFocus={() => setShowSearch(true)}
                 placeholder="Search people..."
-                className="flex-1 bg-transparent text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none"
+                className="flex-1 bg-transparent text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:outline-none focus-visible:outline-none"
               />
               {searchQuery && (
                 <button onClick={() => { setSearchQuery(''); setShowSearch(false) }}>
@@ -260,88 +258,89 @@ export function CommunityPage() {
           </div>
         )}
 
-        {/* Header row with refresh */}
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
-            {feedMode === 'following' ? 'Your Feed' : 'Activity'}
-          </p>
-          <PressableButton
-            onClick={handleRefresh}
-            disabled={isRefetching}
-            className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefetching ? 'animate-spin' : ''}`} />
-            Refresh
-          </PressableButton>
-        </div>
+        {/* Feed (only on Following tab — Discover tab has its own content above) */}
+        {feedMode === 'following' && (
+          <>
+            {/* Header row with refresh */}
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
+                Feed
+              </p>
+              <PressableButton
+                onClick={handleRefresh}
+                disabled={isRefetching}
+                className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+              >
+                <ArrowClockwise className={`w-3.5 h-3.5 ${isRefetching ? 'animate-spin' : ''}`} />
+                Refresh
+              </PressableButton>
+            </div>
 
-        {/* Loading state */}
-        {isLoading && (
-          <div className="space-y-[var(--space-3)]">
-            {[0, 1, 2].map(i => (
-              <div key={i} className="h-28 skeleton rounded-[var(--radius-xl)]" />
-            ))}
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!isLoading && workouts.length === 0 && (
-          <FadeIn direction="up">
-            <Card variant="outlined">
-              <CardContent className="py-[var(--space-12)] text-center">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-[var(--space-4)]" style={{ background: 'var(--color-primary-muted)' }}>
-                  <Users className="w-8 h-8 text-[var(--color-primary)]" />
-                </div>
-                <h3 className="text-lg font-semibold text-[var(--color-text)] mb-[var(--space-2)]">
-                  {feedMode === 'following' ? 'No workouts from your crew yet' : EMPTY_FEED_TITLE}
-                </h3>
-                <p className="text-sm text-[var(--color-text-muted)] max-w-xs mx-auto leading-relaxed">
-                  {feedMode === 'following'
-                    ? 'When people you follow log workouts, they\'ll show up here.'
-                    : EMPTY_FEED_MESSAGE}
-                </p>
-                {feedMode === 'following' && (
-                  <button
-                    onClick={() => setFeedMode('discover')}
-                    className="mt-4 px-4 py-2 rounded-full bg-[var(--color-primary)] text-[var(--color-primary-text)] text-sm font-semibold"
-                  >
-                    Discover People
-                  </button>
-                )}
-              </CardContent>
-            </Card>
-          </FadeIn>
-        )}
-
-        {/* Feed */}
-        {!isLoading && workouts.length > 0 && (
-          <StaggerList className="space-y-[var(--space-3)]">
-            {workouts.map((workout, index) => (
-              <StaggerItem key={workout.id}>
-                <WorkoutCard
-                  workout={workout}
-                  index={index}
-                  onUserClick={handleUserClick}
-                />
-              </StaggerItem>
-            ))}
-          </StaggerList>
-        )}
-
-        {/* Infinite scroll sentinel */}
-        {hasNextPage && (
-          <div ref={loadMoreRef} className="py-[var(--space-4)] flex justify-center">
-            {isFetchingNextPage && (
-              <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+            {/* Loading state */}
+            {isLoading && (
+              <div className="space-y-[var(--space-3)]">
+                {[0, 1, 2].map(i => (
+                  <div key={i} className="h-28 skeleton rounded-[var(--radius-xl)]" />
+                ))}
+              </div>
             )}
-          </div>
-        )}
 
-        {/* End of feed indicator */}
-        {!isLoading && workouts.length > 0 && !hasNextPage && (
-          <p className="text-center text-xs text-[var(--color-text-muted)] py-[var(--space-4)]">
-            You&apos;re all caught up!
-          </p>
+            {/* Empty state */}
+            {!isLoading && workouts.length === 0 && (
+              <FadeIn direction="up">
+                <Card variant="outlined">
+                  <CardContent className="py-[var(--space-12)] text-center">
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-[var(--space-4)]" style={{ background: 'var(--color-primary-muted)' }}>
+                      <Users className="w-8 h-8 text-[var(--color-primary)]" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-[var(--color-text)] mb-[var(--space-2)]">
+                      No workouts from your crew yet
+                    </h3>
+                    <p className="text-sm text-[var(--color-text-muted)] max-w-xs mx-auto leading-relaxed">
+                      When people you follow log workouts, they&apos;ll show up here.
+                    </p>
+                    <button
+                      onClick={() => setFeedMode('discover')}
+                      className="mt-4 px-4 py-2 rounded-full bg-[var(--color-primary)] text-[var(--color-primary-text)] text-sm font-semibold"
+                    >
+                      Discover People
+                    </button>
+                  </CardContent>
+                </Card>
+              </FadeIn>
+            )}
+
+            {/* Feed */}
+            {!isLoading && workouts.length > 0 && (
+              <StaggerList className="space-y-[var(--space-3)]">
+                {workouts.map((workout, index) => (
+                  <StaggerItem key={workout.id}>
+                    <WorkoutCard
+                      workout={workout}
+                      index={index}
+                      onUserClick={handleUserClick}
+                    />
+                  </StaggerItem>
+                ))}
+              </StaggerList>
+            )}
+
+            {/* Infinite scroll sentinel */}
+            {hasNextPage && (
+              <div ref={loadMoreRef} className="py-[var(--space-4)] flex justify-center">
+                {isFetchingNextPage && (
+                  <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+                )}
+              </div>
+            )}
+
+            {/* End of feed indicator */}
+            {!isLoading && workouts.length > 0 && !hasNextPage && (
+              <p className="text-center text-xs text-[var(--color-text-muted)] py-[var(--space-4)]">
+                You&apos;re all caught up!
+              </p>
+            )}
+          </>
         )}
       </div>
 

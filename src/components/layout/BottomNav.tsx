@@ -1,15 +1,14 @@
 import { NavLink } from 'react-router-dom'
-import { Home, History, Calendar, Users, Dumbbell } from 'lucide-react'
+import { House, ClockCounterClockwise, Calendar, Users } from '@phosphor-icons/react'
 import { motion } from 'motion/react'
 import { useUnreadNotificationCount } from '@/hooks/useCommunityNotifications'
 import { springPresets } from '@/config/animationConfig'
 
 const navItems = [
-  { to: '/', icon: Home, label: 'Home' },
-  { to: '/exercises', icon: Dumbbell, label: 'Exercises' },
+  { to: '/', icon: House, label: 'Home' },
   { to: '/community', icon: Users, label: 'Community', showBadge: true },
   { to: '/schedule', icon: Calendar, label: 'Schedule' },
-  { to: '/history', icon: History, label: 'Review' },
+  { to: '/history', icon: ClockCounterClockwise, label: 'Review' },
 ]
 
 export function BottomNav() {
@@ -61,7 +60,7 @@ export function BottomNav() {
                       >
                         <Icon
                           className="relative w-[18px] h-[18px]"
-                          strokeWidth={isActive ? 2.5 : 1.8}
+                          weight={isActive ? 'fill' : 'regular'}
                         />
                       </motion.div>
                       {showBadge && (unreadCount ?? 0) > 0 && !isActive && (

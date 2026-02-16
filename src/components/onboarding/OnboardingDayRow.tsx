@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Moon, Check, Plus, X } from 'lucide-react'
+import { Moon, Check, Plus, X } from '@phosphor-icons/react'
 import {
   WEIGHTS_CONFIG,
   getCardioStyle,
@@ -48,7 +48,7 @@ function getSelectionStyle(selection: DaySelection) {
     return { color: 'var(--color-text-muted)', bgColor: 'var(--color-surface-hover)', icon: null }
   }
   if (selection.type === 'rest') {
-    return { color: '#6B7280', bgColor: 'rgba(107, 114, 128, 0.15)', icon: Moon }
+    return { color: 'var(--color-text-muted)', bgColor: 'var(--color-surface-hover)', icon: Moon }
   }
   if (selection.type === 'weights') {
     const key = getWeightsKey(selection.label || '')
@@ -201,8 +201,8 @@ export function OnboardingDayRow({
 
         {/* Status indicator */}
         {isConfigured && (
-          <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
-            <Check className="w-4 h-4 text-green-500" />
+          <div className="w-6 h-6 rounded-full bg-[var(--color-success)]/20 flex items-center justify-center">
+            <Check className="w-4 h-4 text-[var(--color-success)]" />
           </div>
         )}
       </button>
@@ -213,9 +213,9 @@ export function OnboardingDayRow({
           <div className="p-4 space-y-3">
             {/* Overtraining warning */}
             {selections.length >= 3 && (
-              <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                <span className="text-amber-500 text-lg flex-shrink-0">⚠️</span>
-                <p className="text-sm text-amber-600 dark:text-amber-400">
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-[var(--color-warning-muted)] border border-[var(--color-warning)]/20">
+                <span className="text-[var(--color-warning)] text-lg flex-shrink-0">⚠️</span>
+                <p className="text-sm text-[var(--color-warning)]">
                   Scheduling {selections.length} sessions in one day increases injury and overtraining risk. Consider spreading workouts across multiple days.
                 </p>
               </div>
@@ -227,8 +227,8 @@ export function OnboardingDayRow({
                 {/* Rest Day Option */}
                 <WorkoutOption
                   icon={Moon}
-                  color="#6B7280"
-                  bgColor="rgba(107, 114, 128, 0.15)"
+                  color="var(--color-text-muted)"
+                  bgColor="var(--color-surface-hover)"
                   label="Rest Day"
                   sublabel="Recovery and rest"
                   isSelected={isRest}
@@ -367,7 +367,7 @@ export function OnboardingDayRow({
                         <button
                           type="button"
                           onClick={() => handleRemove(index)}
-                          className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-red-500/10 text-[var(--color-text-muted)] hover:text-red-500 transition-colors"
+                          className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-[var(--color-danger-muted)] text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
                         >
                           <X className="w-4 h-4" />
                         </button>

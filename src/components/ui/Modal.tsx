@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { X } from 'lucide-react'
+import { X } from '@phosphor-icons/react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 interface ModalProps {
@@ -55,9 +55,9 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
             className="
               relative w-full sm:max-w-md sm:mx-4
               max-h-[85vh] overflow-auto
-              bg-[var(--color-surface)]
+              bg-[var(--color-surface-elevated)]
               rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)]
-              shadow-xl
+              shadow-[var(--shadow-elevated)]
             "
             initial={prefersReduced ? false : { opacity: 0, y: 40, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

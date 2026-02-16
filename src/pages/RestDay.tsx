@@ -4,26 +4,26 @@ import { FadeIn, StaggerList, StaggerItem } from '@/components/motion'
 import { restDayActivities } from '@/config/restDayActivities'
 import {
   Footprints,
-  CircleDot,
-  Move,
-  HeartPulse,
+  Crosshair,
+  ArrowsOutCardinal,
+  Heartbeat,
   Waves,
-  Droplets,
+  Drop,
   Moon,
-  Sparkles,
+  Sparkle,
   Check
-} from 'lucide-react'
+} from '@phosphor-icons/react'
 import { useState } from 'react'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   footprints: Footprints,
-  'circle-dot': CircleDot,
-  move: Move,
-  'heart-pulse': HeartPulse,
+  'circle-dot': Crosshair,
+  move: ArrowsOutCardinal,
+  'heart-pulse': Heartbeat,
   waves: Waves,
-  droplets: Droplets,
+  droplets: Drop,
   moon: Moon,
-  sparkles: Sparkles
+  sparkles: Sparkle
 }
 
 export function RestDayPage() {
@@ -66,7 +66,7 @@ export function RestDayPage() {
 
         <StaggerList className="space-y-[var(--space-3)]">
           {restDayActivities.map((activity) => {
-            const Icon = iconMap[activity.icon] || Sparkles
+            const Icon = iconMap[activity.icon] || Sparkle
             const isComplete = completed.has(activity.id)
 
             return (

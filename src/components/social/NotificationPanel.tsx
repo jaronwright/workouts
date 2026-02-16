@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar } from '@/components/ui'
-import { Bell, X } from 'lucide-react'
+import { Bell, X } from '@phosphor-icons/react'
 import { REACTION_MAP } from '@/config/communityConfig'
 import { formatRelativeTime } from '@/utils/formatters'
 import type { CommunityNotification } from '@/types/community'

@@ -22,10 +22,10 @@ vi.mock('@/config/animationConfig', () => ({
   staggerChild: {},
 }))
 
-// Mock lucide-react
-vi.mock('lucide-react', () => ({
-  ChevronDown: (props: any) => createElement('svg', { ...props, 'data-testid': 'chevron-icon' }),
-  MessageSquare: (props: any) => createElement('svg', { ...props, 'data-testid': 'message-icon' }),
+// Mock @phosphor-icons/react
+vi.mock('@phosphor-icons/react', () => ({
+  CaretDown: (props: any) => createElement('svg', { ...props, 'data-testid': 'chevron-icon' }),
+  ChatText: (props: any) => createElement('svg', { ...props, 'data-testid': 'message-icon' }),
   ThumbsUp: (props: any) => createElement('svg', { ...props, 'data-testid': 'thumbsup-icon' }),
   Target: (props: any) => createElement('svg', { ...props, 'data-testid': 'target-icon' }),
 }))

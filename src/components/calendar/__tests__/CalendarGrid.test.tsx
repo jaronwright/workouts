@@ -29,6 +29,7 @@ function makeCalendarDay(dayOfMonth: number, overrides: Partial<CalendarDay> = {
     isFuture: false,
     cycleDay: null,
     projected: null,
+    projectedCount: 0,
     sessions: [],
     hasCompletedSession: false,
     ...overrides,
@@ -77,7 +78,9 @@ describe('CalendarGrid', () => {
 
   it('renders month/year header', () => {
     render(<CalendarGrid {...defaultProps} />)
-    expect(screen.getByText('February 2026')).toBeInTheDocument()
+    // Month name and year are in separate elements
+    expect(screen.getByText('February')).toBeInTheDocument()
+    expect(screen.getByText('2026')).toBeInTheDocument()
   })
 
   it('renders a different month/year header for different months', () => {
@@ -87,21 +90,21 @@ describe('CalendarGrid', () => {
         currentMonth={new Date(2026, 11, 1)}
       />
     )
-    expect(screen.getByText('December 2026')).toBeInTheDocument()
+    // Month name and year are in separate elements
+    expect(screen.getByText('December')).toBeInTheDocument()
+    expect(screen.getByText('2026')).toBeInTheDocument()
   })
 
   it('shows previous and next month navigation buttons', () => {
     const { container } = render(<CalendarGrid {...defaultProps} />)
-    // The navigation header has two buttons: previous (ChevronLeft) and next (ChevronRight)
-    const navButtons = container.querySelectorAll('button')
-    // At minimum there should be prev and next navigation buttons
-    expect(navButtons.length).toBeGreaterThanOrEqual(2)
+    // The navigation buttons are inside a nested flex div
+    const navButtonContainer = container.querySelector('.flex.items-center.gap-1')!
+    const navButtons = navButtonContainer.querySelectorAll('button')
+    expect(navButtons.length).toBe(2)
 
-    // Verify SVGs exist inside the first and second nav buttons (chevron icons)
-    const firstButton = navButtons[0]
-    const lastNavButton = navButtons[1]
-    expect(firstButton.querySelector('svg')).toBeInTheDocument()
-    expect(lastNavButton.querySelector('svg')).toBeInTheDocument()
+    // Verify SVGs exist inside the nav buttons (chevron icons)
+    expect(navButtons[0].querySelector('svg')).toBeInTheDocument()
+    expect(navButtons[1].querySelector('svg')).toBeInTheDocument()
   })
 
   it('calls onMonthChange with previous month when previous button is clicked', () => {
@@ -109,9 +112,10 @@ describe('CalendarGrid', () => {
     const { container } = render(
       <CalendarGrid {...defaultProps} onMonthChange={onMonthChange} />
     )
-    // The first button in the header is the previous month button
-    const buttons = container.querySelectorAll('button')
-    fireEvent.click(buttons[0])
+    // Nav buttons are inside the nested flex container
+    const navButtonContainer = container.querySelector('.flex.items-center.gap-1')!
+    const navButtons = navButtonContainer.querySelectorAll('button')
+    fireEvent.click(navButtons[0])
 
     expect(onMonthChange).toHaveBeenCalledTimes(1)
     const calledWith = onMonthChange.mock.calls[0][0] as Date
@@ -125,11 +129,9 @@ describe('CalendarGrid', () => {
     const { container } = render(
       <CalendarGrid {...defaultProps} onMonthChange={onMonthChange} />
     )
-    // The second button in the navigation header is the next month button
-    // We need to find the button that contains the ChevronRight icon
-    // It's the second direct child button of the navigation header
-    const navHeader = container.querySelector('.flex.items-center.justify-between')!
-    const navButtons = navHeader.querySelectorAll(':scope > button')
+    // Nav buttons are inside the nested flex container
+    const navButtonContainer = container.querySelector('.flex.items-center.gap-1')!
+    const navButtons = navButtonContainer.querySelectorAll('button')
     fireEvent.click(navButtons[1])
 
     expect(onMonthChange).toHaveBeenCalledTimes(1)
@@ -139,13 +141,12 @@ describe('CalendarGrid', () => {
     expect(calledWith.getFullYear()).toBe(2026)
   })
 
-  it('renders calendar day cells for all days', () => {
+  it('renders calendar day cells for current month days', () => {
     render(<CalendarGrid {...defaultProps} />)
-    // All 42 day cells should be rendered as buttons
+    // Only current-month cells render as buttons; non-current-month cells are spacers
     const dayButtons = screen.getAllByRole('button')
-    // Subtract 2 for prev/next navigation buttons (and possibly a "Today" button)
-    // There should be at least 42 day cell buttons
-    expect(dayButtons.length).toBeGreaterThanOrEqual(42)
+    // 28 current-month day buttons + 2 nav buttons = 30
+    expect(dayButtons.length).toBe(30)
   })
 
   it('shows "Today" button when viewing a different month', () => {

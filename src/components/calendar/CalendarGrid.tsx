@@ -1,10 +1,10 @@
 import { useRef, useCallback, useState } from 'react'
 import { format, addMonths, subMonths, isSameMonth } from 'date-fns'
 import { motion, AnimatePresence } from 'motion/react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { CalendarDayCell } from './CalendarDayCell'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
-import type { CalendarDay } from '@/hooks/useCalendarData'
+import type { CalendarDay } from '@/utils/calendarGrid'
 
 const DAY_HEADERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
@@ -64,11 +64,9 @@ export function CalendarGrid({
   const isCurrentMonthToday = isSameMonth(currentMonth, today)
   const monthKey = format(currentMonth, 'yyyy-MM')
 
-  const rowCount = Math.ceil(calendarDays.length / 7)
-
   return (
     <div
-      className="flex flex-col flex-1"
+      className="flex flex-col"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -99,13 +97,13 @@ export function CalendarGrid({
               onClick={goToPrevMonth}
               className="p-2 rounded-full hover:bg-[var(--color-surface-hover)] active:scale-95 transition-all"
             >
-              <ChevronLeft className="w-4.5 h-4.5 text-[var(--color-text-muted)]" />
+              <CaretLeft className="w-4.5 h-4.5 text-[var(--color-text-muted)]" />
             </button>
             <button
               onClick={goToNextMonth}
               className="p-2 rounded-full hover:bg-[var(--color-surface-hover)] active:scale-95 transition-all"
             >
-              <ChevronRight className="w-4.5 h-4.5 text-[var(--color-text-muted)]" />
+              <CaretRight className="w-4.5 h-4.5 text-[var(--color-text-muted)]" />
             </button>
           </div>
         </div>
@@ -128,8 +126,7 @@ export function CalendarGrid({
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={monthKey}
-          className="grid grid-cols-7 gap-1.5 flex-1"
-          style={{ gridTemplateRows: `repeat(${rowCount}, 1fr)` }}
+          className="grid grid-cols-7 gap-1"
           initial={prefersReduced ? false : { opacity: 0, x: slideDirection * 40 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: slideDirection * -40 }}

@@ -5,7 +5,7 @@ import { useWorkoutDays, useWorkoutPlans } from '@/hooks/useWorkoutPlan'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useUploadAvatar, useAvatarUrl } from '@/hooks/useAvatar'
 import { OnboardingDayRow, type DaySelection } from './OnboardingDayRow'
-import { ChevronDown, ChevronLeft, ChevronRight, HelpCircle, RefreshCw, Calendar, Dumbbell, ArrowUp, User, Camera, Sparkles } from 'lucide-react'
+import { CaretDown, CaretLeft, CaretRight, Question, ArrowClockwise, Calendar, Barbell, ArrowUp, User, Camera, Sparkle } from '@phosphor-icons/react'
 import { WEIGHTS_CONFIG } from '@/config/workoutConfig'
 import {
   PPL_PLAN_ID,
@@ -388,42 +388,42 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
   const SPLIT_OPTIONS = [
     {
       id: PPL_PLAN_ID, key: 'ppl', fallbackName: 'Push / Pull / Legs',
-      gradient: 'from-red-500 to-orange-500', Icon: Dumbbell,
+      gradient: 'from-[var(--color-cardio)] to-[var(--color-warning)]', Icon: Barbell,
       desc: 'Best for focused muscle group training, 5-6 days/week.',
       detail: 'Separates pushing movements (chest, shoulders, triceps), pulling movements (back, biceps), and legs into dedicated days. This lets you hit each muscle group with higher volume while giving them plenty of time to recover before the next session.',
       tags: [{ key: 'push', label: 'Push' }, { key: 'pull', label: 'Pull' }, { key: 'legs', label: 'Legs' }],
     },
     {
       id: UPPER_LOWER_PLAN_ID, key: 'ul', fallbackName: 'Upper / Lower',
-      gradient: 'from-blue-500 to-purple-500', Icon: ArrowUp,
+      gradient: 'from-[var(--color-weights)] to-[var(--color-info)]', Icon: ArrowUp,
       desc: 'Simple and balanced, great for beginners or 3-4 days/week.',
       detail: "Alternates between upper body and lower body sessions, so you train your full body every two workouts. It's straightforward to follow and gives each half of your body a full day to recover between sessions.",
       tags: [{ key: 'upper', label: 'Upper' }, { key: 'lower', label: 'Lower' }],
     },
     {
       id: FULL_BODY_PLAN_ID, key: 'fb', fallbackName: 'Full Body',
-      gradient: 'from-emerald-500 to-teal-500', Icon: Dumbbell,
+      gradient: 'from-[var(--color-primary)] to-[var(--color-accent)]', Icon: Barbell,
       desc: '5 unique full-body workouts \u2014 pick any 3 per week.',
       detail: 'Each session trains every major muscle group with different exercises and rep ranges. Pick any 3 of the 5 workouts per week. Great for balanced development and flexible scheduling.',
       tags: ['full body a', 'full body b', 'full body c', 'full body d', 'full body e'].map(k => ({ key: k, label: k.replace('full body ', 'FB ').toUpperCase() })),
     },
     {
       id: BRO_SPLIT_PLAN_ID, key: 'bro', fallbackName: 'Bro Split',
-      gradient: 'from-red-500 to-purple-500', Icon: Dumbbell,
+      gradient: 'from-[var(--color-cardio)] to-[var(--color-weights)]', Icon: Barbell,
       desc: 'Chest \u00B7 Back \u00B7 Legs \u00B7 Shoulders \u00B7 Arms \u2014 5 days per week.',
       detail: 'Each day focuses on one muscle group with high volume. This classic bodybuilding approach lets you fully fatigue each body part before giving it a full week to recover.',
       tags: ['chest', 'back', 'legs', 'shoulders', 'arms'].map(k => ({ key: k, label: k.charAt(0).toUpperCase() + k.slice(1) })),
     },
     {
       id: ARNOLD_SPLIT_PLAN_ID, key: 'arnold', fallbackName: 'Arnold Split',
-      gradient: 'from-rose-500 to-fuchsia-500', Icon: Dumbbell,
+      gradient: 'from-[var(--color-cardio)] to-[var(--color-info)]', Icon: Barbell,
       desc: 'Chest & Back \u00B7 Shoulders & Arms \u00B7 Legs \u2014 6-day cycle.',
       detail: "Inspired by Arnold Schwarzenegger's training philosophy. Pairs opposing muscle groups (chest with back, shoulders with arms) for high-volume supersets. The 3-day cycle repeats twice per week with one rest day.",
       tags: ['chest & back', 'shoulders & arms', 'legs'].map(k => ({ key: k, label: k.split(' ').map(w => w === '&' ? '&' : w.charAt(0).toUpperCase() + w.slice(1)).join(' ') })),
     },
     {
       id: GLUTE_HYPERTROPHY_PLAN_ID, key: 'glute', fallbackName: 'Glute Hypertrophy',
-      gradient: 'from-pink-500 to-rose-500', Icon: Dumbbell,
+      gradient: 'from-[var(--color-cardio)] to-[var(--color-danger)]', Icon: Barbell,
       desc: '3 Lower / 2 Upper \u00B7 5 days \u2014 lower body focused with glute emphasis.',
       detail: 'Based on the Strong Curves approach. Three dedicated lower-body days target glutes from every angle \u2014 posterior chain, quads, and isolation pump work \u2014 while two upper-body days maintain balanced strength and posture.',
       tags: ['lower a', 'upper a', 'lower b', 'upper b', 'lower c'].map(k => ({ key: k, label: k.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') })),
@@ -468,7 +468,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
             onClick={handleBack}
             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] transition-colors"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <CaretLeft className="w-5 h-5" />
           </button>
         ) : (
           <div className="w-10 h-10" />
@@ -478,7 +478,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
             onClick={handleForward}
             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] transition-colors"
           >
-            <ChevronRight className="w-5 h-5" />
+            <CaretRight className="w-5 h-5" />
           </button>
         )}
       </div>
@@ -544,11 +544,11 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                 placeholder="Your name"
                 autoFocus
                 className={`w-full px-5 py-4 text-lg rounded-2xl border bg-[var(--color-surface)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-colors ${
-                  nameError ? 'border-red-500' : 'border-[var(--color-border)]'
+                  nameError ? 'border-[var(--color-danger)]' : 'border-[var(--color-border)]'
                 }`}
               />
               {nameError && (
-                <p className="mt-1.5 text-sm text-red-500">{nameError}</p>
+                <p className="mt-1.5 text-sm text-[var(--color-danger)]">{nameError}</p>
               )}
             </div>
 
@@ -638,7 +638,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
             {/* Error Display */}
             {error && (
-              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
+              <div className="p-4 rounded-xl bg-[var(--color-danger-muted)] border border-[var(--color-danger)]/20 text-[var(--color-danger)] text-sm">
                 {error}
               </div>
             )}
@@ -679,14 +679,14 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                 onClick={() => setShowAbout(!showAbout)}
                 className="w-full flex items-center gap-3 p-4 hover:bg-[var(--color-surface-hover)] transition-colors"
               >
-                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                  <HelpCircle className="w-5 h-5 text-blue-500" />
+                <div className="w-10 h-10 rounded-full bg-[var(--color-info-muted)] flex items-center justify-center">
+                  <Question className="w-5 h-5 text-[var(--color-info)]" />
                 </div>
                 <div className="flex-1 text-left">
                   <p className="font-medium text-[var(--color-text)]">How does this work?</p>
                   <p className="text-sm text-[var(--color-text-muted)]">Learn about the schedule system</p>
                 </div>
-                <ChevronDown className={`w-5 h-5 text-[var(--color-text-muted)] transition-transform duration-200 ${showAbout ? 'rotate-180' : ''}`} />
+                <CaretDown className={`w-5 h-5 text-[var(--color-text-muted)] transition-transform duration-200 ${showAbout ? 'rotate-180' : ''}`} />
               </button>
 
               {showAbout && (
@@ -694,7 +694,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                   {/* Continuous Rotation */}
                   <div className="flex gap-3">
                     <div className="w-8 h-8 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <RefreshCw className="w-4 h-4 text-[var(--color-primary)]" />
+                      <ArrowClockwise className="w-4 h-4 text-[var(--color-primary)]" />
                     </div>
                     <div>
                       <p className="font-medium text-[var(--color-text)] text-sm">Continuous 7-Day Rotation</p>
@@ -706,8 +706,8 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
                   {/* Independent of Calendar */}
                   <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Calendar className="w-4 h-4 text-purple-500" />
+                    <div className="w-8 h-8 rounded-full bg-[var(--color-accent-muted)] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Calendar className="w-4 h-4 text-[var(--color-accent)]" />
                     </div>
                     <div>
                       <p className="font-medium text-[var(--color-text)] text-sm">Independent of Calendar Days</p>
@@ -730,7 +730,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
             {/* Auto-Builder Questions (shown directly) */}
             <div className="space-y-5">
-              {/* Q1: Workout Focus */}
+              {/* Q1: Workout Crosshair */}
               <div className="space-y-2">
                 <p className="text-sm font-medium text-[var(--color-text)]">What's your workout focus?</p>
                 <div className="flex gap-2">
@@ -827,7 +827,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
             {/* Contextual message */}
             {configuredCount > 0 ? (
               <div className="rounded-2xl bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 p-4 flex items-start gap-3">
-                <Sparkles className="w-5 h-5 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
+                <Sparkle className="w-5 h-5 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-[var(--color-text-muted)]">
                   Your program is ready — feel free to customize any day below.
                 </p>
@@ -868,7 +868,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
 
             {/* Error Display */}
             {error && (
-              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
+              <div className="p-4 rounded-xl bg-[var(--color-danger-muted)] border border-[var(--color-danger)]/20 text-[var(--color-danger)] text-sm">
                 {error}
               </div>
             )}
@@ -894,7 +894,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                 onClick={() => { generateSchedule(); setStep(4) }}
                 className="w-full"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkle className="w-4 h-4 mr-2" />
                 Build My Program
               </Button>
               <button

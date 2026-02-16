@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, LogOut } from 'lucide-react'
+import { CaretLeft, SignOut } from '@phosphor-icons/react'
 import { useAuthStore } from '@/stores/authStore'
 import { PressableButton } from '@/components/motion'
 
@@ -35,7 +35,7 @@ export function Header({ title, showBack = false, showLogout = false, headerActi
                 transition-colors duration-150
               "
             >
-              <ChevronLeft className="w-6 h-6" />
+              <CaretLeft className="w-6 h-6" />
             </PressableButton>
           )}
           <h1 className="text-[var(--text-lg)] font-bold tracking-[var(--tracking-tight)] text-[var(--color-text)]">
@@ -54,7 +54,7 @@ export function Header({ title, showBack = false, showLogout = false, headerActi
                 transition-colors duration-150
               "
             >
-              <LogOut className="w-5 h-5" />
+              <SignOut className="w-5 h-5" />
             </PressableButton>
           )}
           {headerAction}

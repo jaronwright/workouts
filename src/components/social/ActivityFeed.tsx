@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui'
 import { useSocialFeed } from '@/hooks/useSocial'
 import { formatRelativeTime } from '@/utils/formatters'
 import { getWorkoutDisplayName } from '@/config/workoutConfig'
-import { Dumbbell, Heart, Activity, User } from 'lucide-react'
+import { Barbell, Heart, Heartbeat, User } from '@phosphor-icons/react'
 import type { FeedWorkout } from '@/types/community'
 
 function getWorkoutIcon(type: string) {
@@ -10,9 +10,9 @@ function getWorkoutIcon(type: string) {
     case 'cardio':
       return { Icon: Heart, color: 'var(--color-cardio)' }
     case 'mobility':
-      return { Icon: Activity, color: 'var(--color-mobility)' }
+      return { Icon: Heartbeat, color: 'var(--color-mobility)' }
     default:
-      return { Icon: Dumbbell, color: 'var(--color-weights)' }
+      return { Icon: Barbell, color: 'var(--color-weights)' }
   }
 }
 

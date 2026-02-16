@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { MapPin, RefreshCw, ChevronDown, Wind, Droplets, Sun, CloudRain } from 'lucide-react'
+import { MapPin, ArrowClockwise, CaretDown, Wind, Drop, Sun, CloudRain } from '@phosphor-icons/react'
 import { Card, CardContent, Button } from '@/components/ui'
 import { useWeather } from '@/hooks/useWeather'
 import { useWeatherStore } from '@/stores/weatherStore'
@@ -114,7 +114,7 @@ export function WeatherCard() {
       >
         <Card variant="outlined">
           <CardContent className="py-4 flex items-center gap-3">
-            <RefreshCw className="w-5 h-5 text-[var(--color-text-muted)] shrink-0" />
+            <ArrowClockwise className="w-5 h-5 text-[var(--color-text-muted)] shrink-0" />
             <p className="text-sm text-[var(--color-text-muted)] flex-1">
               {error === 'position_unavailable' ? 'Unable to get location' : 'Weather unavailable'}
             </p>
@@ -223,7 +223,7 @@ export function WeatherCard() {
               animate={{ rotate: isExpanded ? 180 : 0 }}
               transition={reducedTransition ?? { type: 'spring', stiffness: 300, damping: 25 }}
             >
-              <ChevronDown className="w-4 h-4 text-[var(--color-text-muted)]" />
+              <CaretDown className="w-4 h-4 text-[var(--color-text-muted)]" />
             </motion.div>
           </div>
 
@@ -244,7 +244,7 @@ export function WeatherCard() {
                     value={windDisplay}
                   />
                   <WeatherDetailItem
-                    icon={<Droplets className="w-4 h-4" />}
+                    icon={<Drop className="w-4 h-4" />}
                     label="Humidity"
                     value={`${current.humidity}%`}
                   />

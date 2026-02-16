@@ -1,28 +1,28 @@
 import {
-  Dumbbell,
+  Barbell,
   ArrowDown,
   Footprints,
-  Bike,
-  Zap,
-  TrendingUp,
+  Bicycle,
+  Lightning,
+  TrendUp,
   Waves,
   Target,
-  Workflow,
-  Activity,
+  FlowArrow,
+  Heartbeat,
   Wind,
   ArrowUp,
-  ArrowDownUp,
-  Swords,
+  ArrowsDownUp,
+  Sword,
   Heart,
   Shield,
-  type LucideIcon
-} from 'lucide-react'
+  type Icon,
+} from '@phosphor-icons/react'
 
 export interface WorkoutStyle {
   color: string
   bgColor: string
   gradient: string
-  icon: LucideIcon
+  icon: Icon
 }
 
 // WEIGHTS - Indigo/Violet/Pink Theme
@@ -31,7 +31,7 @@ export const WEIGHTS_CONFIG: Record<string, WorkoutStyle> = {
     color: '#6366F1',
     bgColor: 'rgba(99, 102, 241, 0.15)',
     gradient: 'from-indigo-500 to-indigo-400',
-    icon: Dumbbell
+    icon: Barbell
   },
   pull: {
     color: '#8B5CF6',
@@ -55,21 +55,21 @@ export const WEIGHTS_CONFIG: Record<string, WorkoutStyle> = {
     color: '#8B5CF6',
     bgColor: 'rgba(139, 92, 246, 0.15)',
     gradient: 'from-violet-500 to-violet-400',
-    icon: ArrowDownUp
+    icon: ArrowsDownUp
   },
   // Full Body days
-  'full body a': { color: '#10B981', bgColor: '#10B98120', gradient: 'from-emerald-500 to-emerald-400', icon: Dumbbell },
-  'full body b': { color: '#14B8A6', bgColor: '#14B8A620', gradient: 'from-teal-500 to-teal-400', icon: Dumbbell },
-  'full body c': { color: '#06B6D4', bgColor: '#06B6D420', gradient: 'from-cyan-500 to-cyan-400', icon: Dumbbell },
-  'full body d': { color: '#0EA5E9', bgColor: '#0EA5E920', gradient: 'from-sky-500 to-sky-400', icon: Dumbbell },
-  'full body e': { color: '#3B82F6', bgColor: '#3B82F620', gradient: 'from-blue-500 to-blue-400', icon: Dumbbell },
+  'full body a': { color: '#10B981', bgColor: '#10B98120', gradient: 'from-emerald-500 to-emerald-400', icon: Barbell },
+  'full body b': { color: '#14B8A6', bgColor: '#14B8A620', gradient: 'from-teal-500 to-teal-400', icon: Barbell },
+  'full body c': { color: '#06B6D4', bgColor: '#06B6D420', gradient: 'from-cyan-500 to-cyan-400', icon: Barbell },
+  'full body d': { color: '#0EA5E9', bgColor: '#0EA5E920', gradient: 'from-sky-500 to-sky-400', icon: Barbell },
+  'full body e': { color: '#3B82F6', bgColor: '#3B82F620', gradient: 'from-blue-500 to-blue-400', icon: Barbell },
   // Bro Split days
-  'chest': { color: '#EF4444', bgColor: '#EF444420', gradient: 'from-red-500 to-red-400', icon: Dumbbell },
+  'chest': { color: '#E63B57', bgColor: '#E63B5720', gradient: 'from-rose-500 to-rose-400', icon: Barbell },
   'back': { color: '#F97316', bgColor: '#F9731620', gradient: 'from-orange-500 to-orange-400', icon: ArrowDown },
   'shoulders': { color: '#EAB308', bgColor: '#EAB30820', gradient: 'from-yellow-500 to-yellow-400', icon: ArrowUp },
-  'arms': { color: '#A855F7', bgColor: '#A855F720', gradient: 'from-purple-500 to-purple-400', icon: Dumbbell },
+  'arms': { color: '#A855F7', bgColor: '#A855F720', gradient: 'from-purple-500 to-purple-400', icon: Barbell },
   // Arnold Split days
-  'chest & back': { color: '#F43F5E', bgColor: '#F43F5E20', gradient: 'from-rose-500 to-rose-400', icon: Dumbbell },
+  'chest & back': { color: '#F43F5E', bgColor: '#F43F5E20', gradient: 'from-rose-500 to-rose-400', icon: Barbell },
   'shoulders & arms': { color: '#D946EF', bgColor: '#D946EF20', gradient: 'from-fuchsia-500 to-fuchsia-400', icon: ArrowUp },
   // Glute Hypertrophy days
   'lower a': { color: '#F43F5E', bgColor: '#F43F5E20', gradient: 'from-rose-500 to-rose-400', icon: Footprints },
@@ -85,19 +85,19 @@ export const CARDIO_CONFIG: Record<string, WorkoutStyle> = {
     color: '#14B8A6',
     bgColor: 'rgba(20, 184, 166, 0.15)',
     gradient: 'from-teal-500 to-teal-400',
-    icon: Bike
+    icon: Bicycle
   },
   run: {
     color: '#F97316',
     bgColor: 'rgba(249, 115, 22, 0.15)',
     gradient: 'from-orange-500 to-orange-400',
-    icon: Zap
+    icon: Lightning
   },
   stair_stepper: {
     color: '#D946EF',
     bgColor: 'rgba(217, 70, 239, 0.15)',
     gradient: 'from-fuchsia-500 to-fuchsia-400',
-    icon: TrendingUp
+    icon: TrendUp
   },
   swim: {
     color: '#06B6D4',
@@ -115,7 +115,7 @@ export const CARDIO_CONFIG: Record<string, WorkoutStyle> = {
     color: '#DC2626',
     bgColor: 'rgba(220, 38, 38, 0.15)',
     gradient: 'from-red-600 to-red-500',
-    icon: Swords
+    icon: Sword
   }
 }
 
@@ -131,13 +131,13 @@ export const MOBILITY_CONFIG: Record<string, WorkoutStyle> = {
     color: '#14B8A6',
     bgColor: 'rgba(20, 184, 166, 0.15)',
     gradient: 'from-teal-500 to-teal-400',
-    icon: Workflow
+    icon: FlowArrow
   },
   spine: {
     color: '#22C55E',
     bgColor: 'rgba(34, 197, 94, 0.15)',
     gradient: 'from-green-500 to-green-400',
-    icon: Activity
+    icon: Heartbeat
   },
   shoulder_elbow_wrist: {
     color: '#84CC16',
@@ -152,32 +152,32 @@ export const MOBILITY_CONFIG: Record<string, WorkoutStyle> = {
     icon: Heart
   },
   shoulder_prehab: {
-    color: '#60A5FA',
-    bgColor: 'rgba(96, 165, 250, 0.15)',
-    gradient: 'from-blue-400 to-blue-300',
+    color: '#818CF8',
+    bgColor: 'rgba(129, 140, 248, 0.15)',
+    gradient: 'from-indigo-400 to-indigo-300',
     icon: Shield
   }
 }
 
-// Category defaults
+// Category defaults — matched to design system workout type colors
 export const CATEGORY_DEFAULTS: Record<string, WorkoutStyle> = {
   weights: {
-    color: '#6366F1',
-    bgColor: 'rgba(99, 102, 241, 0.15)',
+    color: '#5B5DF0',
+    bgColor: 'rgba(91, 93, 240, 0.12)',
     gradient: 'from-indigo-500 to-indigo-400',
-    icon: Dumbbell
+    icon: Barbell
   },
   cardio: {
-    color: '#14B8A6',
-    bgColor: 'rgba(20, 184, 166, 0.15)',
-    gradient: 'from-teal-500 to-teal-400',
-    icon: Zap
+    color: '#E63B57',
+    bgColor: 'rgba(230, 59, 87, 0.12)',
+    gradient: 'from-rose-500 to-rose-400',
+    icon: Lightning
   },
   mobility: {
-    color: '#10B981',
-    bgColor: 'rgba(16, 185, 129, 0.15)',
+    color: '#00C261',
+    bgColor: 'rgba(0, 194, 97, 0.12)',
     gradient: 'from-emerald-500 to-green-500',
-    icon: Activity
+    icon: Heartbeat
   }
 }
 

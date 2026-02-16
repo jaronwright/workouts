@@ -32,8 +32,8 @@ vi.mock('@/config/reviewConfig', () => ({
   } as Record<number, string>,
 }))
 
-// Mock lucide-react
-vi.mock('lucide-react', () => ({
+// Mock @phosphor-icons/react
+vi.mock('@phosphor-icons/react', () => ({
   Star: (props: any) => createElement('svg', { ...props, 'data-testid': 'star-icon' }),
 }))
 

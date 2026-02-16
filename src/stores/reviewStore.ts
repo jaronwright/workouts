@@ -56,7 +56,7 @@ const defaultDraft: ReviewDraft = {
   improvements: '',
 }
 
-export const useReviewStore = create<ReviewStoreState>((set, get) => ({
+export const useReviewStore = create<ReviewStoreState>((set) => ({
   isReviewModalOpen: false,
   currentSessionId: null,
   currentTemplateSessionId: null,

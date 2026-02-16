@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { X, ChevronLeft, ChevronRight, Check, Sparkles } from 'lucide-react'
+import { X, CaretLeft, CaretRight, Check, Sparkle } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/Button'
 import { useReviewStore } from '@/stores/reviewStore'
 import { useCreateReview } from '@/hooks/useReview'
@@ -139,7 +139,7 @@ export function PostWorkoutReview({ onComplete }: PostWorkoutReviewProps) {
                   transition={{ type: 'spring', stiffness: 300, damping: 15 }}
                 >
                   <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'var(--color-success-muted)' }}>
-                    <Sparkles className="w-10 h-10" style={{ color: 'var(--color-success)' }} />
+                    <Sparkle className="w-10 h-10" style={{ color: 'var(--color-success)' }} />
                   </div>
                 </motion.div>
                 <motion.p
@@ -265,7 +265,7 @@ export function PostWorkoutReview({ onComplete }: PostWorkoutReviewProps) {
           <div className="flex items-center gap-3 px-5 py-4 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
             {step > 0 ? (
               <Button variant="ghost" size="md" onClick={handlePrev}>
-                <ChevronLeft className="w-4 h-4" />
+                <CaretLeft className="w-4 h-4" />
                 Back
               </Button>
             ) : (
@@ -299,7 +299,7 @@ export function PostWorkoutReview({ onComplete }: PostWorkoutReviewProps) {
                 disabled={!canProceed}
               >
                 Next
-                <ChevronRight className="w-4 h-4" />
+                <CaretRight className="w-4 h-4" />
               </Button>
             )}
           </div>

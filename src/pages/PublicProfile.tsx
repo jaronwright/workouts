@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { Flame, Calendar, Trophy, Dumbbell } from 'lucide-react'
+import { Fire, Calendar, Trophy, Barbell } from '@phosphor-icons/react'
 import { motion } from 'motion/react'
 import { AppShell } from '@/components/layout/AppShell'
 import { Card, CardContent, Avatar } from '@/components/ui'
@@ -70,7 +70,7 @@ export function PublicProfilePage() {
           </h2>
           {profile.plan_name && (
             <div className="flex items-center gap-1.5 mt-1.5">
-              <Dumbbell className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
+              <Barbell className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
               <span className="text-sm text-[var(--color-text-muted)]">
                 {profile.plan_name}
               </span>
@@ -117,8 +117,8 @@ export function PublicProfilePage() {
             <Card>
               <CardContent className="py-3 text-center">
                 <div className="w-8 h-8 rounded-full mx-auto mb-1.5 flex items-center justify-center"
-                  style={{ backgroundColor: 'rgba(249, 115, 22, 0.15)' }}>
-                  <Flame className="w-4 h-4 text-orange-500" />
+                  style={{ backgroundColor: 'var(--color-primary-muted)' }}>
+                  <Fire className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
                 </div>
                 <p className="text-lg font-bold text-[var(--color-text)]">{profile.stats.current_streak}</p>
                 <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Streak</p>
@@ -129,8 +129,8 @@ export function PublicProfilePage() {
             <Card>
               <CardContent className="py-3 text-center">
                 <div className="w-8 h-8 rounded-full mx-auto mb-1.5 flex items-center justify-center"
-                  style={{ backgroundColor: 'rgba(99, 102, 241, 0.15)' }}>
-                  <Calendar className="w-4 h-4 text-indigo-500" />
+                  style={{ backgroundColor: 'var(--color-info-muted)' }}>
+                  <Calendar className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
                 </div>
                 <p className="text-lg font-bold text-[var(--color-text)]">{profile.stats.this_week}</p>
                 <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">This Week</p>
@@ -141,8 +141,8 @@ export function PublicProfilePage() {
             <Card>
               <CardContent className="py-3 text-center">
                 <div className="w-8 h-8 rounded-full mx-auto mb-1.5 flex items-center justify-center"
-                  style={{ backgroundColor: 'rgba(139, 92, 246, 0.15)' }}>
-                  <Trophy className="w-4 h-4 text-violet-500" />
+                  style={{ backgroundColor: 'var(--color-reward-muted)' }}>
+                  <Trophy className="w-4 h-4" style={{ color: 'var(--color-reward)' }} />
                 </div>
                 <p className="text-lg font-bold text-[var(--color-text)]">{profile.stats.total_workouts}</p>
                 <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Total</p>

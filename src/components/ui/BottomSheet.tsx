@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
-import { X } from 'lucide-react'
+import { X } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
 
 interface BottomSheetProps {
@@ -48,7 +48,7 @@ export function BottomSheet({ isOpen, onClose, title, children }: BottomSheetPro
 
           {/* Sheet */}
           <motion.div
-            className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-hidden rounded-t-[var(--radius-xl)] bg-[var(--color-surface)] shadow-[var(--shadow-lg)]"
+            className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-hidden rounded-t-[var(--radius-xl)] bg-[var(--color-surface-elevated)] shadow-[var(--shadow-elevated)]"
             initial={prefersReduced ? false : { y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}

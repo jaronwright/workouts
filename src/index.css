@@ -1,13 +1,15 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════
-   DESIGN SYSTEM V4 — ELECTRIC VOLT
+   DESIGN SYSTEM V5 — ELECTRIC MINT PRO
 
-   Aesthetic: Highlighter on dark paper. Nike Volt energy.
+   Two personalities:
+     Light mode = "Editorial" — layered grays, colored shadows
+     Dark mode  = "Cinematic" — neon glow, gradient surfaces
+
+   Primary: Electric Mint — green = go, movement, progress, vitality
+   Reward Gold: ONLY for achievements (PRs, streaks, milestones)
    Typography: Syne (display) + Outfit (body) + JetBrains Mono (stats)
-   Palette: Near-blacks + Electric Yellow (#E8FF00) accent
-
-   The yellow is SACRED — used sparingly for maximum impact.
    ═══════════════════════════════════════════════════ */
 
 /* ─── NOISE TEXTURE (SVG filter for tactile grain) ─── */
@@ -17,78 +19,95 @@ svg#grain-filter {
   height: 0;
 }
 
-/* ─── LIGHT MODE TOKENS ─── */
+/* ─── LIGHT MODE TOKENS — "EDITORIAL" ─── */
 :root {
-  /* --- Primary Accent: Electric Yellow (volt) — used SPARINGLY --- */
-  --color-primary: #E8FF00;
-  --color-primary-hover: #D4EB00;
-  --color-primary-muted: rgba(232, 255, 0, 0.10);
-  --color-primary-text: #0A0A0A; /* black text on yellow for contrast */
+  /* --- Primary: Electric Mint --- */
+  --color-primary: #00C261;
+  --color-primary-bright: #00D26A;
+  --color-primary-hover: #00AB56;
+  --color-primary-text: #FFFFFF;
+  --color-primary-muted: rgba(0, 194, 97, 0.10);
+  --color-primary-glow: rgba(0, 194, 97, 0.14);
 
-  /* --- Accent: Soft warm gold (secondary) --- */
-  --color-accent: #D4A84B;
-  --color-accent-hover: #C49A3D;
-  --color-accent-secondary: #E0BD6F;
-  --color-accent-muted: rgba(212, 168, 75, 0.12);
+  /* --- Accent: Teal companion --- */
+  --color-accent: #00A89A;
+  --color-accent-hover: #009488;
+  --color-accent-secondary: #00BDB0;
+  --color-accent-muted: rgba(0, 168, 154, 0.08);
 
-  /* --- Tertiary: Warm sage --- */
-  --color-tertiary: #4ADE80;
-  --color-tertiary-hover: #3CC970;
-  --color-tertiary-muted: rgba(74, 222, 128, 0.10);
+  /* --- Reward Gold (achievements ONLY) --- */
+  --color-reward: #D99700;
+  --color-reward-bright: #FFB800;
+  --color-reward-muted: rgba(217, 151, 0, 0.10);
+  --color-reward-glow: rgba(217, 151, 0, 0.12);
+
+  /* --- Tertiary: matches primary --- */
+  --color-tertiary: #00C261;
+  --color-tertiary-hover: #00AB56;
+  --color-tertiary-muted: rgba(0, 194, 97, 0.10);
 
   /* --- Workout Type Colors --- */
-  --color-weights: #60A5FA;
-  --color-weights-muted: rgba(96, 165, 250, 0.12);
-  --color-cardio: #EF4444;
-  --color-cardio-muted: rgba(239, 68, 68, 0.12);
-  --color-mobility: #4ADE80;
-  --color-mobility-muted: rgba(74, 222, 128, 0.10);
+  --color-weights: #5B5DF0;
+  --color-weights-muted: rgba(91, 93, 240, 0.09);
+  --color-cardio: #E63B57;
+  --color-cardio-muted: rgba(230, 59, 87, 0.08);
+  --color-mobility: #00C261;
+  --color-mobility-muted: rgba(0, 194, 97, 0.08);
 
-  /* --- Background & Surface (Light) --- */
-  --color-background: #F2F2ED;
-  --color-surface: #FAFAF7;
+  /* --- Surfaces (THREE-TIER: gray bg → off-white → true white) --- */
+  --color-background: #ECEEF2;
+  --color-surface: #F7F8FA;
   --color-surface-elevated: #FFFFFF;
-  --color-surface-hover: #EBEBE6;
-  --color-surface-sunken: #E5E5E0;
-  --color-border: rgba(10, 10, 10, 0.08);
-  --color-border-strong: rgba(10, 10, 10, 0.15);
+  --color-surface-hover: #EAEBEF;
+  --color-surface-sunken: #E3E5EA;
+  --color-border: rgba(17, 19, 24, 0.08);
+  --color-border-strong: rgba(17, 19, 24, 0.14);
 
   /* --- Glass --- */
-  --glass-bg: rgba(250, 250, 247, 0.88);
-  --glass-border: rgba(10, 10, 10, 0.06);
-  --glass-blur: 16px;
+  --glass-bg: rgba(247, 248, 250, 0.82);
+  --glass-border: rgba(17, 19, 24, 0.06);
+  --glass-blur: 24px;
 
-  /* --- Text (Light) --- */
-  --color-text: #0A0A0A;
-  --color-text-secondary: #5A5A5A;
-  --color-text-muted: #8A8A8A;
-  --color-text-inverse: #F0F0F0;
+  /* --- Text --- */
+  --color-text: #111318;
+  --color-text-secondary: #484D5C;
+  --color-text-muted: #6E7487;
+  --color-text-inverse: #ECF0F5;
 
   /* --- Status Colors --- */
-  --color-success: #4ADE80;
-  --color-success-muted: rgba(74, 222, 128, 0.12);
-  --color-warning: #FACC15;
-  --color-warning-muted: rgba(250, 204, 21, 0.12);
-  --color-danger: #EF4444;
-  --color-danger-muted: rgba(239, 68, 68, 0.12);
-  --color-info: #60A5FA;
-  --color-info-muted: rgba(96, 165, 250, 0.10);
+  --color-success: #00C261;
+  --color-success-muted: rgba(0, 194, 97, 0.10);
+  --color-warning: #D99700;
+  --color-warning-muted: rgba(217, 151, 0, 0.10);
+  --color-danger: #E63B57;
+  --color-danger-muted: rgba(230, 59, 87, 0.10);
+  --color-info: #5B5DF0;
+  --color-info-muted: rgba(91, 93, 240, 0.10);
 
-  /* --- Shadows (Light) --- */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
-  --shadow-primary: 0 0 20px rgba(232, 255, 0, 0.10);
-  --shadow-accent: 0 4px 24px rgba(212, 168, 75, 0.15);
+  /* --- Shadows (COLORED — light mode signature) --- */
+  --shadow-xs: 0 1px 2px rgba(17, 19, 24, 0.04);
+  --shadow-sm: 0 1px 2px rgba(17, 19, 24, 0.06);
+  --shadow-md: 0 4px 12px rgba(17, 19, 24, 0.08);
+  --shadow-lg: 0 8px 24px rgba(17, 19, 24, 0.10);
+  --shadow-xl: 0 16px 48px rgba(17, 19, 24, 0.14);
+  --shadow-card: 0 1px 3px rgba(17,19,24,0.04), 0 4px 16px rgba(17,19,24,0.05);
+  --shadow-primary: 0 2px 8px rgba(0,194,97,0.18), 0 4px 20px rgba(0,194,97,0.12);
+  --shadow-reward: 0 2px 8px rgba(217,151,0,0.15), 0 4px 16px rgba(217,151,0,0.10);
+  --shadow-elevated: 0 4px 12px rgba(17,19,24,0.06), 0 12px 40px rgba(17,19,24,0.08);
+  --shadow-accent: 0 4px 24px rgba(0, 168, 154, 0.12);
+
+  /* --- Heatmap Intensities (activity/calendar grids) --- */
+  --heatmap-1: rgba(0, 194, 97, 0.25);
+  --heatmap-2: rgba(0, 194, 97, 0.50);
+  --heatmap-3: rgba(0, 194, 97, 0.80);
 
   /* --- Gradients --- */
-  --gradient-primary: linear-gradient(135deg, #E8FF00 0%, #D4EB00 100%);
-  --gradient-accent: linear-gradient(135deg, #E8FF00 0%, #D4A84B 100%);
-  --gradient-surface: linear-gradient(180deg, var(--color-surface) 0%, var(--color-background) 100%);
-  --gradient-hero: linear-gradient(135deg, #141414 0%, #1E1E1E 50%, #282828 100%);
-  --gradient-warm-glow: radial-gradient(ellipse at 50% 0%, rgba(232, 255, 0, 0.06) 0%, transparent 70%);
+  --gradient-primary: linear-gradient(135deg, #00C261 0%, #00A89A 100%);
+  --gradient-reward: linear-gradient(135deg, #FFB800 0%, #FF9500 100%);
+  --gradient-accent: linear-gradient(135deg, #00C261 0%, #00A89A 100%);
+  --gradient-surface: linear-gradient(180deg, #FFFFFF 0%, #F7F8FA 100%);
+  --gradient-hero: linear-gradient(135deg, #0B0D10 0%, #13161B 50%, #1B1F26 100%);
+  --gradient-warm-glow: radial-gradient(ellipse at 50% 0%, rgba(0, 194, 97, 0.06) 0%, transparent 70%);
 
   /* --- Border Radius --- */
   --radius-none: 0px;
@@ -162,77 +181,95 @@ svg#grain-filter {
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ─── DARK MODE TOKENS — THE STAR OF THE SHOW ─── */
+/* ─── DARK MODE TOKENS — "CINEMATIC" (neon glow) ─── */
 .dark {
-  /* --- Primary: Electric Yellow — pops on dark like a highlighter --- */
-  --color-primary: #E8FF00;
-  --color-primary-hover: #D4EB00;
-  --color-primary-muted: rgba(232, 255, 0, 0.10);
-  --color-primary-text: #0A0A0A; /* black on yellow */
+  /* --- Primary: Neon Mint --- */
+  --color-primary: #00E676;
+  --color-primary-bright: #00FF88;
+  --color-primary-hover: #00F283;
+  --color-primary-text: #0A0F0D;
+  --color-primary-muted: rgba(0, 230, 118, 0.08);
+  --color-primary-glow: rgba(0, 230, 118, 0.15);
 
-  /* --- Accent: Warm gold --- */
-  --color-accent: #D4A84B;
-  --color-accent-hover: #E0BD6F;
-  --color-accent-secondary: #E8CC84;
-  --color-accent-muted: rgba(212, 168, 75, 0.10);
+  /* --- Accent: Bright Teal --- */
+  --color-accent: #00D4C8;
+  --color-accent-hover: #00E0D4;
+  --color-accent-secondary: #00E8DC;
+  --color-accent-muted: rgba(0, 212, 200, 0.07);
 
-  /* --- Tertiary: Success green --- */
-  --color-tertiary: #4ADE80;
-  --color-tertiary-hover: #5AEE90;
-  --color-tertiary-muted: rgba(74, 222, 128, 0.10);
+  /* --- Reward Gold --- */
+  --color-reward: #FFC233;
+  --color-reward-bright: #FFD060;
+  --color-reward-muted: rgba(255, 194, 51, 0.10);
+  --color-reward-glow: rgba(255, 194, 51, 0.12);
+
+  /* --- Tertiary --- */
+  --color-tertiary: #00E676;
+  --color-tertiary-hover: #00F283;
+  --color-tertiary-muted: rgba(0, 230, 118, 0.08);
 
   /* --- Workout Type Colors --- */
-  --color-weights: #60A5FA;
-  --color-weights-muted: rgba(96, 165, 250, 0.12);
-  --color-cardio: #EF4444;
-  --color-cardio-muted: rgba(239, 68, 68, 0.12);
-  --color-mobility: #4ADE80;
-  --color-mobility-muted: rgba(74, 222, 128, 0.12);
+  --color-weights: #818CF8;
+  --color-weights-muted: rgba(129, 140, 248, 0.10);
+  --color-cardio: #FB7185;
+  --color-cardio-muted: rgba(251, 113, 133, 0.08);
+  --color-mobility: #00E676;
+  --color-mobility-muted: rgba(0, 230, 118, 0.07);
 
-  /* --- Background & Surface (near-blacks, slightly warm) --- */
-  --color-background: #0A0A0A;
-  --color-surface: #141414;
-  --color-surface-elevated: #1E1E1E;
-  --color-surface-hover: #282828;
-  --color-surface-sunken: #050505;
-  --color-border: rgba(240, 240, 240, 0.07);
-  --color-border-strong: rgba(240, 240, 240, 0.12);
+  /* --- Surfaces (cool steel — subtle blue undertone) --- */
+  --color-background: #0B0D10;
+  --color-surface: #13161B;
+  --color-surface-elevated: #1B1F26;
+  --color-surface-hover: #242930;
+  --color-surface-sunken: #070809;
+  --color-border: rgba(236, 240, 245, 0.05);
+  --color-border-strong: rgba(236, 240, 245, 0.08);
 
   /* --- Glass (Dark) --- */
-  --glass-bg: rgba(20, 20, 20, 0.90);
-  --glass-border: rgba(240, 240, 240, 0.05);
+  --glass-bg: rgba(19, 22, 27, 0.78);
+  --glass-border: rgba(236, 240, 245, 0.05);
+  --glass-blur: 24px;
 
-  /* --- Text (EXACT spec) --- */
-  --color-text: #F0F0F0;
-  --color-text-secondary: #8A8A8A;
-  --color-text-muted: #5A5A5A;
-  --color-text-inverse: #0A0A0A;
+  /* --- Text --- */
+  --color-text: #ECF0F5;
+  --color-text-secondary: #8B93A6;
+  --color-text-muted: #5A6278;
+  --color-text-inverse: #111318;
 
   /* --- Status Colors --- */
-  --color-success: #4ADE80;
-  --color-success-muted: rgba(74, 222, 128, 0.10);
-  --color-warning: #FACC15;
-  --color-warning-muted: rgba(250, 204, 21, 0.10);
-  --color-danger: #EF4444;
-  --color-danger-muted: rgba(239, 68, 68, 0.10);
-  --color-info: #60A5FA;
-  --color-info-muted: rgba(96, 165, 250, 0.10);
+  --color-success: #00E676;
+  --color-success-muted: rgba(0, 230, 118, 0.10);
+  --color-warning: #FBBF24;
+  --color-warning-muted: rgba(255, 187, 36, 0.10);
+  --color-danger: #FB7185;
+  --color-danger-muted: rgba(251, 113, 133, 0.10);
+  --color-info: #818CF8;
+  --color-info-muted: rgba(129, 140, 248, 0.10);
 
-  /* --- Shadows (deep blacks + volt glow) --- */
+  /* --- Shadows (NEON — dark mode signature) --- */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.30);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.40);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.50);
   --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.60);
-  --shadow-primary: 0 0 20px rgba(232, 255, 0, 0.15);
-  --shadow-accent: 0 4px 24px rgba(212, 168, 75, 0.15);
+  --shadow-card: 0 2px 4px rgba(0,0,0,0.20), 0 8px 32px rgba(0,0,0,0.25);
+  --shadow-primary: 0 4px 24px rgba(0,230,118,0.15), 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-reward: 0 4px 24px rgba(255,194,51,0.12), 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-elevated: 0 8px 32px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-accent: 0 4px 24px rgba(0, 212, 200, 0.10);
 
-  /* --- Gradients (Dark — volt glows) --- */
-  --gradient-primary: linear-gradient(135deg, #E8FF00 0%, #D4EB00 100%);
-  --gradient-accent: linear-gradient(135deg, #E8FF00 0%, #D4A84B 100%);
-  --gradient-surface: linear-gradient(180deg, var(--color-surface) 0%, var(--color-background) 100%);
-  --gradient-hero: linear-gradient(135deg, #141414 0%, #1E1E1E 50%, #141414 100%);
-  --gradient-warm-glow: radial-gradient(ellipse at 50% 0%, rgba(232, 255, 0, 0.05) 0%, transparent 70%);
+  /* --- Heatmap Intensities --- */
+  --heatmap-1: rgba(0, 230, 118, 0.25);
+  --heatmap-2: rgba(0, 230, 118, 0.50);
+  --heatmap-3: rgba(0, 230, 118, 0.80);
+
+  /* --- Gradients (neon glows) --- */
+  --gradient-primary: linear-gradient(135deg, #00E676 0%, #00D4C8 100%);
+  --gradient-reward: linear-gradient(135deg, #FFC233 0%, #FFB800 100%);
+  --gradient-accent: linear-gradient(135deg, #00E676 0%, #00D4C8 100%);
+  --gradient-surface: linear-gradient(170deg, #1B1F26 0%, #13161B 100%);
+  --gradient-hero: linear-gradient(135deg, #0B0D10 0%, #13161B 50%, #1B1F26 100%);
+  --gradient-warm-glow: radial-gradient(ellipse at 50% 0%, rgba(0, 230, 118, 0.06) 0%, transparent 70%);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -334,10 +371,10 @@ h1, h2, h3, h4, h5, h6 {
   100% { background-position: 200% 0; }
 }
 
-/* Electric volt glow pulse */
+/* Electric mint glow pulse */
 @keyframes glow {
-  0%, 100% { box-shadow: 0 0 8px rgba(232, 255, 0, 0.10); }
-  50% { box-shadow: 0 0 24px rgba(232, 255, 0, 0.25); }
+  0%, 100% { box-shadow: 0 0 8px var(--color-primary-glow); }
+  50% { box-shadow: 0 0 24px var(--color-primary-glow); }
 }
 
 /* Shimmer sweep for skeletons */
@@ -379,34 +416,34 @@ h1, h2, h3, h4, h5, h6 {
    UTILITY CLASSES
    ═══════════════════════════════════════════════════ */
 
-/* Shimmer skeleton — volt-tinted sweep on dark surface */
+/* Shimmer skeleton — mint-tinted sweep */
 .skeleton {
   background: linear-gradient(
     90deg,
     var(--color-surface-hover) 25%,
-    rgba(232, 255, 0, 0.05) 50%,
+    var(--color-primary-muted) 50%,
     var(--color-surface-hover) 75%
   );
   background-size: 400% 100%;
   animation: warm-shimmer 1.8s ease-in-out infinite;
 }
 
-/* Glass effect */
+/* Glass morphism */
 .glass {
   background: var(--glass-bg);
-  border-bottom: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--glass-border);
 }
 
 /* Frosted glass utility */
 .frosted-glass {
-  background: rgba(250, 250, 247, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(247, 248, 250, 0.85);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 .dark .frosted-glass {
-  background: rgba(20, 20, 20, 0.85);
+  background: rgba(19, 22, 27, 0.85);
 }
 
 /* Gradient text — primary volt */
@@ -437,6 +474,24 @@ h1, h2, h3, h4, h5, h6 {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
+
+/* Shadow utilities */
+.shadow-card { box-shadow: var(--shadow-card); }
+.shadow-primary { box-shadow: var(--shadow-primary); }
+.shadow-reward { box-shadow: var(--shadow-reward); }
+.shadow-elevated { box-shadow: var(--shadow-elevated); }
+
+/* Gradient utilities */
+.gradient-primary { background: var(--gradient-primary); }
+.gradient-reward { background: var(--gradient-reward); }
+.gradient-surface { background: var(--gradient-surface); }
+
+/* Surface utilities */
+.surface-sunken { background-color: var(--color-surface-sunken); }
+
+/* Dark mode neon glow effects */
+.dark .neon-glow-primary { text-shadow: 0 0 12px var(--color-primary-glow); }
+.dark .neon-glow-reward { text-shadow: 0 0 14px var(--color-reward-glow); }
 
 /* ═══════════════════════════════════════════════════
    PWA & ENVIRONMENT

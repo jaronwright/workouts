@@ -1,9 +1,12 @@
 /**
- * Design System V4 — Electric Volt
+ * Design System V5 — Electric Mint Pro
  *
- * Aesthetic: Highlighter on dark paper. Nike Volt energy.
- * "Electric yellow pops BECAUSE it's rare — used only for primary CTAs,
- * active states, and key data highlights."
+ * Two personalities:
+ *   Light mode = "Editorial" — layered grays, colored shadows
+ *   Dark mode  = "Cinematic" — neon glow, gradient surfaces
+ *
+ * Primary: Electric Mint — green = go, movement, progress, vitality
+ * Reward Gold: ONLY for achievements (PRs, streaks, milestones)
  *
  * TypeScript constants mirroring the CSS custom properties in index.css.
  * Use these when you need token values in JS/React code (e.g., Framer Motion,
@@ -13,77 +16,137 @@
 // ─── COLOR PALETTE ───────────────────────────────
 
 export const colors = {
-  // Primary — Electric Yellow (volt) — the ONE sacred accent
+  // Primary — Electric Mint
   primary: {
-    DEFAULT: '#E8FF00',
-    hover: '#D4EB00',
-    muted: 'rgba(232, 255, 0, 0.10)',
-    text: '#0A0A0A', // black text on yellow for contrast
+    DEFAULT: '#00C261',
+    bright: '#00D26A',
+    hover: '#00AB56',
+    muted: 'rgba(0, 194, 97, 0.10)',
+    glow: 'rgba(0, 194, 97, 0.14)',
+    text: '#FFFFFF',
   },
 
-  // Accent — Warm Gold (secondary, sparingly)
+  // Primary — Dark mode (Neon Mint)
+  primaryDark: {
+    DEFAULT: '#00E676',
+    bright: '#00FF88',
+    hover: '#00F283',
+    muted: 'rgba(0, 230, 118, 0.08)',
+    glow: 'rgba(0, 230, 118, 0.15)',
+    text: '#0A0F0D',
+  },
+
+  // Accent — Teal companion
   accent: {
-    DEFAULT: '#D4A84B',
-    hover: '#C49A3D',
-    secondary: '#E0BD6F',
-    muted: 'rgba(212, 168, 75, 0.12)',
+    DEFAULT: '#00A89A',
+    hover: '#009488',
+    secondary: '#00BDB0',
+    muted: 'rgba(0, 168, 154, 0.08)',
   },
 
-  // Tertiary — Success Green
+  // Reward Gold — achievements ONLY
+  reward: {
+    DEFAULT: '#D99700',
+    bright: '#FFB800',
+    muted: 'rgba(217, 151, 0, 0.10)',
+    glow: 'rgba(217, 151, 0, 0.12)',
+  },
+
+  rewardDark: {
+    DEFAULT: '#FFC233',
+    bright: '#FFD060',
+    muted: 'rgba(255, 194, 51, 0.10)',
+    glow: 'rgba(255, 194, 51, 0.12)',
+  },
+
+  // Tertiary — matches primary
   tertiary: {
-    DEFAULT: '#4ADE80',
-    hover: '#3CC970',
-    muted: 'rgba(74, 222, 128, 0.10)',
+    DEFAULT: '#00C261',
+    hover: '#00AB56',
+    muted: 'rgba(0, 194, 97, 0.10)',
   },
 
   // Workout Types
   workout: {
-    weights: '#60A5FA',
-    weightsMuted: 'rgba(96, 165, 250, 0.12)',
-    cardio: '#EF4444',
-    cardioMuted: 'rgba(239, 68, 68, 0.12)',
-    mobility: '#4ADE80',
-    mobilityMuted: 'rgba(74, 222, 128, 0.10)',
+    weights: '#5B5DF0',
+    weightsMuted: 'rgba(91, 93, 240, 0.09)',
+    cardio: '#E63B57',
+    cardioMuted: 'rgba(230, 59, 87, 0.08)',
+    mobility: '#00C261',
+    mobilityMuted: 'rgba(0, 194, 97, 0.08)',
   },
 
-  // Backgrounds & Surfaces — Light
+  workoutDark: {
+    weights: '#818CF8',
+    weightsMuted: 'rgba(129, 140, 248, 0.10)',
+    cardio: '#FB7185',
+    cardioMuted: 'rgba(251, 113, 133, 0.08)',
+    mobility: '#00E676',
+    mobilityMuted: 'rgba(0, 230, 118, 0.07)',
+  },
+
+  // Backgrounds & Surfaces — Light (three-tier system)
   light: {
-    background: '#F2F2ED',
-    surface: '#FAFAF7',
+    background: '#ECEEF2',
+    surface: '#F7F8FA',
     surfaceElevated: '#FFFFFF',
-    surfaceHover: '#EBEBE6',
-    surfaceSunken: '#E5E5E0',
-    border: 'rgba(10, 10, 10, 0.08)',
-    borderStrong: 'rgba(10, 10, 10, 0.15)',
-    text: '#0A0A0A',
-    textSecondary: '#5A5A5A',
-    textMuted: '#8A8A8A',
+    surfaceHover: '#EAEBEF',
+    surfaceSunken: '#E3E5EA',
+    border: 'rgba(17, 19, 24, 0.08)',
+    borderStrong: 'rgba(17, 19, 24, 0.14)',
+    text: '#111318',
+    textSecondary: '#484D5C',
+    textMuted: '#6E7487',
   },
 
-  // Backgrounds & Surfaces — Dark (near-blacks, slightly warm)
+  // Backgrounds & Surfaces — Dark (cool steel)
   dark: {
-    background: '#0A0A0A',
-    surface: '#141414',
-    surfaceElevated: '#1E1E1E',
-    surfaceHover: '#282828',
-    surfaceSunken: '#050505',
-    border: 'rgba(240, 240, 240, 0.07)',
-    borderStrong: 'rgba(240, 240, 240, 0.12)',
-    text: '#F0F0F0',
-    textSecondary: '#8A8A8A',
-    textMuted: '#5A5A5A',
+    background: '#0B0D10',
+    surface: '#13161B',
+    surfaceElevated: '#1B1F26',
+    surfaceHover: '#242930',
+    surfaceSunken: '#070809',
+    border: 'rgba(236, 240, 245, 0.05)',
+    borderStrong: 'rgba(236, 240, 245, 0.08)',
+    text: '#ECF0F5',
+    textSecondary: '#8B93A6',
+    textMuted: '#5A6278',
   },
 
   // Status
   status: {
-    success: '#4ADE80',
-    successMuted: 'rgba(74, 222, 128, 0.10)',
-    warning: '#FACC15',
-    warningMuted: 'rgba(250, 204, 21, 0.12)',
-    danger: '#EF4444',
-    dangerMuted: 'rgba(239, 68, 68, 0.12)',
-    info: '#60A5FA',
-    infoMuted: 'rgba(96, 165, 250, 0.10)',
+    success: '#00C261',
+    successMuted: 'rgba(0, 194, 97, 0.10)',
+    warning: '#D99700',
+    warningMuted: 'rgba(217, 151, 0, 0.10)',
+    danger: '#E63B57',
+    dangerMuted: 'rgba(230, 59, 87, 0.10)',
+    info: '#5B5DF0',
+    infoMuted: 'rgba(91, 93, 240, 0.10)',
+  },
+
+  // Heatmap intensity levels
+  heatmap: {
+    low: 'rgba(0, 194, 97, 0.25)',
+    mid: 'rgba(0, 194, 97, 0.50)',
+    high: 'rgba(0, 194, 97, 0.80)',
+  },
+
+  heatmapDark: {
+    low: 'rgba(0, 230, 118, 0.25)',
+    mid: 'rgba(0, 230, 118, 0.50)',
+    high: 'rgba(0, 230, 118, 0.80)',
+  },
+
+  statusDark: {
+    success: '#00E676',
+    successMuted: 'rgba(0, 230, 118, 0.10)',
+    warning: '#FBBF24',
+    warningMuted: 'rgba(255, 187, 36, 0.10)',
+    danger: '#FB7185',
+    dangerMuted: 'rgba(251, 113, 133, 0.10)',
+    info: '#818CF8',
+    infoMuted: 'rgba(129, 140, 248, 0.10)',
   },
 } as const
 
@@ -165,32 +228,45 @@ export const radius = {
 // ─── SHADOWS ─────────────────────────────────────
 
 export const shadows = {
-  xs: '0 1px 2px rgba(0, 0, 0, 0.05)',
-  sm: '0 1px 2px rgba(0, 0, 0, 0.08)',
-  md: '0 4px 12px rgba(0, 0, 0, 0.10)',
-  lg: '0 8px 24px rgba(0, 0, 0, 0.12)',
-  xl: '0 16px 48px rgba(0, 0, 0, 0.16)',
-  primary: '0 0 20px rgba(232, 255, 0, 0.10)',
-  accent: '0 4px 24px rgba(212, 168, 75, 0.15)',
+  xs: '0 1px 2px rgba(17, 19, 24, 0.04)',
+  sm: '0 1px 2px rgba(17, 19, 24, 0.06)',
+  md: '0 4px 12px rgba(17, 19, 24, 0.08)',
+  lg: '0 8px 24px rgba(17, 19, 24, 0.10)',
+  xl: '0 16px 48px rgba(17, 19, 24, 0.14)',
+  card: '0 1px 3px rgba(17,19,24,0.04), 0 4px 16px rgba(17,19,24,0.05)',
+  primary: '0 2px 8px rgba(0,194,97,0.18), 0 4px 20px rgba(0,194,97,0.12)',
+  reward: '0 2px 8px rgba(217,151,0,0.15), 0 4px 16px rgba(217,151,0,0.10)',
+  elevated: '0 4px 12px rgba(17,19,24,0.06), 0 12px 40px rgba(17,19,24,0.08)',
+  accent: '0 4px 24px rgba(0, 168, 154, 0.12)',
 } as const
 
 export const shadowsDark = {
-  xs: '0 1px 2px rgba(0, 0, 0, 0.30)',
+  xs: '0 1px 2px rgba(0, 0, 0, 0.25)',
   sm: '0 1px 2px rgba(0, 0, 0, 0.30)',
   md: '0 4px 12px rgba(0, 0, 0, 0.40)',
   lg: '0 8px 24px rgba(0, 0, 0, 0.50)',
   xl: '0 16px 48px rgba(0, 0, 0, 0.60)',
-  primary: '0 0 20px rgba(232, 255, 0, 0.15)',
-  accent: '0 4px 24px rgba(212, 168, 75, 0.15)',
+  card: '0 2px 4px rgba(0,0,0,0.20), 0 8px 32px rgba(0,0,0,0.25)',
+  primary: '0 4px 24px rgba(0,230,118,0.15), 0 1px 3px rgba(0,0,0,0.3)',
+  reward: '0 4px 24px rgba(255,194,51,0.12), 0 1px 3px rgba(0,0,0,0.3)',
+  elevated: '0 8px 32px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3)',
+  accent: '0 4px 24px rgba(0, 212, 200, 0.10)',
 } as const
 
 // ─── GRADIENTS ───────────────────────────────────
 
 export const gradients = {
-  primary: 'linear-gradient(135deg, #E8FF00 0%, #D4EB00 100%)',
-  accent: 'linear-gradient(135deg, #E8FF00 0%, #D4A84B 100%)',
-  hero: 'linear-gradient(135deg, #141414 0%, #1E1E1E 50%, #141414 100%)',
-  warmGlow: 'radial-gradient(ellipse at 50% 0%, rgba(232, 255, 0, 0.05) 0%, transparent 70%)',
+  primary: 'linear-gradient(135deg, #00C261 0%, #00A89A 100%)',
+  primaryDark: 'linear-gradient(135deg, #00E676 0%, #00D4C8 100%)',
+  reward: 'linear-gradient(135deg, #FFB800 0%, #FF9500 100%)',
+  rewardDark: 'linear-gradient(135deg, #FFC233 0%, #FFB800 100%)',
+  accent: 'linear-gradient(135deg, #00C261 0%, #00A89A 100%)',
+  hero: 'linear-gradient(135deg, #0B0D10 0%, #13161B 50%, #1B1F26 100%)',
+  heroDark: 'linear-gradient(135deg, #0B0D10 0%, #13161B 50%, #1B1F26 100%)',
+  surface: 'linear-gradient(180deg, #FFFFFF 0%, #F7F8FA 100%)',
+  surfaceDark: 'linear-gradient(170deg, #1B1F26 0%, #13161B 100%)',
+  warmGlow: 'radial-gradient(ellipse at 50% 0%, rgba(0, 194, 97, 0.06) 0%, transparent 70%)',
+  warmGlowDark: 'radial-gradient(ellipse at 50% 0%, rgba(0, 230, 118, 0.06) 0%, transparent 70%)',
 } as const
 
 // ─── TRANSITIONS ─────────────────────────────────
@@ -213,13 +289,13 @@ export const transitions = {
 
 export const glass = {
   light: {
-    background: 'rgba(250, 250, 247, 0.88)',
-    border: 'rgba(10, 10, 10, 0.06)',
-    blur: '16px',
+    background: 'rgba(247, 248, 250, 0.82)',
+    border: 'rgba(17, 19, 24, 0.06)',
+    blur: '24px',
   },
   dark: {
-    background: 'rgba(20, 20, 20, 0.90)',
-    border: 'rgba(240, 240, 240, 0.05)',
-    blur: '16px',
+    background: 'rgba(19, 22, 27, 0.78)',
+    border: 'rgba(236, 240, 245, 0.05)',
+    blur: '24px',
   },
 } as const

@@ -27,7 +27,7 @@ export function AnimatedProgress({
     return (
       <div
         className={`w-full overflow-hidden rounded-full ${className ?? ''}`}
-        style={{ height, backgroundColor: 'var(--color-surface-alt, #e5e7eb)' }}
+        style={{ height, backgroundColor: 'var(--color-surface-hover)' }}
       >
         <div
           style={{
@@ -44,7 +44,7 @@ export function AnimatedProgress({
   return (
     <div
       className={`w-full overflow-hidden rounded-full ${className ?? ''}`}
-      style={{ height, backgroundColor: 'var(--color-surface-alt, #e5e7eb)' }}
+      style={{ height, backgroundColor: 'var(--color-surface-hover)' }}
     >
       <motion.div
         initial={{ width: 0 }}

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight } from 'lucide-react'
+import { CaretRight } from '@phosphor-icons/react'
 import { CardContent, AnimatedCard } from '@/components/ui'
 import { getCardioStyle } from '@/config/workoutConfig'
 import { getCardioTemplateStats } from '@/utils/cardioUtils'
@@ -32,7 +32,7 @@ export function CardioLogCard({ template, sessions, schedule, currentCycleDay, d
         <div
           className={`w-12 h-12 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center shadow-sm`}
         >
-          <Icon className="w-6 h-6 text-white" strokeWidth={2.5} />
+          <Icon className="w-6 h-6 text-white" weight="bold" />
         </div>
 
         {/* Info */}
@@ -47,7 +47,7 @@ export function CardioLogCard({ template, sessions, schedule, currentCycleDay, d
 
         {/* Chevron */}
         <div className="w-8 h-8 rounded-full bg-[var(--color-surface-hover)] flex items-center justify-center text-[var(--color-text-muted)]">
-          <ChevronRight className="w-5 h-5" />
+          <CaretRight className="w-5 h-5" />
         </div>
       </CardContent>
     </AnimatedCard>

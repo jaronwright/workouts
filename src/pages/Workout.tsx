@@ -1,16 +1,14 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight } from '@phosphor-icons/react'
 import { AppShell } from '@/components/layout'
-import { Button, Card, CardContent } from '@/components/ui'
+import { Button, Card, CardContent, CollapsibleSection } from '@/components/ui'
 import { StaggerList, StaggerItem, FadeIn } from '@/components/motion'
-import { CollapsibleSection, ExerciseCard, RestTimer } from '@/components/workout'
+import { ExerciseCard, RestTimer } from '@/components/workout'
 import { PostWorkoutReview } from '@/components/review/PostWorkoutReview'
-import { useQueryClient } from '@tanstack/react-query'
 import { useWorkoutDay } from '@/hooks/useWorkoutPlan'
-import { useStartWorkout, useCompleteWorkout, useLogSet, useDeleteSet, useSessionSets } from '@/hooks/useWorkoutSession'
-import { swapPlanExerciseName } from '@/services/workoutService'
+import { useStartWorkout, useCompleteWorkout, useLogMultipleSets, useDeleteSet, useSessionSets } from '@/hooks/useWorkoutSession'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { useReviewStore } from '@/stores/reviewStore'
 import { useAuthStore } from '@/stores/authStore'
@@ -74,24 +72,33 @@ export function WorkoutPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
 
-  const queryClient = useQueryClient()
   const toast = useToast()
   const { data: workoutDay, isLoading } = useWorkoutDay(dayId)
   const { mutate: startWorkout, isPending: isStarting } = useStartWorkout()
   const { mutate: completeWorkout, isPending: isCompleting } = useCompleteWorkout()
-  const { mutate: logSet } = useLogSet()
+  const { mutate: logSets } = useLogMultipleSets()
   const { mutate: deleteSet } = useDeleteSet()
 
   const {
     activeSession,
     setActiveSession,
     setActiveWorkoutDay,
-    completedSets
+    completedSets,
+    clearWorkout
   } = useWorkoutStore()
 
   const { data: sessionSets } = useSessionSets(activeSession?.id)
 
   useWakeLock(!!activeSession)
+
+  // Clear stale persisted session if it belongs to a different day or is already completed
+  useEffect(() => {
+    if (activeSession && dayId) {
+      if (activeSession.workout_day_id !== dayId || activeSession.completed_at) {
+        clearWorkout()
+      }
+    }
+  }, [activeSession, dayId, clearWorkout])
 
   useEffect(() => {
     if (workoutDay) {
@@ -170,18 +177,14 @@ export function WorkoutPage() {
 
   const handleExerciseComplete = (exerciseId: string, reps: number | null, weight: number | null, plannedSets: number) => {
     if (!activeSession) return
-    // Log all planned sets for the exercise (not just one)
-    // Network errors are handled by the hook (returns optimistic set, queues for sync)
-    const setCount = Math.max(1, plannedSets || 1)
-    for (let i = 1; i <= setCount; i++) {
-      logSet({
-        sessionId: activeSession.id,
-        planExerciseId: exerciseId,
-        setNumber: i,
-        repsCompleted: reps,
-        weightUsed: weight
-      })
-    }
+    const totalSets = Math.max(1, plannedSets || 1)
+    logSets({
+      sessionId: activeSession.id,
+      planExerciseId: exerciseId,
+      totalSets,
+      repsCompleted: reps,
+      weightUsed: weight
+    })
   }
 
   const handleExerciseUncomplete = (exerciseId: string) => {
@@ -191,20 +194,6 @@ export function WorkoutPage() {
     sets.forEach((s) => deleteSet(s.id))
     // Remove from local store immediately for responsive UI
     useWorkoutStore.getState().removeCompletedSets(exerciseId)
-  }
-
-  const handleSwapExercise = async (exerciseId: string, newName: string) => {
-    try {
-      const result = await swapPlanExerciseName(exerciseId, newName)
-      if (result) {
-        toast.success(`Swapped to ${newName}`)
-        queryClient.invalidateQueries({ queryKey: ['workout-day', dayId] })
-      } else {
-        toast.error('Could not swap exercise. Try again.')
-      }
-    } catch {
-      toast.error('Could not swap exercise. Try again.')
-    }
   }
 
   if (isLoading) {
@@ -441,6 +430,7 @@ export function WorkoutPage() {
                 title={section.name}
                 subtitle={subtitle}
                 defaultOpen={true}
+                variant="lined"
               >
                 {section.exercises.map((exercise) => (
                   <ExerciseCard
@@ -451,7 +441,6 @@ export function WorkoutPage() {
                       handleExerciseComplete(exercise.id, reps, weight, exercise.sets || 1)
                     }
                     onExerciseUncomplete={() => handleExerciseUncomplete(exercise.id)}
-                    onSwapExercise={(newName) => handleSwapExercise(exercise.id, newName)}
                   />
                 ))}
               </CollapsibleSection>
@@ -487,7 +476,6 @@ export function WorkoutPage() {
                       handleExerciseComplete(exercise.id, reps, weight, exercise.sets || 1)
                     }
                     onExerciseUncomplete={() => handleExerciseUncomplete(exercise.id)}
-                    onSwapExercise={(newName) => handleSwapExercise(exercise.id, newName)}
                   />
                 ))}
               </div>

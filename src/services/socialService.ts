@@ -455,12 +455,12 @@ export async function computeStreaksForUsers(userIds: string[]): Promise<Map<str
 // ─── Batch Fetchers ──────────────────────────────────
 
 // Shared helper: query a table for both session types and group results by polymorphic key
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function queryPolymorphicSessions<T>(
   table: 'activity_reactions' | 'workout_reviews' | 'workout_photos',
   select: string,
   sessionIds: string[],
   templateSessionIds: string[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   processRow: (row: any) => T,
   idColumn: 'session_id' | 'template_session_id',
   keyPrefix: 'session' | 'template'
@@ -646,7 +646,6 @@ async function fetchExerciseSetsForSessions(
       plan_exercise:plan_exercises(name, weight_unit, reps_unit)
     `)
     .in('session_id', sessionIds)
-    .eq('completed', true)
     .order('set_number')
 
   if (error) {

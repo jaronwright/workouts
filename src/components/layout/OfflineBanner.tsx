@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { WifiOff, Wifi } from 'lucide-react'
+import { WifiSlash, WifiHigh } from '@phosphor-icons/react'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { useOfflineStore } from '@/stores/offlineStore'
 
@@ -31,7 +31,7 @@ export function OfflineBanner() {
     return (
       <div className="bg-[var(--color-success-muted)] border-b border-[var(--color-success)]/20 px-4 py-2">
         <div className="max-w-4xl mx-auto flex items-center gap-2">
-          <Wifi className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-success)' }} />
+          <WifiHigh className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-success)' }} />
           <p className="text-sm font-medium" style={{ color: 'var(--color-success)' }}>
             Back online
           </p>
@@ -43,7 +43,7 @@ export function OfflineBanner() {
   return (
     <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2">
       <div className="max-w-4xl mx-auto flex items-center gap-2">
-        <WifiOff className="w-4 h-4 text-amber-500 flex-shrink-0" />
+        <WifiSlash className="w-4 h-4 text-amber-500 flex-shrink-0" />
         <p className="flex-1 text-sm text-amber-700 dark:text-amber-300 font-medium">
           You're offline — changes saved locally
           {pendingCount > 0 && (

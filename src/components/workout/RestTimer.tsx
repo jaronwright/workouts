@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { X, Play, Pause, RotateCcw } from 'lucide-react'
+import { X, Play, Pause, ArrowCounterClockwise } from '@phosphor-icons/react'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { formatDuration } from '@/utils/formatters'
 import { ProgressRing } from '@/components/motion'
@@ -66,11 +66,14 @@ export function RestTimer() {
                 w-10 h-10
                 flex items-center justify-center
                 bg-[var(--color-surface-hover)]
+                hover:bg-[var(--color-primary-muted)]
                 rounded-full
                 text-xs font-semibold tabular-nums
-                text-[var(--color-text)]
-                active:scale-90 active:bg-[var(--color-primary)]/20
-                transition-transform duration-100
+                text-[var(--color-text-secondary)]
+                hover:text-[var(--color-primary)]
+                active:scale-90
+                transition-all duration-100
+                cursor-pointer
               "
             >
               {label}
@@ -112,7 +115,7 @@ export function RestTimer() {
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: 'radial-gradient(circle at 50% 50%, rgba(232, 255, 0, 0.04) 0%, transparent 70%)',
+              background: 'radial-gradient(circle at 50% 50%, var(--color-primary-muted) 0%, transparent 70%)',
             }}
           />
         )}
@@ -180,7 +183,7 @@ export function RestTimer() {
                   : 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-[var(--color-primary-text)]'
                 }
               `}
-              style={!isFinished ? { boxShadow: '0 0 16px rgba(232, 255, 0, 0.15)' } : undefined}
+              style={!isFinished ? { boxShadow: '0 0 16px var(--color-primary-glow)' } : undefined}
             >
               {isRestTimerActive ? (
                 <Pause className="w-6 h-6" fill="currentColor" />
@@ -199,7 +202,7 @@ export function RestTimer() {
                 }
               `}
             >
-              <RotateCcw className="w-6 h-6" />
+              <ArrowCounterClockwise className="w-6 h-6" />
             </button>
           </div>
         </div>

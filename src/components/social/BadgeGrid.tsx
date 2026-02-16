@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { X, Award } from 'lucide-react'
+import { X, Medal } from '@phosphor-icons/react'
 import { BADGE_MAP, RARITY_COLORS, RARITY_LABELS, type BadgeDefinition } from '@/config/badgeConfig'
 import type { UserBadge } from '@/types/community'
 
@@ -105,7 +105,7 @@ export function BadgeRow({ badges, max = 5 }: { badges: UserBadge[]; max?: numbe
 
   return (
     <div className="flex items-center gap-1">
-      <Award className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
+      <Medal className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
       <div className="flex gap-0.5">
         {badges.slice(0, max).map(badge => {
           const def = BADGE_MAP[badge.badge_key]

@@ -18,8 +18,8 @@ export function Card({
   const baseStyles = 'relative rounded-[var(--radius-xl)] overflow-hidden'
 
   const variants = {
-    default: 'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-xs)]',
-    elevated: 'bg-[var(--color-surface-elevated)] shadow-[var(--shadow-md)]',
+    default: 'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-card)]',
+    elevated: 'bg-[var(--color-surface-elevated)] shadow-[var(--shadow-elevated)]',
     outlined: 'bg-transparent border-2 border-[var(--color-border-strong)]'
   }
 

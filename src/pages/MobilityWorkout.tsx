@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/useToast'
 import { useWakeLock } from '@/hooks/useWakeLock'
 import { useReviewStore } from '@/stores/reviewStore'
 import { getMobilityStyle } from '@/config/workoutConfig'
-import { Check } from 'lucide-react'
+import { Check } from '@phosphor-icons/react'
 import type { PlanExercise } from '@/types/workout'
 
 function formatExerciseDetail(exercise: PlanExercise): string {

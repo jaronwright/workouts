@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { User } from 'lucide-react'
+import { User } from '@phosphor-icons/react'
 import { isDefaultAvatar, getDefaultAvatarKey, getDefaultAvatarByKey } from '@/config/defaultAvatars'
 import { getAvatarPublicUrl } from '@/services/avatarService'
 
@@ -30,7 +30,10 @@ interface AvatarProps {
 
 export function Avatar({ src, alt = 'Avatar', size = 'md', className = '' }: AvatarProps) {
   const { container, icon } = SIZES[size]
-  const [imgError, setImgError] = useState(false)
+
+  // Track which src failed so error auto-resets when src changes
+  const [errorSrc, setErrorSrc] = useState<string | null>(null)
+  const imgError = errorSrc === src
 
   const resolvedSrc = useMemo(() => (src ? resolveAvatarSrc(src) : null), [src])
 
@@ -63,7 +66,10 @@ export function Avatar({ src, alt = 'Avatar', size = 'md', className = '' }: Ava
         src={resolvedSrc}
         alt={alt}
         className={`${container} rounded-full object-cover ${className}`}
-        onError={() => setImgError(true)}
+        onError={() => {
+          console.warn('[Avatar] Failed to load image:', resolvedSrc)
+          setErrorSrc(src || null)
+        }}
       />
     )
   }

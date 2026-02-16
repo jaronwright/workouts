@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { Calendar, Moon } from 'lucide-react'
+import { Calendar, Moon } from '@phosphor-icons/react'
 import type { ScheduleDay } from '@/services/scheduleService'
 
 // Mock workoutConfig before importing the module under test

@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from 'react'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { Warning, ArrowClockwise } from '@phosphor-icons/react'
 
 interface Props {
   children: ReactNode
@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)] p-6">
           <div className="text-center max-w-sm">
-            <AlertTriangle className="w-12 h-12 text-[var(--color-warning)] mx-auto mb-4" />
+            <Warning className="w-12 h-12 text-[var(--color-warning)] mx-auto mb-4" />
             <h2 className="text-lg font-bold text-[var(--color-text)] mb-2">
               Something went wrong
             </h2>
@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component<Props, State> {
               onClick={this.handleReload}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-[var(--color-primary-text)] font-semibold rounded-[var(--radius-lg)] active:scale-95 transition-transform"
             >
-              <RefreshCw className="w-4 h-4" />
+              <ArrowClockwise className="w-4 h-4" />
               Reload
             </button>
             {this.state.error && (

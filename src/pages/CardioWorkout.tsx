@@ -21,7 +21,7 @@ import {
   getCardioPreference,
   setCardioPreference
 } from '@/utils/cardioUtils'
-import { Play, Pause, ChevronDown, Timer } from 'lucide-react'
+import { Play, Pause, CaretDown, Timer } from '@phosphor-icons/react'
 
 export function CardioWorkoutPage() {
   const { templateId } = useParams<{ templateId: string }>()
@@ -251,7 +251,7 @@ export function CardioWorkoutPage() {
               className={`w-14 h-14 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center shrink-0`}
               style={{ boxShadow: 'var(--shadow-sm)' }}
             >
-              <Icon className="w-7 h-7 text-white" strokeWidth={2.5} />
+              <Icon className="w-7 h-7 text-white" weight="bold" />
             </div>
             <div>
               <h2
@@ -363,7 +363,7 @@ export function CardioWorkoutPage() {
                 <Timer className="w-4 h-4" />
                 <span className="text-sm font-medium">Use Timer</span>
               </div>
-              <ChevronDown
+              <CaretDown
                 className={`w-4 h-4 text-[var(--color-text-muted)] transition-transform duration-200 ${timerOpen ? 'rotate-180' : ''}`}
               />
             </button>

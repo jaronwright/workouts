@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui'
 import { FadeIn, StaggerList, StaggerItem } from '@/components/motion'
 import { useMobilityVariants } from '@/hooks/useMobilityTemplates'
 import { getMobilityStyle } from '@/config/workoutConfig'
-import { Clock } from 'lucide-react'
+import { Clock } from '@phosphor-icons/react'
 
 const DURATION_LABELS: Record<number, string> = {
   15: 'Quick',

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  ChevronRight, Flame, Trophy, Calendar,
-  Heart, Dumbbell, Activity, Target
-} from 'lucide-react'
+  CaretRight, Fire, Trophy, Calendar,
+  Heart, Barbell, Heartbeat
+} from '@phosphor-icons/react'
 import { AppShell } from '@/components/layout'
 import { ScheduleWidget } from '@/components/workout'
 import { WeatherCard } from '@/components/weather'
@@ -13,7 +13,6 @@ import {
 } from '@/components/motion'
 
 import { OnboardingWizard } from '@/components/onboarding'
-import { useBodyPartList } from '@/hooks/useExerciseLibrary'
 import { useActiveSession, useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
 import { useProfile } from '@/hooks/useProfile'
 import { useUserSchedule } from '@/hooks/useSchedule'
@@ -158,7 +157,6 @@ export function HomePage() {
     }
   }
 
-  const { data: bodyParts } = useBodyPartList()
   const firstName = profile?.display_name?.split(' ')[0]
 
   return (
@@ -215,14 +213,14 @@ export function HomePage() {
                     {streak > 0 && (
                       <div
                         className="absolute inset-0 pointer-events-none"
-                        style={{ background: 'radial-gradient(circle at 50% 30%, rgba(204, 255, 0, 0.06) 0%, transparent 70%)' }}
+                        style={{ background: 'radial-gradient(circle at 50% 30%, var(--color-primary-glow) 0%, transparent 70%)' }}
                       />
                     )}
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center mb-[var(--space-2)]"
-                      style={{ backgroundColor: streak > 0 ? 'rgba(204, 255, 0, 0.12)' : 'var(--color-surface-hover)' }}
+                      style={{ backgroundColor: streak > 0 ? 'var(--color-primary-glow)' : 'var(--color-surface-hover)' }}
                     >
-                      <Flame
+                      <Fire
                         className="w-4 h-4"
                         style={{ color: streak > 0 ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
                       />
@@ -290,50 +288,6 @@ export function HomePage() {
           </section>
         </FadeIn>
 
-        {/* ─── EXPLORE EXERCISES ─── */}
-        {bodyParts && bodyParts.length > 0 && (
-          <FadeInOnScroll direction="up">
-            <section className="mb-[var(--space-6)]">
-              <div className="flex items-center justify-between mb-[var(--space-3)]">
-                <h2
-                  className="text-[var(--text-xs)] uppercase font-medium text-[var(--color-text-muted)]"
-                  style={{ letterSpacing: 'var(--tracking-widest)' }}
-                >
-                  Explore Exercises
-                </h2>
-                <PressableButton
-                  onClick={() => navigate('/exercises')}
-                  className="text-[var(--text-xs)] font-semibold text-[var(--color-primary)] flex items-center gap-0.5"
-                >
-                  Browse All
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </PressableButton>
-              </div>
-              <div className="flex gap-[var(--space-2)] overflow-x-auto pb-1 -mx-[var(--space-4)] px-[var(--space-4)] snap-x">
-                {bodyParts.map((part) => (
-                  <PressableCard
-                    key={part}
-                    onClick={() => navigate(`/exercises?bodyPart=${encodeURIComponent(part)}`)}
-                    className="cursor-pointer flex-shrink-0 snap-start"
-                  >
-                    <div className="w-28 bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-3)] py-[var(--space-3)] flex flex-col items-center gap-[var(--space-2)]">
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center"
-                        style={{ backgroundColor: 'rgba(204, 255, 0, 0.1)' }}
-                      >
-                        <Target className="w-5 h-5 text-[var(--color-primary)]" />
-                      </div>
-                      <span className="text-[var(--text-xs)] font-medium text-[var(--color-text)] capitalize text-center leading-tight">
-                        {part}
-                      </span>
-                    </div>
-                  </PressableCard>
-                ))}
-              </div>
-            </section>
-          </FadeInOnScroll>
-        )}
-
         {/* ─── RECENT ACTIVITY — community feed style ─── */}
         {recentActivity.length > 0 && (
           <FadeInOnScroll direction="up">
@@ -350,7 +304,7 @@ export function HomePage() {
                   className="text-[var(--text-xs)] font-semibold text-[var(--color-primary)] flex items-center gap-0.5"
                 >
                   See All
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  <CaretRight className="w-3.5 h-3.5" />
                 </PressableButton>
               </div>
               <StaggerList className="space-y-[var(--space-2)]">
@@ -369,15 +323,18 @@ export function HomePage() {
                     ? (session as TemplateWorkoutSession).template?.type
                     : undefined
                   const { IconComp, iconColor } = isWeights
-                    ? { IconComp: Dumbbell, iconColor: 'var(--color-weights)' }
+                    ? { IconComp: Barbell, iconColor: 'var(--color-weights)' }
                     : templateType === 'mobility'
-                      ? { IconComp: Activity, iconColor: 'var(--color-mobility)' }
+                      ? { IconComp: Heartbeat, iconColor: 'var(--color-mobility)' }
                       : { IconComp: Heart, iconColor: 'var(--color-cardio)' }
 
-                  // Duration from completed_at - started_at
-                  const durationMin = session.completed_at
-                    ? Math.round((new Date(session.completed_at).getTime() - new Date(session.started_at).getTime()) / 60000)
-                    : null
+                  // Duration: use template's explicit duration_minutes if available,
+                  // otherwise calculate from completed_at - started_at
+                  const durationMin = !isWeights && (session as TemplateWorkoutSession).duration_minutes
+                    ? (session as TemplateWorkoutSession).duration_minutes
+                    : session.completed_at
+                      ? Math.round((new Date(session.completed_at).getTime() - new Date(session.started_at).getTime()) / 60000)
+                      : null
 
                   return (
                     <StaggerItem key={session.id}>
@@ -401,7 +358,7 @@ export function HomePage() {
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 mt-0.5">
-                                {durationMin && durationMin > 0 && (
+                                {durationMin != null && durationMin > 0 && (
                                   <span className="text-[var(--text-xs)] text-[var(--color-text-muted)]">
                                     {durationMin} min
                                   </span>

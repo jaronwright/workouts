@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/purity */
 import { useEffect, useState, useMemo } from 'react'
-import { Trophy, Share2 } from 'lucide-react'
+import { Trophy, ShareNetwork } from '@phosphor-icons/react'
 import { useShare } from '@/hooks/useShare'
 import { formatPRShareText } from '@/utils/shareFormatters'
 import type { PRCheckResult } from '@/services/prService'
@@ -54,7 +54,7 @@ export function PRCelebration({ result, onComplete }: PRCelebrationProps) {
               top: '-20px',
               animationDelay: `${particle.delay}s`,
               animationDuration: `${particle.duration}s`,
-              backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'][particle.id % 5]
+              backgroundColor: ['#FFB800', '#E63B57', '#00C261', '#5B5DF0', '#00A89A'][particle.id % 5]
             }}
           />
         ))}
@@ -66,7 +66,7 @@ export function PRCelebration({ result, onComplete }: PRCelebrationProps) {
         onClick={onComplete}
       >
         <div className="text-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'var(--gradient-reward)', boxShadow: 'var(--shadow-reward)' }}>
             <Trophy className="w-10 h-10 text-white" />
           </div>
 
@@ -102,7 +102,7 @@ export function PRCelebration({ result, onComplete }: PRCelebrationProps) {
             }}
             className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-[var(--color-primary-text)] rounded-lg text-sm font-medium"
           >
-            <Share2 className="w-4 h-4" />
+            <ShareNetwork className="w-4 h-4" />
             Share
           </button>
 

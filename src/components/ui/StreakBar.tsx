@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
-import { Check, Moon, type LucideIcon } from 'lucide-react'
+import { Check, Moon, type Icon } from '@phosphor-icons/react'
 
 export interface StreakDay {
   label: string
@@ -8,7 +8,7 @@ export interface StreakDay {
   isToday: boolean
   color?: string
   workoutName?: string
-  workoutIcon?: LucideIcon
+  workoutIcon?: Icon
   workoutColor?: string
   isRest?: boolean
   workoutCount?: number
@@ -96,13 +96,13 @@ export function StreakBar({ days, className = '', showDates = false }: StreakBar
                 }}
               >
                 {day.completed ? (
-                  <Check className={`${isToday ? 'w-4 h-4' : 'w-3 h-3'}`} strokeWidth={3} />
+                  <Check className={`${isToday ? 'w-4 h-4' : 'w-3 h-3'}`} weight="bold" />
                 ) : day.workoutCount && day.workoutCount > 1 ? (
                   <span className={`font-bold ${isToday ? 'text-xs' : 'text-[10px]'}`}>{day.workoutCount}</span>
                 ) : Icon ? (
-                  <Icon className={`${isToday ? 'w-4 h-4' : 'w-3 h-3'}`} strokeWidth={2.5} />
+                  <Icon className={`${isToday ? 'w-4 h-4' : 'w-3 h-3'}`} weight="bold" />
                 ) : (
-                  <Moon className={`${isToday ? 'w-3.5 h-3.5' : 'w-3 h-3'}`} strokeWidth={2} />
+                  <Moon className={`${isToday ? 'w-3.5 h-3.5' : 'w-3 h-3'}`} />
                 )}
               </div>
               {/* Pulsing ring for today when not completed */}

@@ -1,4 +1,4 @@
-import { Check, X } from 'lucide-react'
+import { Check, X } from '@phosphor-icons/react'
 import { validatePassword, getStrengthColor, getStrengthLabel } from '@/utils/validation'
 
 interface PasswordStrengthIndicatorProps {
@@ -56,11 +56,11 @@ export function PasswordStrengthIndicator({ password }: PasswordStrengthIndicato
             className="flex items-center gap-1.5 text-xs"
           >
             {met ? (
-              <Check className="w-3 h-3 text-green-500" />
+              <Check className="w-3 h-3 text-[var(--color-success)]" />
             ) : (
               <X className="w-3 h-3 text-[var(--color-text-muted)]" />
             )}
-            <span className={met ? 'text-green-500' : 'text-[var(--color-text-muted)]'}>
+            <span className={met ? 'text-[var(--color-success)]' : 'text-[var(--color-text-muted)]'}>
               {label}
             </span>
           </div>

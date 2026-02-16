@@ -1,25 +1,25 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { Trophy, Flame, Dumbbell, Calendar } from 'lucide-react'
+import { Trophy, Fire, Barbell, Calendar } from '@phosphor-icons/react'
 import { Avatar } from '@/components/ui'
 import { useLeaderboard } from '@/hooks/useLeaderboard'
 import { useAuthStore } from '@/stores/authStore'
 import type { LeaderboardMetric } from '@/services/leaderboardService'
-import type { LucideIcon } from 'lucide-react'
+import type { Icon } from '@phosphor-icons/react'
 
 interface MetricTab {
   key: LeaderboardMetric
   label: string
-  icon: LucideIcon
+  icon: Icon
   unit: string
 }
 
 const METRICS: MetricTab[] = [
-  { key: 'streak', label: 'Streak', icon: Flame, unit: 'days' },
+  { key: 'streak', label: 'Streak', icon: Fire, unit: 'days' },
   { key: 'workouts_week', label: 'This Week', icon: Calendar, unit: 'workouts' },
   { key: 'workouts_month', label: 'Month', icon: Trophy, unit: 'workouts' },
-  { key: 'volume_month', label: 'Volume', icon: Dumbbell, unit: 'lbs' },
+  { key: 'volume_month', label: 'Volume', icon: Barbell, unit: 'lbs' },
 ]
 
 export function LeaderboardPanel() {
@@ -84,7 +84,7 @@ export function LeaderboardPanel() {
                 {/* Rank */}
                 <span className={`
                   w-6 text-center text-sm font-bold
-                  ${entry.rank === 1 ? 'text-amber-500' : entry.rank === 2 ? 'text-gray-400' : entry.rank === 3 ? 'text-amber-700' : 'text-[var(--color-text-muted)]'}
+                  ${entry.rank === 1 ? 'text-[var(--color-reward)]' : entry.rank === 2 ? 'text-[var(--color-text-muted)]' : entry.rank === 3 ? 'text-[var(--color-reward)] opacity-70' : 'text-[var(--color-text-muted)]'}
                 `}>
                   {entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : entry.rank}
                 </span>

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { motion } from 'motion/react'
-import { Sun } from 'lucide-react'
+import { Sun } from '@phosphor-icons/react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { getUvLabel, getUvColor } from '@/services/weatherService'
 import type { HourlyUvEntry } from '@/services/weatherService'
@@ -102,10 +102,10 @@ export function UvIndexChart({ data, sunrise, sunset }: UvIndexChartProps) {
         <defs>
           {/* Vertical gradient for area fill */}
           <linearGradient id="uvAreaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#EF4444" stopOpacity="0.35" />
-            <stop offset="40%" stopColor="#F97316" stopOpacity="0.25" />
-            <stop offset="65%" stopColor="#EAB308" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#22C55E" stopOpacity="0.08" />
+            <stop offset="0%" stopColor="var(--color-danger)" stopOpacity="0.35" />
+            <stop offset="40%" stopColor="var(--color-warning)" stopOpacity="0.25" />
+            <stop offset="65%" stopColor="var(--color-reward-bright)" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="var(--color-success)" stopOpacity="0.08" />
           </linearGradient>
           {/* Now indicator dashed line */}
           <pattern id="uvDash" patternUnits="userSpaceOnUse" width="4" height="4">
@@ -152,12 +152,12 @@ export function UvIndexChart({ data, sunrise, sunset }: UvIndexChartProps) {
 
         {/* Line stroke */}
         {prefersReduced ? (
-          <path d={linePath} fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" />
+          <path d={linePath} fill="none" stroke="var(--color-warning)" strokeWidth="1.5" strokeLinecap="round" />
         ) : (
           <motion.path
             d={linePath}
             fill="none"
-            stroke="#F59E0B"
+            stroke="var(--color-warning)"
             strokeWidth="1.5"
             strokeLinecap="round"
             initial={{ pathLength: 0 }}

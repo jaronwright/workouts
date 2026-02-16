@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Bell, BellOff } from 'lucide-react'
+import { Bell, BellSlash } from '@phosphor-icons/react'
 import { Card, CardContent, Button } from '@/components/ui'
 import {
   usePushSupported,
@@ -62,7 +62,7 @@ export function NotificationSettings() {
             {isSubscribed ? (
               <Bell className="w-5 h-5 text-[var(--color-primary)]" />
             ) : (
-              <BellOff className="w-5 h-5 text-[var(--color-primary)]" />
+              <BellSlash className="w-5 h-5 text-[var(--color-primary)]" />
             )}
           </div>
           <div className="flex-1">

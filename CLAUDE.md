@@ -33,7 +33,7 @@ Use `npx vite build` (not `tsc -b`) to verify production builds. Some test files
 - **Animation**: Framer Motion (`motion/react`)
 - **Backend**: Supabase (auth + PostgreSQL with RLS)
 - **Weather**: Open-Meteo API (free, no API key required)
-- **Exercise Data**: ExerciseDB (V2 RapidAPI primary, V1 OSS fallback) with localStorage cache
+- **Exercise Data**: ExerciseDB (V1 OSS) via Supabase edge function with permanent Supabase cache
 - **PWA**: vite-plugin-pwa with Workbox for offline caching
 
 ## Architecture
@@ -61,7 +61,7 @@ Page → Hook (TanStack Query) → Service → Supabase
 4. **Reviews**: `useReview` → TanStack Query → `reviewService` → Supabase `workout_reviews` table; `reviewStore` manages 4-step wizard UI state
 5. **Offline Sync**: `useOnlineStatus` detects connectivity → `useSyncEngine` triggers `syncService` to process `offlineStore` queue on reconnect
 6. **Weather**: `useWeather` → `weatherService` → Open-Meteo API, cached in `weatherStore`
-7. **Exercise Details**: `useExerciseGif` → `exerciseDbService` → ExerciseDB API, cached in localStorage (7-day TTL for hits, 1-hour TTL for misses)
+7. **Exercise Guides**: `useExerciseGuide` → `exerciseGuideService` → Supabase `exercise_cache` (permanent cache) → `fetch-exercise` edge function → ExerciseDB API (one-time only)
 
 ### Key Directories
 
@@ -114,7 +114,7 @@ Protected routes require authentication. Full route list:
 
 - Path alias: `@/` maps to `./src/`
 - Environment variables in `.env.local`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-- Optional: `VITE_RAPIDAPI_KEY` for ExerciseDB V2 API (falls back to free V1 OSS without it)
+- ExerciseDB API key stored in Supabase edge function environment only (never in frontend)
 - Supabase migrations in `supabase/migrations/` (21 migrations, run in order)
 - PWA caches Supabase API calls with NetworkFirst strategy
 - React Query: 5-minute stale time, 1 retry, offlineFirst network mode
@@ -135,7 +135,7 @@ Protected routes require authentication. Full route list:
 - All timestamps are TIMESTAMPTZ (timezone-aware)
 - Card component requires `position: relative` to contain absolute-positioned gradient overlays
 - Seven workout splits: PPL, Upper/Lower, Full Body, Bro Split, Arnold, Glute Hypertrophy, Mobility
-- Exercise name matching uses a mapping table + plural stripping + fuzzy scoring + keyword fallback
+- Exercise name matching uses a 130+ entry mapping table + plural stripping + fuzzy scoring + keyword fallback (in Supabase edge function)
 - Bottom nav uses `min-w-14 px-2` (not fixed width) so longer labels fit; active state is Material 3-style pill
 - `react-hooks/set-state-in-effect` lint rule requires `/* eslint-disable */` for effects that reset state on open/close
 - Deployed to Vercel with SPA rewrites configured in `vercel.json`
@@ -151,7 +151,7 @@ Protected routes require authentication. Full route list:
 
 ### Overview
 
-Premium fitness brand design system. All tokens defined as CSS custom properties in `index.css` and mirrored as TypeScript constants in `src/config/designTokens.ts`.
+Electric Mint Pro — premium fitness brand design system. Two personalities: Light mode = "Editorial" (layered grays, colored shadows), Dark mode = "Cinematic" (neon glow, gradient surfaces). All tokens defined as CSS custom properties in `index.css` and mirrored as TypeScript constants in `src/config/designTokens.ts`.
 
 ### Typography
 
@@ -167,25 +167,29 @@ Premium fitness brand design system. All tokens defined as CSS custom properties
 
 | Role | Light | Dark | Purpose |
 |------|-------|------|---------|
-| Primary | `#CCFF00` Electric Lime | `#CCFF00` | Primary CTAs, active states, brand identity |
-| Accent | `#FF6B35` Warm Ember | `#FF7F4D` | Secondary actions, warmth, notifications |
-| Tertiary | `#4ECDC4` Cool Teal | `#5BDED5` | Informational, calm, tertiary actions |
-| Weights | `#3B82F6` Electric Blue | `#60A5FA` | Weights workout type |
-| Cardio | `#FF3366` Hot Pink | `#FF5C8A` | Cardio workout type |
-| Mobility | `#34D399` Sage Green | `#4ADE80` | Mobility workout type |
-| Background | `#F7F7F8` | `#0D0D0F` Warm black | Page background |
-| Surface | `#FFFFFF` | `#1A1A1F` | Cards, modals |
-| Surface Elevated | `#FFFFFF` | `#252529` | Elevated cards, dropdowns |
+| Primary | `#00C261` Electric Mint | `#00E676` Neon Mint | Primary CTAs, active states, brand identity |
+| Accent | `#00A89A` Teal | `#00D4C8` | Secondary actions, informational |
+| Reward Gold | `#D99700` | `#FFC233` | Achievements ONLY (PRs, streaks, milestones) |
+| Weights | `#5B5DF0` Indigo | `#818CF8` | Weights workout type |
+| Cardio | `#E63B57` Rose | `#FB7185` | Cardio workout type |
+| Mobility | `#00C261` Mint | `#00E676` | Mobility workout type |
+| Background | `#ECEEF2` | `#0B0D10` Cool steel | Page background |
+| Surface | `#F7F8FA` | `#13161B` | Cards, default containers |
+| Surface Elevated | `#FFFFFF` | `#1B1F26` | Modals, bottom sheets, dropdowns |
+| Surface Sunken | `#E3E5EA` | `#070809` | Inputs, recessed areas |
 
-- Primary accent uses dark text (`--color-primary-text: #0D0D0F`) since lime is light
-- Every color has a `*-muted` variant at ~10-15% opacity for subtle backgrounds
-- Status: success (green), warning (amber), danger (red), info (blue)
+- Primary uses white text (`--color-primary-text: #FFFFFF`) since mint is medium-dark
+- Every color has a `*-muted` variant at ~8-10% opacity for subtle backgrounds
+- Reward Gold is restricted to achievements — never use for general CTAs
+- Status: success (mint), warning (amber), danger (rose), info (indigo)
+- Heatmap intensity: `--heatmap-1` (25%), `--heatmap-2` (50%), `--heatmap-3` (80%) for contribution graphs
 
 ### Shape & Depth
 
-- **Radius scale**: `--radius-sm` (6px), `--radius-md` (12px), `--radius-lg` (16px), `--radius-xl` (24px), `--radius-2xl` (32px), `--radius-full` (pill)
-- **Shadow scale**: 5 levels (`xs` through `xl`) plus colored shadows (`--shadow-primary`, `--shadow-accent`)
-- **Glass**: `--glass-bg` + `--glass-blur` (16px) for frosted overlays
+- **Radius scale**: `--radius-sm` (8px), `--radius-md` (12px), `--radius-lg` (20px), `--radius-xl` (20px), `--radius-full` (pill)
+- **Shadow scale**: 5 levels (`xs` through `xl`) plus semantic shadows (`--shadow-card`, `--shadow-elevated`, `--shadow-primary`, `--shadow-reward`, `--shadow-accent`)
+- **Glass**: `--glass-bg` + `--glass-blur` (24px) for frosted overlays (BottomNav, BottomSheet)
+- **Three-tier surfaces**: Inputs → `surface-sunken`, Cards → `surface`, Modals/Sheets → `surface-elevated`
 
 ### Spacing
 
@@ -200,7 +204,10 @@ Premium fitness brand design system. All tokens defined as CSS custom properties
 
 - Use CSS variables (`var(--color-primary)`) in component styles
 - Import from `designTokens.ts` only when you need values in JS (Framer Motion, inline styles, chart colors)
-- Primary buttons: `background: var(--color-primary); color: var(--color-primary-text)`
-- Cards: `background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm)`
+- Primary buttons: `background: var(--color-primary); color: var(--color-primary-text); box-shadow: var(--shadow-primary)`
+- Cards: `background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-card)`
+- Modals/Sheets: `background: var(--color-surface-elevated); box-shadow: var(--shadow-elevated)`
+- Inputs: `background: var(--color-surface-sunken)`
 - Text hierarchy: `--color-text` (primary), `--color-text-secondary` (supporting), `--color-text-muted` (tertiary)
 - Headings auto-apply Syne via CSS base styles; no need to set font-family on each heading
+- Never use hardcoded hex colors — always use CSS variables for theme compatibility

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { Dumbbell, Heart, Activity, ChevronDown, Flame, Image as ImageIcon, ExternalLink, Weight } from 'lucide-react'
-import { Card, CardContent, Avatar } from '@/components/ui'
+import { Barbell, Heart, Heartbeat, CaretDown, Fire, ArrowSquareOut, Clock } from '@phosphor-icons/react'
+import { Card, Avatar } from '@/components/ui'
 import { ReactionBar } from './ReactionBar'
 import { formatRelativeTime } from '@/utils/formatters'
 import { getWorkoutDisplayName } from '@/config/workoutConfig'
@@ -16,8 +16,8 @@ import type { FeedWorkout, FeedExerciseSet } from '@/types/community'
 function getWorkoutIcon(type: string) {
   switch (type) {
     case 'cardio': return { Icon: Heart, color: 'var(--color-cardio)' }
-    case 'mobility': return { Icon: Activity, color: 'var(--color-mobility)' }
-    default: return { Icon: Dumbbell, color: 'var(--color-weights)' }
+    case 'mobility': return { Icon: Heartbeat, color: 'var(--color-mobility)' }
+    default: return { Icon: Barbell, color: 'var(--color-weights)' }
   }
 }
 
@@ -33,13 +33,10 @@ function formatPace(distanceValue: number, durationMinutes: number, unit: string
   return `${mins}:${secs.toString().padStart(2, '0')}/${unit === 'km' ? 'km' : 'mi'}`
 }
 
+// Match the pattern from parseSetReps.ts — DB stores 'seconds', 'minutes', 'steps', 'reps'
 function formatRepsUnit(unit: string): string {
-  switch (unit) {
-    case 'sec': return 'sec'
-    case 'min': return 'min'
-    case 'reps':
-    default: return ''
-  }
+  if (!unit || unit === 'reps') return ''
+  return unit
 }
 
 interface GroupedExercise {
@@ -49,17 +46,17 @@ interface GroupedExercise {
   repsUnit: string
 }
 
-// Group sets by exercise for display
+// Group sets by plan_exercise_id (not name) to avoid merging distinct exercises
 function groupExercises(sets: FeedExerciseSet[]): GroupedExercise[] {
   const groups = new Map<string, FeedExerciseSet[]>()
   for (const set of sets) {
-    const name = set.plan_exercise?.name || 'Unknown'
-    if (!groups.has(name)) groups.set(name, [])
-    groups.get(name)!.push(set)
+    const key = set.plan_exercise_id
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key)!.push(set)
   }
 
-  return [...groups.entries()].map(([name, exerciseSets]) => ({
-    name,
+  return [...groups.entries()].map(([, exerciseSets]) => ({
+    name: exerciseSets[0]?.plan_exercise?.name || 'Unknown',
     setCount: exerciseSets.length,
     reps: exerciseSets[0]?.reps_completed ?? null,
     repsUnit: exerciseSets[0]?.plan_exercise?.reps_unit || 'reps',
@@ -102,9 +99,6 @@ export function WorkoutCard({ workout, index, onUserClick }: WorkoutCardProps) {
 
   // Subtitle line (type-specific, no duration — that's in the header)
   const subtitleParts: string[] = []
-  if (workout.type === 'weights') {
-    if (workout.exercise_count > 0) subtitleParts.push(`${workout.exercise_count} exercises`)
-  }
   if (workout.distance_value && workout.distance_unit) {
     subtitleParts.push(`${workout.distance_value} ${workout.distance_unit}`)
   }
@@ -112,116 +106,146 @@ export function WorkoutCard({ workout, index, onUserClick }: WorkoutCardProps) {
     subtitleParts.push(formatPace(workout.distance_value, workout.duration_minutes, workout.distance_unit))
   }
 
+  const hasPhotos = workout.photos.length > 0
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, type: 'spring', stiffness: 300, damping: 30 }}
     >
-      <Card>
-        <CardContent className="py-3.5">
-          {/* ── Collapsed Content ── */}
+      <Card className="overflow-hidden">
+        {/* Workout-type colored accent bar */}
+        <div className="h-[3px]" style={{ background: color }} />
+
+        <div className="px-5 py-4">
+          {/* ── User header ── */}
+          <div className="flex items-center justify-between mb-3">
+            <button
+              onClick={e => { e.stopPropagation(); onUserClick?.(workout.user_id) }}
+              className="flex items-center gap-2.5 min-w-0"
+            >
+              <Avatar
+                src={workout.user_profile?.avatar_url}
+                alt={displayName}
+                size="sm"
+                className="w-8 h-8"
+              />
+              <span className="text-sm font-semibold text-[var(--color-text)] truncate">
+                {displayName}
+              </span>
+            </button>
+            <span className="text-xs text-[var(--color-text-muted)] flex-shrink-0 ml-2">
+              {formatRelativeTime(workout.completed_at || workout.started_at)}
+            </span>
+          </div>
+
+          {/* ── Main content — clickable to expand ── */}
           <div
-            className="flex items-start gap-3 cursor-pointer"
+            className="cursor-pointer"
             onClick={() => setExpanded(!expanded)}
           >
-            {/* Workout type icon */}
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-              style={{ backgroundColor: `${color}20` }}
-            >
-              <Icon className="w-5 h-5" style={{ color }} />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              {/* Row 1: User + time */}
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={e => { e.stopPropagation(); onUserClick?.(workout.user_id) }}
-                  className="flex items-center gap-2 min-w-0"
-                >
-                  <Avatar
-                    src={workout.user_profile?.avatar_url}
-                    alt={displayName}
-                    size="sm"
-                    className="w-5 h-5"
-                  />
-                  <span className="text-sm font-semibold text-[var(--color-text)] truncate">
-                    {displayName}
-                  </span>
-                </button>
-                <span className="text-xs text-[var(--color-text-muted)] opacity-70 flex-shrink-0 ml-2">
-                  {formatRelativeTime(workout.completed_at || workout.started_at)}
-                </span>
+            {/* Workout name + type icon */}
+            <div className="flex items-start gap-3">
+              <div
+                className="w-11 h-11 rounded-[var(--radius-md)] flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: `${color}15` }}
+              >
+                <Icon className="w-5.5 h-5.5" style={{ color }} />
               </div>
 
-              {/* Row 2: Workout name + duration */}
-              <p className="text-sm mt-0.5">
-                <span className="font-medium text-[var(--color-text)]">{workoutName}</span>
-                {workout.duration_minutes && (
-                  <span className="text-[var(--color-text-muted)]"> · {workout.duration_minutes} min</span>
-                )}
-              </p>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-[var(--color-text)] leading-snug">
+                  {workoutName}
+                </h3>
 
-              {/* Row 3: Badges (mood, tag, streak, photos) */}
-              <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                {moodBefore && moodAfter && (
-                  <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs bg-[var(--color-surface-hover)]">
-                    <span>{moodBefore.emoji}</span>
-                    <span className="text-[var(--color-text-muted)]">→</span>
-                    <span>{moodAfter.emoji}</span>
-                  </span>
-                )}
-                {topTag && (
-                  <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-                    style={{ backgroundColor: `${topTag.color}15`, color: topTag.color }}
-                  >
-                    {topTag.label}
-                  </span>
-                )}
-                {workout.streak_days && workout.streak_days >= STREAK_BADGE_THRESHOLD && (
-                  <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-500/15 text-orange-500">
-                    <Flame className="w-3 h-3" />
-                    {workout.streak_days}d streak
-                  </span>
-                )}
-                {workout.photos.length > 0 && (
-                  <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]">
-                    <ImageIcon className="w-3 h-3" />
-                    {workout.photos.length}
-                  </span>
-                )}
-              </div>
-
-              {/* Row 4: Volume highlight (weights) or subtitle (cardio/mobility) */}
-              {workout.type === 'weights' && workout.total_volume && !hideWeights ? (
-                <div className="flex items-center gap-1.5 mt-1.5">
-                  <Weight className="w-3.5 h-3.5 text-[var(--color-weights)]" />
-                  <span className="text-sm font-semibold text-[var(--color-text)]">
-                    {formatVolume(workout.total_volume)} lbs
-                  </span>
-                  {workout.exercise_count > 0 && (
+                {/* Duration + metric chips */}
+                <div className="flex items-center gap-2 mt-1">
+                  {workout.duration_minutes && (
+                    <span className="inline-flex items-center gap-1 text-xs text-[var(--color-text-muted)]">
+                      <Clock className="w-3 h-3" />
+                      {workout.duration_minutes} min
+                    </span>
+                  )}
+                  {workout.type === 'weights' && workout.exercise_count > 0 && (
                     <span className="text-xs text-[var(--color-text-muted)]">
-                      total · {workout.exercise_count} exercises
+                      {workout.exercise_count} exercises
+                    </span>
+                  )}
+                  {subtitleParts.length > 0 && (
+                    <span className="text-xs text-[var(--color-text-muted)]">
+                      {subtitleParts.join(' · ')}
                     </span>
                   )}
                 </div>
-              ) : subtitleParts.length > 0 ? (
-                <p className="text-xs text-[var(--color-text-muted)] mt-1">
-                  {subtitleParts.join(' · ')}
-                </p>
-              ) : null}
+              </div>
+
+              {/* Expand indicator */}
+              <motion.div
+                animate={{ rotate: expanded ? 180 : 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="flex-shrink-0 mt-1.5"
+              >
+                <CaretDown className="w-4 h-4 text-[var(--color-text-muted)]" />
+              </motion.div>
             </div>
 
-            {/* Expand indicator */}
-            <motion.div
-              animate={{ rotate: expanded ? 180 : 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="flex-shrink-0 mt-1"
-            >
-              <ChevronDown className="w-4 h-4 text-[var(--color-text-muted)]" />
-            </motion.div>
+            {/* Volume highlight (weights) */}
+            {workout.type === 'weights' && workout.total_volume && !hideWeights && (
+              <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-surface-sunken)]">
+                <Barbell className="w-4 h-4 text-[var(--color-weights)]" />
+                <span className="text-sm font-bold text-[var(--color-text)]">
+                  {formatVolume(workout.total_volume)} lbs
+                </span>
+                <span className="text-xs text-[var(--color-text-muted)]">total volume</span>
+              </div>
+            )}
+
+            {/* Badges (mood, tag, streak) */}
+            <div className="flex items-center gap-1.5 mt-3 flex-wrap">
+              {moodBefore && moodAfter && (
+                <span className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs bg-[var(--color-surface-sunken)]">
+                  <span>{moodBefore.emoji}</span>
+                  <span className="text-[var(--color-text-muted)]">→</span>
+                  <span>{moodAfter.emoji}</span>
+                </span>
+              )}
+              {topTag && (
+                <span
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium"
+                  style={{ backgroundColor: `${topTag.color}15`, color: topTag.color }}
+                >
+                  {topTag.label}
+                </span>
+              )}
+              {workout.streak_days && workout.streak_days >= STREAK_BADGE_THRESHOLD && (
+                <span className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--color-reward-muted)] text-[var(--color-reward)]">
+                  <Fire className="w-3 h-3" />
+                  {workout.streak_days}d streak
+                </span>
+              )}
+            </div>
+
+            {/* Photo preview (visible in collapsed state) */}
+            {hasPhotos && (
+              <div className="flex gap-2 mt-3 overflow-x-auto pb-0.5">
+                {workout.photos.slice(0, 3).map(photo => (
+                  <img
+                    key={photo.id}
+                    src={photo.photo_url}
+                    alt={photo.caption || 'Workout photo'}
+                    className="w-20 h-20 rounded-[var(--radius-md)] object-cover flex-shrink-0"
+                  />
+                ))}
+                {workout.photos.length > 3 && (
+                  <div className="w-20 h-20 rounded-[var(--radius-md)] bg-[var(--color-surface-sunken)] flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-medium text-[var(--color-text-muted)]">
+                      +{workout.photos.length - 3}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* ── Expanded Content ── */}
@@ -236,6 +260,7 @@ export function WorkoutCard({ workout, index, onUserClick }: WorkoutCardProps) {
               >
                 <ExpandedContent
                   workout={workout}
+                  hasInlinePhotos={hasPhotos}
                   onViewDetails={() => {
                     const path = workout.type === 'weights'
                       ? `/community/session/${workout.id}`
@@ -246,7 +271,7 @@ export function WorkoutCard({ workout, index, onUserClick }: WorkoutCardProps) {
               </motion.div>
             )}
           </AnimatePresence>
-        </CardContent>
+        </div>
       </Card>
     </motion.div>
   )
@@ -254,14 +279,14 @@ export function WorkoutCard({ workout, index, onUserClick }: WorkoutCardProps) {
 
 // ─── Expanded Content ────────────────────────────────
 
-function ExpandedContent({ workout, onViewDetails }: { workout: FeedWorkout; onViewDetails: () => void }) {
+function ExpandedContent({ workout, hasInlinePhotos, onViewDetails }: { workout: FeedWorkout; hasInlinePhotos: boolean; onViewDetails: () => void }) {
   const review = workout.review
   const exercises = groupExercises(workout.exercises)
   const visibleExercises = exercises.slice(0, MAX_INLINE_EXERCISES)
   const overflowCount = exercises.length - MAX_INLINE_EXERCISES
 
   return (
-    <div className="mt-3 pt-3 border-t border-[var(--color-border)] space-y-3">
+    <div className="mt-4 pt-4 border-t border-[var(--color-border)] space-y-3">
       {/* Review summary */}
       {review && (
         <div className="space-y-2">
@@ -299,9 +324,9 @@ function ExpandedContent({ workout, onViewDetails }: { workout: FeedWorkout; onV
           <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)] mb-1.5">
             Exercises
           </p>
-          <div className="rounded-lg bg-[var(--color-surface-hover)]/50 divide-y divide-[var(--color-border)]/50">
+          <div className="rounded-[var(--radius-md)] bg-[var(--color-surface-sunken)] divide-y divide-[var(--color-border)]">
             {visibleExercises.map((ex, i) => (
-              <div key={i} className="flex items-center justify-between px-3 py-2">
+              <div key={i} className="flex items-center justify-between px-3 py-2.5">
                 <span className="text-sm text-[var(--color-text)] truncate">{ex.name}</span>
                 <span className="text-xs text-[var(--color-text-muted)] flex-shrink-0 ml-3 font-medium tabular-nums">
                   {formatExerciseSummary(ex)}
@@ -326,7 +351,7 @@ function ExpandedContent({ workout, onViewDetails }: { workout: FeedWorkout; onV
             return (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium"
                 style={{ backgroundColor: `${config.color}15`, color: config.color }}
               >
                 {config.label}
@@ -345,8 +370,8 @@ function ExpandedContent({ workout, onViewDetails }: { workout: FeedWorkout; onV
         </p>
       )}
 
-      {/* Photos */}
-      {workout.photos.length > 0 && (
+      {/* Full photos grid (only if no inline preview already shown) */}
+      {!hasInlinePhotos && workout.photos.length > 0 && (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
           {workout.photos.map(photo => (
             <img
@@ -365,9 +390,9 @@ function ExpandedContent({ workout, onViewDetails }: { workout: FeedWorkout; onV
       {/* View full workout */}
       <button
         onClick={onViewDetails}
-        className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/8 rounded-lg active:scale-[0.98] transition-transform"
+        className="w-full flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/8 rounded-[var(--radius-md)] active:scale-[0.98] transition-transform"
       >
-        <ExternalLink className="w-3.5 h-3.5" />
+        <ArrowSquareOut className="w-3.5 h-3.5" />
         View Full Workout
       </button>
     </div>

@@ -171,7 +171,6 @@ async function getVolumeLeaderboard(limit: number): Promise<LeaderboardEntry[]> 
   const { data: sets } = await supabase
     .from('exercise_sets')
     .select('session_id, weight_used, reps_completed')
-    .eq('completed', true)
     .in('session_id', sessionIds)
 
   if (!sets) return []

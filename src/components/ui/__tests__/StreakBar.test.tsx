@@ -241,7 +241,7 @@ describe('StreakBar', () => {
       const { container } = render(<StreakBar days={days} />)
       // Count should NOT be shown since completed takes priority
       expect(screen.queryByText('2')).not.toBeInTheDocument()
-      // Check icon is an SVG from lucide
+      // Check icon is an SVG from Phosphor
       const circle = container.querySelector('.w-7') as HTMLElement
       expect(circle).toBeTruthy()
     })

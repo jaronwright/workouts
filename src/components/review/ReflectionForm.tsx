@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { ChevronDown, MessageSquare, ThumbsUp, Target } from 'lucide-react'
+import { CaretDown, ChatText, ThumbsUp, Target } from '@phosphor-icons/react'
 import { springs } from '@/config/animationConfig'
 
 interface ReflectionFormProps {
@@ -53,7 +53,7 @@ function CollapsibleSection({
           animate={{ rotate: open ? 180 : 0 }}
           transition={springs.default}
         >
-          <ChevronDown className="w-4 h-4 text-[var(--color-text-muted)]" />
+          <CaretDown className="w-4 h-4 text-[var(--color-text-muted)]" />
         </motion.div>
       </button>
       <AnimatePresence initial={false}>
@@ -98,7 +98,7 @@ export function ReflectionForm({
     <div className="flex flex-col gap-3">
       <CollapsibleSection
         title="Reflection"
-        icon={<MessageSquare className="w-4 h-4" />}
+        icon={<ChatText className="w-4 h-4" />}
         value={reflection}
         onChange={onReflectionChange}
         placeholder="How did the workout go overall? Any thoughts..."

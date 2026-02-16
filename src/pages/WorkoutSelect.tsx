@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Play, Heart, Activity, ChevronRight, Dumbbell, X, ArrowLeft, Clock } from 'lucide-react'
+import { Play, Heart, Heartbeat, CaretRight, Barbell, X, ArrowLeft, Clock } from '@phosphor-icons/react'
 import { AppShell } from '@/components/layout'
 import { Button, Card, CardContent } from '@/components/ui'
 import { WorkoutDayCard } from '@/components/workout'
@@ -36,7 +36,7 @@ function CardioCard({ template, lastSession, onClick }: CardioCardProps) {
         <div
           className={`w-12 h-12 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center shadow-sm`}
         >
-          <Icon className="w-6 h-6 text-white" strokeWidth={2.5} />
+          <Icon className="w-6 h-6 text-white" weight="bold" />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-[var(--color-text)] text-base leading-tight">
@@ -61,7 +61,7 @@ function CardioCard({ template, lastSession, onClick }: CardioCardProps) {
           )}
         </div>
         <div className="w-8 h-8 rounded-full bg-[var(--color-surface-hover)] flex items-center justify-center text-[var(--color-text-muted)]">
-          <ChevronRight className="w-5 h-5" />
+          <CaretRight className="w-5 h-5" />
         </div>
       </CardContent>
     </Card>
@@ -86,7 +86,7 @@ function MobilityCategoryCard({ category, template, lastSession, onClick }: Mobi
         <div
           className={`w-12 h-12 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center shadow-sm`}
         >
-          <Icon className="w-6 h-6 text-white" strokeWidth={2.5} />
+          <Icon className="w-6 h-6 text-white" weight="bold" />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-[var(--color-text)] text-base leading-tight">
@@ -112,7 +112,7 @@ function MobilityCategoryCard({ category, template, lastSession, onClick }: Mobi
           )}
         </div>
         <div className="w-8 h-8 rounded-full bg-[var(--color-surface-hover)] flex items-center justify-center text-[var(--color-text-muted)]">
-          <ChevronRight className="w-5 h-5" />
+          <CaretRight className="w-5 h-5" />
         </div>
       </CardContent>
     </Card>
@@ -193,7 +193,7 @@ export function WorkoutSelectPage() {
               <div className="flex items-center gap-4">
                 <div
                   className="w-12 h-12 rounded-[var(--radius-lg)] flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg, var(--color-success), #10b981)' }}
+                  style={{ background: 'var(--gradient-primary)' }}
                 >
                   <Play className="w-6 h-6 text-white ml-0.5" fill="white" />
                 </div>
@@ -223,7 +223,7 @@ export function WorkoutSelectPage() {
         {/* Weights Section */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <Dumbbell className="w-5 h-5" style={{ color: CATEGORY_DEFAULTS.weights.color }} />
+            <Barbell className="w-5 h-5" style={{ color: CATEGORY_DEFAULTS.weights.color }} />
             <h2 className="text-lg font-bold text-[var(--color-text)]">
               Weights
             </h2>
@@ -294,7 +294,7 @@ export function WorkoutSelectPage() {
         {/* Mobility Section — shows categories, navigates to duration picker */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <Activity className="w-5 h-5" style={{ color: CATEGORY_DEFAULTS.mobility.color }} />
+            <Heartbeat className="w-5 h-5" style={{ color: CATEGORY_DEFAULTS.mobility.color }} />
             <h2 className="text-lg font-bold text-[var(--color-text)]">
               Mobility
             </h2>

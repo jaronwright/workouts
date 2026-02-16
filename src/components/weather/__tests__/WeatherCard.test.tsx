@@ -50,7 +50,7 @@ vi.mock('@/services/weatherService', () => ({
     if (uv < 3) return '#22C55E'
     if (uv < 6) return '#EAB308'
     if (uv < 8) return '#F97316'
-    if (uv < 11) return '#EF4444'
+    if (uv < 11) return '#E63B57'
     return '#A855F7'
   },
   formatSunTime: (iso: string) => {

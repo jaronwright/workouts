@@ -21,7 +21,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const variants = {
       primary: `
         bg-[var(--color-primary)] text-[var(--color-primary-text)]
-        shadow-sm
+        shadow-[var(--shadow-primary)]
       `,
       secondary: `
         bg-[var(--color-surface)] text-[var(--color-text)]
@@ -38,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       gradient: `
         bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)]
         text-[var(--color-primary-text)]
-        shadow-sm
+        shadow-[var(--shadow-primary)]
       `
     }
 

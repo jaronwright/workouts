@@ -47,7 +47,7 @@ export function AppShell({
       <VerificationBanner />
       <OfflineBanner />
       <Header title={title} showBack={showBack} showLogout={showLogout} headerAction={resolvedAction} />
-      <main className="flex-1 overflow-y-auto overscroll-contain pb-[var(--space-6)]">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-[var(--space-6)]">
         {children}
       </main>
       {!hideNav && <BottomNav />}

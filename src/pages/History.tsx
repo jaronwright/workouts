@@ -2,73 +2,62 @@ import { useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { startOfMonth, isSameDay } from 'date-fns'
 import { AppShell } from '@/components/layout'
-import { BottomSheet } from '@/components/ui'
-import { CalendarGrid, SelectedDayPanel } from '@/components/calendar'
+import { BottomSheet, SegmentedControl } from '@/components/ui'
+import { ScrollableCalendar, SelectedDayPanel } from '@/components/calendar'
 import { StatsGrid } from '@/components/stats'
 import { FadeIn } from '@/components/motion'
 import { ProgressRing } from '@/components/motion'
+import { useScrollableCalendarData } from '@/hooks/useScrollableCalendarData'
 import { useCalendarData } from '@/hooks/useCalendarData'
 import { springPresets } from '@/config/animationConfig'
-import { Calendar } from 'lucide-react'
-import type { CalendarDay } from '@/hooks/useCalendarData'
+import type { CalendarDay } from '@/utils/calendarGrid'
 
 export function HistoryPage() {
   const [activeTab, setActiveTab] = useState<'calendar' | 'stats'>('calendar')
-  const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()))
-  const { calendarDays, allSessions, isLoading, today } = useCalendarData(currentMonth)
   const [selectedDate, setSelectedDate] = useState(() => new Date())
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false)
+
+  // Scrollable calendar data (13 months, no month navigation needed)
+  const { months, allSessions, isLoading: isCalendarLoading, today, todayMonthIndex } = useScrollableCalendarData()
+
+  // Stats tab has its own month state with prev/next navigation
+  const [statsMonth, setStatsMonth] = useState(() => startOfMonth(new Date()))
+  const { calendarDays: statsCalendarDays, allSessions: statsAllSessions, isLoading: isStatsLoading } = useCalendarData(statsMonth)
+
+  const handleStatsMonthChange = useCallback((month: Date) => {
+    setStatsMonth(startOfMonth(month))
+  }, [])
 
   const handleSelectDate = useCallback((day: CalendarDay) => {
     setSelectedDate(day.date)
     setIsBottomSheetOpen(true)
   }, [])
 
-  const handleMonthChange = useCallback((month: Date) => {
-    setCurrentMonth(startOfMonth(month))
-  }, [])
-
-  // Find the selected CalendarDay object
+  // Find the selected CalendarDay object across all months
   const selectedDay = useMemo(() => {
-    return calendarDays.find(d => isSameDay(d.date, selectedDate))
-  }, [calendarDays, selectedDate])
+    for (const monthData of months) {
+      const found = monthData.days.find(d => isSameDay(d.date, selectedDate))
+      if (found && found.isCurrentMonth) return found
+    }
+    return undefined
+  }, [months, selectedDate])
+
+  const isLoading = activeTab === 'calendar' ? isCalendarLoading : isStatsLoading
+  const hasData = activeTab === 'calendar' ? months.length > 0 : statsCalendarDays.length > 0
 
   return (
     <AppShell title="Review">
       {/* Tab Switcher - Floating segmented control */}
       <div className="sticky top-0 z-10 px-[var(--space-4)] pt-[var(--space-3)] pb-[var(--space-2)] bg-[var(--color-background)]">
-        <div
-          className="relative flex p-1 rounded-full border border-[var(--glass-border)]"
-          style={{
-            background: 'var(--glass-bg)',
-            backdropFilter: 'blur(var(--glass-blur))',
-            WebkitBackdropFilter: 'blur(var(--glass-blur))',
-          }}
-        >
-          {/* Animated pill indicator */}
-          <motion.div
-            className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[var(--color-primary)] rounded-full"
-            initial={false}
-            animate={{ x: activeTab === 'calendar' ? 0 : 'calc(100% + 4px)' }}
-            transition={springPresets.smooth}
-          />
-          <button
-            onClick={() => setActiveTab('calendar')}
-            className={`relative z-10 flex-1 py-2 rounded-full text-sm font-semibold transition-colors ${
-              activeTab === 'calendar' ? 'text-[var(--color-primary-text)]' : 'text-[var(--color-text-muted)]'
-            }`}
-          >
-            Calendar
-          </button>
-          <button
-            onClick={() => setActiveTab('stats')}
-            className={`relative z-10 flex-1 py-2 rounded-full text-sm font-semibold transition-colors ${
-              activeTab === 'stats' ? 'text-[var(--color-primary-text)]' : 'text-[var(--color-text-muted)]'
-            }`}
-          >
-            Stats
-          </button>
-        </div>
+        <SegmentedControl
+          tabs={[
+            { key: 'calendar', label: 'Calendar' },
+            { key: 'stats', label: 'Stats' },
+          ]}
+          activeTab={activeTab}
+          onTabChange={(key) => setActiveTab(key as 'calendar' | 'stats')}
+          id="historyTabs"
+        />
       </div>
 
       {/* Tab Content */}
@@ -78,7 +67,7 @@ export function HistoryPage() {
           <div className="h-[340px] skeleton rounded-[var(--radius-md)]" />
           <div className="h-20 skeleton rounded-[var(--radius-md)]" />
         </div>
-      ) : calendarDays.length > 0 ? (
+      ) : hasData ? (
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={activeTab}
@@ -88,18 +77,18 @@ export function HistoryPage() {
             transition={springPresets.smooth}
           >
             {activeTab === 'calendar' ? (
-              <div className="px-[var(--space-4)] pt-[var(--space-2)] flex flex-col" style={{ minHeight: 'calc(100dvh - 10.5rem)' }}>
-                <CalendarGrid
-                  calendarDays={calendarDays}
-                  currentMonth={currentMonth}
-                  selectedDate={selectedDate}
+              <div className="px-[var(--space-4)] pt-[var(--space-2)] pb-[var(--space-6)]">
+                <ScrollableCalendar
+                  months={months}
                   today={today}
+                  todayMonthIndex={todayMonthIndex}
+                  selectedDate={selectedDate}
                   onSelectDate={handleSelectDate}
-                  onMonthChange={handleMonthChange}
+                  stickyTopOffset={56}
                 />
               </div>
             ) : (
-              <StatsGrid calendarDays={calendarDays} allSessions={allSessions} />
+              <StatsGrid calendarDays={statsCalendarDays} allSessions={statsAllSessions} currentMonth={statsMonth} onMonthChange={handleStatsMonthChange} />
             )}
           </motion.div>
         </AnimatePresence>

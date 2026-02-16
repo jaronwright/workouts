@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react'
+import { Star } from '@phosphor-icons/react'
 import { RATING_COLORS } from '@/config/reviewConfig'
 
 interface ReviewBadgeProps {

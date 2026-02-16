@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Battery, BatteryFull, Zap } from 'lucide-react'
+import { BatteryMedium, BatteryHigh, Lightning } from '@phosphor-icons/react'
 import { ENERGY_LABELS, ENERGY_COLORS } from '@/config/reviewConfig'
 
 interface EnergyLevelProps {
@@ -97,9 +97,9 @@ export function EnergyLevel({ value, onChange }: EnergyLevelProps) {
           key={value}
         >
           {value && value >= 4 ? (
-            <BatteryFull className="w-4 h-4" style={{ color: color || undefined }} />
+            <BatteryHigh className="w-4 h-4" style={{ color: color || undefined }} />
           ) : (
-            <Battery className="w-4 h-4 text-[var(--color-text-muted)]" />
+            <BatteryMedium className="w-4 h-4 text-[var(--color-text-muted)]" />
           )}
         </motion.div>
         <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wide">
@@ -253,7 +253,7 @@ export function EnergyLevel({ value, onChange }: EnergyLevelProps) {
                     animate={{ scale: [0, 1.5, 0], opacity: [1, 1, 0], rotate: [-15, 0, 15] }}
                     transition={{ duration: 0.5, ease: 'easeOut' }}
                   >
-                    <Zap className="w-4 h-4" style={{ color: color || undefined, fill: color || undefined }} />
+                    <Lightning className="w-4 h-4" style={{ color: color || undefined, fill: color || undefined }} />
                   </motion.div>
                 )}
               </motion.div>

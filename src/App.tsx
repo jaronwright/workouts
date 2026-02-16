@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/hooks/useTheme'
+import { useGoogleAvatarSync } from '@/hooks/useProfile'
 import { ToastProvider } from '@/components/ui'
 import { ErrorBoundary } from '@/components/layout'
 import { SyncManager } from '@/components/layout/SyncManager'
@@ -24,9 +25,7 @@ import {
   CommunityPage,
   PublicProfilePage,
   PublicSessionDetailPage,
-  WorkoutSelectPage,
-  ExerciseDetailPage,
-  ExerciseLibraryPage
+  WorkoutSelectPage
 } from '@/pages'
 
 const queryClient = new QueryClient({
@@ -44,6 +43,9 @@ const queryClient = new QueryClient({
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, initialized, loading } = useAuth()
+
+  // Sync Google OAuth avatar to user_profiles if missing
+  useGoogleAvatarSync()
 
   if (!initialized || loading) {
     return (
@@ -143,22 +145,6 @@ function AnimatedRoutes() {
           element={
             <ProtectedRoute>
               <WorkoutSelectPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/exercises"
-          element={
-            <ProtectedRoute>
-              <ExerciseLibraryPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/exercises/:exerciseId"
-          element={
-            <ProtectedRoute>
-              <ExerciseDetailPage />
             </ProtectedRoute>
           }
         />

@@ -46,15 +46,56 @@ vi.mock('motion/react', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
+  useReducedMotion: () => false,
 }))
 
 vi.mock('@/hooks/useReducedMotion', () => ({
   useReducedMotion: () => false,
 }))
 
+vi.mock('@/components/motion', () => {
+  const passthrough = ({ children, className }: { children?: React.ReactNode; className?: string }) => (
+    <div className={className}>{children}</div>
+  )
+  return {
+    FadeIn: passthrough,
+    FadeInOnScroll: passthrough,
+    StaggerList: passthrough,
+    StaggerItem: passthrough,
+    ScaleIn: passthrough,
+    SlideUp: passthrough,
+    PressableCard: ({ children, onClick }: { children?: React.ReactNode; onClick?: () => void }) => (
+      <div onClick={onClick}>{children}</div>
+    ),
+    PressableButton: passthrough,
+    AnimatedNumber: ({ value, className }: { value: number; className?: string }) => (
+      <span data-testid="animated-counter" className={className}>{value}</span>
+    ),
+    AnimatedProgress: passthrough,
+    ShimmerSkeleton: passthrough,
+    ProgressRing: passthrough,
+    PageTransition: passthrough,
+  }
+})
+
 vi.mock('@/config/animationConfig', () => ({
   staggerContainer: {},
   staggerChild: {},
+  stagger: { fast: 0.03, normal: 0.05, slow: 0.08 },
+  springPresets: {
+    snappy: { type: 'spring', stiffness: 500, damping: 30 },
+    smooth: { type: 'spring', stiffness: 300, damping: 30 },
+    bouncy: { type: 'spring', stiffness: 400, damping: 15 },
+    gentle: { type: 'spring', stiffness: 200, damping: 25 },
+    molasses: { type: 'spring', stiffness: 120, damping: 20 },
+  },
+  durations: { fast: 0.15, normal: 0.25, slow: 0.4 },
+  springs: {},
+  springConfigs: {},
+  fadeInUp: {},
+  scaleIn: {},
+  slideIn: {},
+  pageTransition: {},
 }))
 
 // ---------------------------------------------------------------------------
@@ -168,6 +209,9 @@ vi.mock('@/components/ui', () => ({
       <button onClick={() => mockSetTheme('dark')}>Dark</button>
       <button onClick={() => mockSetTheme('system')}>System</button>
     </div>
+  ),
+  SectionLabel: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    <h3 className={className}>{children}</h3>
   ),
   CollapsibleSection: ({
     children,
@@ -309,6 +353,21 @@ vi.mock('@/hooks/useFeedback', () => ({
   }),
 }))
 
+vi.mock('@/hooks/useExerciseGuide', () => ({
+  useExerciseUsageStats: () => ({ data: null }),
+  useCachedExercise: () => ({ data: null }),
+  useFetchExerciseGuide: () => ({ mutateAsync: vi.fn() }),
+}))
+
+vi.mock('@/hooks/useNotifications', () => ({
+  usePushSupported: () => false,
+  usePushSubscriptions: () => ({ data: [] }),
+  useSubscribePush: () => ({ mutateAsync: vi.fn() }),
+  useUnsubscribePush: () => ({ mutateAsync: vi.fn() }),
+  useNotificationPreferences: () => ({ data: null }),
+  useUpdateNotificationPreferences: () => ({ mutateAsync: vi.fn() }),
+}))
+
 // ---------------------------------------------------------------------------
 // Mocks: stores
 // ---------------------------------------------------------------------------
@@ -364,35 +423,34 @@ vi.mock('@/config/workoutConfig', () => ({
 }))
 
 // ---------------------------------------------------------------------------
-// Lucide icons: render as simple spans so text is visible
+// Phosphor icons: render as simple spans so text is visible
 // ---------------------------------------------------------------------------
-vi.mock('lucide-react', () => {
+vi.mock('@phosphor-icons/react', () => {
   const icon = () => <span />
   return {
     Calendar: icon,
     Shield: icon,
-    Mail: icon,
-    ChevronDown: icon,
-    ChevronUp: icon,
-    LogOut: icon,
+    Envelope: icon,
+    SignOut: icon,
     Sun: icon,
     Moon: icon,
     Monitor: icon,
-    Dumbbell: icon,
+    Barbell: icon,
     Trophy: icon,
-    Flame: icon,
+    Fire: icon,
     Star: icon,
-    ArrowLeftRight: icon,
-    ArrowUpDown: icon,
+    ArrowsLeftRight: icon,
+    ArrowsDownUp: icon,
     Heart: icon,
-    MessageSquarePlus: icon,
+    ChatTeardropText: icon,
     Bug: icon,
     Lightbulb: icon,
-    Pencil: icon,
+    PencilSimple: icon,
     Check: icon,
     X: icon,
     Eye: icon,
-    EyeOff: icon,
+    EyeSlash: icon,
+    Database: icon,
   }
 })
 
@@ -878,7 +936,7 @@ describe('ProfilePage - Lifetime Stats Display', () => {
     const counters = screen.getAllByTestId('animated-counter')
     // The first counter is Total, the second is Best Streak
     expect(counters[0]).toHaveTextContent('5')
-    expect(screen.getByText('Total')).toBeInTheDocument()
+    expect(screen.getByText(/total/i)).toBeInTheDocument()
   })
 
   it('displays longestStreak correctly', () => {
@@ -889,7 +947,7 @@ describe('ProfilePage - Lifetime Stats Display', () => {
     const counters = screen.getAllByTestId('animated-counter')
     // Second counter is Best Streak
     expect(counters[1]).toHaveTextContent('5')
-    expect(screen.getByText('Best Streak')).toBeInTheDocument()
+    expect(screen.getByText(/best streak/i)).toBeInTheDocument()
   })
 
   it('displays favoriteType correctly', () => {
@@ -898,6 +956,6 @@ describe('ProfilePage - Lifetime Stats Display', () => {
     // Push appears 2 times (session 1 & 3), Pull 1, Legs 1, Morning Run 1
     // Favorite = Push
     expect(screen.getByText('Push')).toBeInTheDocument()
-    expect(screen.getByText('Favorite')).toBeInTheDocument()
+    expect(screen.getByText(/favorite/i)).toBeInTheDocument()
   })
 })

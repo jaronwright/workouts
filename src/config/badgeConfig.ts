@@ -52,11 +52,11 @@ export const BADGE_MAP: Record<string, BadgeDefinition> = Object.fromEntries(
 )
 
 export const RARITY_COLORS: Record<BadgeDefinition['rarity'], string> = {
-  common: '#9CA3AF',     // gray
-  uncommon: '#10B981',   // green
-  rare: '#3B82F6',       // blue
-  epic: '#8B5CF6',       // purple
-  legendary: '#F59E0B',  // gold
+  common: '#6E7487',     // text-muted
+  uncommon: '#00C261',   // primary mint
+  rare: '#5B5DF0',       // info/weights
+  epic: '#00A89A',       // accent teal
+  legendary: '#D99700',  // reward gold
 }
 
 export const RARITY_LABELS: Record<BadgeDefinition['rarity'], string> = {

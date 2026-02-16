@@ -6,10 +6,17 @@ import {
   eachDayOfInterval,
   differenceInCalendarDays,
   parseISO,
-  format
+  format,
+  isSameDay,
+  isSameMonth,
+  isAfter,
+  startOfDay
 } from 'date-fns'
+import { getDayInfo } from '@/utils/scheduleUtils'
 import type { SessionWithDay } from '@/services/workoutService'
 import type { TemplateWorkoutSession } from '@/services/templateWorkoutService'
+import type { ScheduleDay } from '@/services/scheduleService'
+import type { DayInfo } from '@/utils/scheduleUtils'
 
 // Unified session type shared with History page
 export interface UnifiedSession {
@@ -91,4 +98,71 @@ export function groupSessionsByDate(
  */
 export function toDateKey(date: Date): string {
   return format(date, 'yyyy-MM-dd')
+}
+
+/**
+ * Calendar day data used by both single-month and scrollable calendar views.
+ */
+export interface CalendarDay {
+  date: Date
+  dateKey: string
+  dayOfMonth: number
+  isCurrentMonth: boolean
+  isToday: boolean
+  isFuture: boolean
+  cycleDay: number | null
+  projected: DayInfo | null
+  projectedCount: number
+  sessions: UnifiedSession[]
+  hasCompletedSession: boolean
+}
+
+/**
+ * Pure function that builds CalendarDay[] for a single month.
+ * No hooks, no fetching — just transforms pre-computed data.
+ */
+export function buildCalendarDaysForMonth(
+  monthDate: Date,
+  today: Date,
+  sessionsByDate: Map<string, UnifiedSession[]>,
+  scheduleMap: Map<number, ScheduleDay[]>,
+  cycleStartDate: string | null
+): CalendarDay[] {
+  const gridDates = getMonthGridDates(monthDate)
+
+  return gridDates.map((date): CalendarDay => {
+    const dateKey = toDateKey(date)
+    const isToday = isSameDay(date, today)
+    const isFuture = isAfter(startOfDay(date), startOfDay(today))
+    const isCurrentMonthDay = isSameMonth(date, monthDate)
+
+    let cycleDay: number | null = null
+    let projected: DayInfo | null = null
+    let projectedCount = 0
+    if (cycleStartDate && scheduleMap.size > 0) {
+      cycleDay = getCycleDayForDate(date, cycleStartDate)
+      if (cycleDay !== null) {
+        const daySchedules = scheduleMap.get(cycleDay) || []
+        projectedCount = daySchedules.length
+        projected = daySchedules.length > 0 ? getDayInfo(daySchedules[0], cycleDay) : null
+      }
+    }
+
+    const sessions = sessionsByDate.get(dateKey) || []
+    const hasCompletedSession = sessions.some(s => s.completed_at !== null)
+
+    return {
+      date,
+      dateKey,
+      dayOfMonth: date.getDate(),
+      isCurrentMonth: isCurrentMonthDay,
+      isToday,
+      isFuture,
+      cycleDay,
+      projected,
+      projectedCount,
+      sessions,
+      hasCompletedSession
+    }
+  })
 }

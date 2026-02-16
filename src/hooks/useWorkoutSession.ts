@@ -12,6 +12,7 @@ import {
   startWorkoutSession,
   completeWorkoutSession,
   logExerciseSet,
+  logMultipleExerciseSets,
   getSessionSets,
   getUserSessions,
   getActiveSession,
@@ -196,6 +197,60 @@ export function useLogSet() {
     },
     onSuccess: (set, variables) => {
       addCompletedSet(variables.planExerciseId, set)
+      queryClient.invalidateQueries({ queryKey: ['session-sets'] })
+      queryClient.invalidateQueries({ queryKey: ['exercise-history'] })
+    }
+  })
+}
+
+export function useLogMultipleSets() {
+  const queryClient = useQueryClient()
+  const { addCompletedSet } = useWorkoutStore()
+
+  return useMutation({
+    mutationFn: async ({
+      sessionId,
+      planExerciseId,
+      totalSets,
+      repsCompleted,
+      weightUsed
+    }: {
+      sessionId: string
+      planExerciseId: string
+      totalSets: number
+      repsCompleted: number | null
+      weightUsed: number | null
+    }) => {
+      const resolvedSessionId = useOfflineStore.getState().resolveId(sessionId)
+      try {
+        return await logMultipleExerciseSets(resolvedSessionId, planExerciseId, totalSets, repsCompleted, weightUsed)
+      } catch (err) {
+        if (isNetworkError(err)) {
+          // Queue individual sets for offline sync
+          const optimisticSets: ExerciseSet[] = []
+          for (let i = 1; i <= totalSets; i++) {
+            const clientId = generateClientId()
+            useOfflineStore.getState().enqueue({
+              type: 'log-set',
+              payload: { sessionId, planExerciseId, setNumber: i, repsCompleted, weightUsed },
+              clientId,
+            })
+            optimisticSets.push(buildOptimisticSet({
+              clientId,
+              sessionId,
+              planExerciseId,
+              setNumber: i,
+              repsCompleted,
+              weightUsed,
+            }))
+          }
+          return optimisticSets
+        }
+        throw err
+      }
+    },
+    onSuccess: (sets, variables) => {
+      sets.forEach(set => addCompletedSet(variables.planExerciseId, set))
       queryClient.invalidateQueries({ queryKey: ['session-sets'] })
       queryClient.invalidateQueries({ queryKey: ['exercise-history'] })
     }

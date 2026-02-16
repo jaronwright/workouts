@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react'
+import { CaretRight } from '@phosphor-icons/react'
 import type { WorkoutDay } from '@/types/workout'
 import { Card, CardContent } from '@/components/ui'
 import { getWeightsStyleByName, getWorkoutDisplayName, CATEGORY_LABELS } from '@/config/workoutConfig'
@@ -25,7 +25,7 @@ export function WorkoutDayCard({ day, onClick }: WorkoutDayCardProps) {
             shadow-sm
           `}
         >
-          <Icon className="w-6 h-6 text-white" strokeWidth={2.5} />
+          <Icon className="w-6 h-6 text-white" weight="bold" />
         </div>
 
         {/* Content */}
@@ -48,7 +48,7 @@ export function WorkoutDayCard({ day, onClick }: WorkoutDayCardProps) {
           flex items-center justify-center
           text-[var(--color-text-muted)]
         ">
-          <ChevronRight className="w-5 h-5" />
+          <CaretRight className="w-5 h-5" />
         </div>
       </CardContent>
     </Card>

@@ -1,4 +1,4 @@
-import { Moon, type LucideIcon } from 'lucide-react'
+import { Moon, type Icon } from '@phosphor-icons/react'
 import {
   getWeightsStyleByName,
   getCardioStyle,
@@ -9,7 +9,7 @@ import type { ScheduleDay } from '@/services/scheduleService'
 
 export interface DayInfo {
   dayNumber: number
-  icon: LucideIcon
+  icon: Icon
   color: string
   bgColor: string
   name: string

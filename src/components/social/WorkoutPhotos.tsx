@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'motion/react'
-import { Camera, X, Loader2, Trash2 } from 'lucide-react'
+import { Camera, X, SpinnerGap, Trash } from '@phosphor-icons/react'
 
 
 import { uploadWorkoutPhoto, deleteWorkoutPhoto, getPhotosForSession } from '@/services/photoService'
@@ -99,7 +99,7 @@ export function WorkoutPhotos({ sessionId, templateSessionId }: WorkoutPhotosPro
           className="w-24 h-24 rounded-xl border-2 border-dashed border-[var(--color-border)] flex flex-col items-center justify-center gap-1 text-[var(--color-text-muted)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors flex-shrink-0"
         >
           {isUploading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <SpinnerGap className="w-5 h-5 animate-spin" />
           ) : (
             <>
               <Camera className="w-5 h-5" />
@@ -144,12 +144,12 @@ export function WorkoutPhotos({ sessionId, templateSessionId }: WorkoutPhotosPro
                 <button
                   onClick={() => remove(viewingPhoto)}
                   disabled={isDeleting}
-                  className="p-2 rounded-full bg-black/50 text-white hover:bg-red-500/80 transition-colors"
+                  className="p-2 rounded-full bg-black/50 text-white hover:bg-[var(--color-danger)]/80 transition-colors"
                 >
                   {isDeleting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <SpinnerGap className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Trash2 className="w-4 h-4" />
+                    <Trash className="w-4 h-4" />
                   )}
                 </button>
                 <button

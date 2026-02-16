@@ -8,9 +8,9 @@ import { formatDate, formatTime, formatDuration } from '@/utils/formatters'
 import { getWorkoutDisplayName, getWeightsStyleByName, getCardioStyle, getMobilityStyle } from '@/config/workoutConfig'
 import { MOOD_MAP, TAG_MAP, DIFFICULTY_LABELS, DIFFICULTY_COLORS } from '@/config/reviewConfig'
 import {
-  Clock, CheckCircle, Dumbbell, Timer, Layers, StickyNote,
-  MapPin, Zap, Activity, Star, ArrowRight
-} from 'lucide-react'
+  Clock, CheckCircle, Barbell, Timer, Stack, Note,
+  MapPin, Lightning, Heartbeat, Star, ArrowRight
+} from '@phosphor-icons/react'
 import { supabase } from '@/services/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import type { FeedWorkout, FeedExerciseSet, FeedReview, Reaction, FeedPhoto } from '@/types/community'
@@ -163,7 +163,6 @@ async function fetchExerciseSets(sessionId: string): Promise<FeedExerciseSet[]> 
       plan_exercise:plan_exercises(name, weight_unit, reps_unit)
     `)
     .eq('session_id', sessionId)
-    .eq('completed', true)
     .order('set_number')
 
   if (error || !data) return []
@@ -255,14 +254,14 @@ function resolveAccentColor(workout: FeedWorkout | undefined): string {
 }
 
 function WorkoutIconDisplay({ workout, accentColor }: { workout: FeedWorkout | undefined; accentColor: string }) {
-  if (!workout) return <Dumbbell className="w-8 h-8" style={{ color: accentColor }} />
+  if (!workout) return <Barbell className="w-8 h-8" style={{ color: accentColor }} />
   if (workout.type === 'weights') {
     const style = getWeightsStyleByName(workout.workout_name)
-    const Icon = style?.icon || Dumbbell
+    const Icon = style?.icon || Barbell
     return <Icon className="w-8 h-8" style={{ color: accentColor }} />
   }
-  if (workout.type === 'mobility') return <Activity className="w-8 h-8" style={{ color: accentColor }} />
-  return <Zap className="w-8 h-8" style={{ color: accentColor }} />
+  if (workout.type === 'mobility') return <Heartbeat className="w-8 h-8" style={{ color: accentColor }} />
+  return <Lightning className="w-8 h-8" style={{ color: accentColor }} />
 }
 
 // ─── Page Component ──────────────────────────────────
@@ -383,14 +382,14 @@ export function PublicSessionDetailPage() {
               <>
                 <div className="flex flex-col items-center">
                   <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center mb-1.5">
-                    <Layers className="w-5 h-5 text-violet-500" />
+                    <Stack className="w-5 h-5 text-violet-500" />
                   </div>
                   <span className="text-sm font-bold text-[var(--color-text)]">{workout.exercise_count}</span>
                   <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Exercises</span>
                 </div>
                 <div className="flex flex-col items-center">
                   <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center mb-1.5">
-                    <Dumbbell className="w-5 h-5 text-amber-500" />
+                    <Barbell className="w-5 h-5 text-amber-500" />
                   </div>
                   <span className="text-sm font-bold text-[var(--color-text)]">{workout.exercises.length}</span>
                   <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Sets</span>
@@ -428,7 +427,7 @@ export function PublicSessionDetailPage() {
             <div className="px-4 mb-4">
               <div className="bg-[var(--color-surface)] rounded-2xl p-4">
                 <div className="flex items-start gap-3">
-                  <StickyNote className="w-4 h-4 text-[var(--color-text-muted)] mt-0.5 flex-shrink-0" />
+                  <Note className="w-4 h-4 text-[var(--color-text-muted)] mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">{workout.notes}</p>
                 </div>
               </div>
@@ -456,7 +455,7 @@ export function PublicSessionDetailPage() {
                         className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                         style={{ backgroundColor: `${accentColor}15` }}
                       >
-                        <Dumbbell className="w-4 h-4" style={{ color: accentColor }} />
+                        <Barbell className="w-4 h-4" style={{ color: accentColor }} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-medium text-[var(--color-text)]">{name}</h4>

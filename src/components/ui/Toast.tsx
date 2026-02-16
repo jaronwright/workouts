@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react'
+import { X, CheckCircle, WarningCircle, Warning, Info } from '@phosphor-icons/react'
 import type { Toast as ToastType } from '@/stores/toastStore'
 
 interface ToastProps {
@@ -9,16 +9,16 @@ interface ToastProps {
 
 const icons = {
   success: CheckCircle,
-  error: AlertCircle,
-  warning: AlertTriangle,
+  error: WarningCircle,
+  warning: Warning,
   info: Info
 }
 
 const styles = {
   success: {
-    bg: 'bg-green-500/10 border-green-500/20',
-    icon: 'text-green-500',
-    text: 'text-green-500'
+    bg: 'bg-[var(--color-success-muted)] border-[var(--color-success)]/20',
+    icon: 'text-[var(--color-success)]',
+    text: 'text-[var(--color-success)]'
   },
   error: {
     bg: 'bg-[var(--color-danger)]/10 border-[var(--color-danger)]/20',
@@ -26,14 +26,14 @@ const styles = {
     text: 'text-[var(--color-danger)]'
   },
   warning: {
-    bg: 'bg-amber-500/10 border-amber-500/20',
-    icon: 'text-amber-500',
-    text: 'text-amber-500'
+    bg: 'bg-[var(--color-warning-muted)] border-[var(--color-warning)]/20',
+    icon: 'text-[var(--color-warning)]',
+    text: 'text-[var(--color-warning)]'
   },
   info: {
-    bg: 'bg-blue-500/10 border-blue-500/20',
-    icon: 'text-blue-500',
-    text: 'text-blue-500'
+    bg: 'bg-[var(--color-info-muted)] border-[var(--color-info)]/20',
+    icon: 'text-[var(--color-info)]',
+    text: 'text-[var(--color-info)]'
   }
 }
 

@@ -1,6 +1,5 @@
-import { Flame, Dumbbell, HandMetal, Star } from 'lucide-react'
+import { Fire, Barbell, HandFist, Star, type Icon } from '@phosphor-icons/react'
 import type { ReactionType } from '@/types/community'
-import type { LucideIcon } from 'lucide-react'
 
 // ─── Reaction Configuration ──────────────────────────
 
@@ -8,15 +7,15 @@ export interface ReactionConfig {
   type: ReactionType
   emoji: string
   label: string
-  icon: LucideIcon
+  icon: Icon
   color: string
 }
 
 export const REACTION_OPTIONS: ReactionConfig[] = [
-  { type: 'fire', emoji: '🔥', label: 'Fire', icon: Flame, color: '#F97316' },
-  { type: 'strong', emoji: '💪', label: 'Strong', icon: Dumbbell, color: '#6366F1' },
-  { type: 'props', emoji: '👏', label: 'Props', icon: HandMetal, color: '#10B981' },
-  { type: 'impressive', emoji: '⭐', label: 'Impressive', icon: Star, color: '#F59E0B' },
+  { type: 'fire', emoji: '🔥', label: 'Fire', icon: Fire, color: '#F97316' },
+  { type: 'strong', emoji: '💪', label: 'Strong', icon: Barbell, color: '#6366F1' },
+  { type: 'props', emoji: '👏', label: 'Props', icon: HandFist, color: '#10B981' },
+  { type: 'impressive', emoji: '⭐', label: 'Impressive', icon: Star, color: '#D99700' },
 ]
 
 export const REACTION_MAP: Record<ReactionType, ReactionConfig> = {
