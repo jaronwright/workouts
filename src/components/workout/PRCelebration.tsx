@@ -54,7 +54,7 @@ export function PRCelebration({ result, onComplete }: PRCelebrationProps) {
               top: '-20px',
               animationDelay: `${particle.delay}s`,
               animationDuration: `${particle.duration}s`,
-              backgroundColor: ['#FFB800', '#E63B57', '#00C261', '#5B5DF0', '#00A89A'][particle.id % 5]
+              backgroundColor: ['var(--color-reward-bright)', 'var(--color-cardio)', 'var(--color-primary)', 'var(--color-weights)', 'var(--color-accent)'][particle.id % 5]
             }}
           />
         ))}
@@ -67,7 +67,7 @@ export function PRCelebration({ result, onComplete }: PRCelebrationProps) {
       >
         <div className="text-center">
           <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'var(--gradient-reward)', boxShadow: 'var(--shadow-reward)' }}>
-            <Trophy className="w-10 h-10 text-white" />
+            <Trophy className="w-10 h-10 text-[var(--color-primary-text)]" />
           </div>
 
           <h2 className="text-2xl font-bold text-[var(--color-text)] mb-2">

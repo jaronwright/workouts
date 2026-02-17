@@ -91,7 +91,7 @@ export function NotificationPanel({ isOpen, onClose, notifications, isLoading }:
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed inset-x-0 bottom-0 z-50 max-h-[70vh] bg-[var(--color-surface)] rounded-t-[var(--radius-xl)] shadow-[var(--shadow-xl)] flex flex-col"
+            className="fixed inset-x-0 bottom-0 z-50 max-h-[70vh] bg-[var(--color-surface-elevated)] rounded-t-[var(--radius-xl)] shadow-[var(--shadow-elevated)] flex flex-col"
           >
             {/* Handle bar */}
             <div className="flex justify-center pt-3 pb-1">

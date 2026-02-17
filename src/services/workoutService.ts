@@ -169,6 +169,14 @@ export async function logMultipleExerciseSets(
   repsCompleted: number | null,
   weightUsed: number | null
 ): Promise<ExerciseSet[]> {
+  // Delete any existing sets for this exercise in this session first
+  // to prevent duplicates when completing after an uncomplete
+  await supabase
+    .from('exercise_sets')
+    .delete()
+    .eq('session_id', sessionId)
+    .eq('plan_exercise_id', planExerciseId)
+
   const rows = Array.from({ length: totalSets }, (_, i) => ({
     session_id: sessionId,
     plan_exercise_id: planExerciseId,

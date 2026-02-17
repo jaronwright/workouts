@@ -73,11 +73,11 @@ export function getStrengthColor(strength: PasswordValidationResult['strength'])
     case 'weak':
       return 'var(--color-danger)'
     case 'fair':
-      return '#f59e0b' // amber
+      return 'var(--color-warning)'
     case 'good':
-      return '#3b82f6' // blue
+      return 'var(--color-info)'
     case 'strong':
-      return '#22c55e' // green
+      return 'var(--color-success)'
   }
 }
 

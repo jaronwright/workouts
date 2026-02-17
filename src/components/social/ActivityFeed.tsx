@@ -75,7 +75,7 @@ export function ActivityFeed({ limit }: ActivityFeedProps) {
     return (
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-20 bg-[var(--color-surface-hover)] animate-pulse rounded-lg" />
+          <div key={i} className="h-20 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-lg)]" />
         ))}
       </div>
     )

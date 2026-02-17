@@ -25,7 +25,7 @@ export function WorkoutDayCard({ day, onClick }: WorkoutDayCardProps) {
             shadow-sm
           `}
         >
-          <Icon className="w-6 h-6 text-white" weight="bold" />
+          <Icon className="w-6 h-6 text-[var(--color-primary-text)]" weight="bold" />
         </div>
 
         {/* Content */}

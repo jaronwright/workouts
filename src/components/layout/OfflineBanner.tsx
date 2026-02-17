@@ -41,13 +41,13 @@ export function OfflineBanner() {
   }
 
   return (
-    <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2">
+    <div className="bg-[var(--color-warning-muted)] border-b border-[var(--color-warning)]/20 px-4 py-2">
       <div className="max-w-4xl mx-auto flex items-center gap-2">
-        <WifiSlash className="w-4 h-4 text-amber-500 flex-shrink-0" />
-        <p className="flex-1 text-sm text-amber-700 dark:text-amber-300 font-medium">
+        <WifiSlash className="w-4 h-4 text-[var(--color-warning)] flex-shrink-0" />
+        <p className="flex-1 text-sm text-[var(--color-warning)] font-medium">
           You're offline — changes saved locally
           {pendingCount > 0 && (
-            <span className="text-amber-600 dark:text-amber-400 font-normal">
+            <span className="text-[var(--color-warning)] opacity-80 font-normal">
               {' '}({pendingCount} pending)
             </span>
           )}

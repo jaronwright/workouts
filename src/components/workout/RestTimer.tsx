@@ -127,7 +127,7 @@ export function RestTimer() {
             className={`
               p-1.5 rounded-full active:scale-90 transition-transform duration-100
               ${isFinished
-                ? 'hover:bg-black/10 text-[var(--color-primary-text)]'
+                ? 'hover:bg-[var(--color-primary-text)]/10 text-[var(--color-primary-text)]'
                 : 'hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]'
               }
             `}
@@ -179,7 +179,7 @@ export function RestTimer() {
               className={`
                 p-3.5 rounded-full active:scale-90 transition-transform duration-100
                 ${isFinished
-                  ? 'bg-white/20 hover:bg-white/30 text-[var(--color-primary-text)]'
+                  ? 'bg-[var(--color-primary-text)]/20 hover:bg-[var(--color-primary-text)]/30 text-[var(--color-primary-text)]'
                   : 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-[var(--color-primary-text)]'
                 }
               `}
@@ -197,7 +197,7 @@ export function RestTimer() {
               className={`
                 p-3.5 rounded-full active:scale-90 transition-transform duration-100
                 ${isFinished
-                  ? 'bg-white/20 hover:bg-white/30 text-[var(--color-primary-text)]'
+                  ? 'bg-[var(--color-primary-text)]/20 hover:bg-[var(--color-primary-text)]/30 text-[var(--color-primary-text)]'
                   : 'bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] text-[var(--color-text-muted)]'
                 }
               `}

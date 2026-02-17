@@ -163,8 +163,8 @@ export function SelectedDayPanel({ day }: SelectedDayPanelProps) {
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
-                <Calendar className="w-4 h-4 text-red-400" />
+              <div className="w-9 h-9 rounded-full bg-[var(--color-danger-muted)] flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-4 h-4 text-[var(--color-danger)]" />
               </div>
               <div>
                 <p className="text-sm text-[var(--color-text)]">

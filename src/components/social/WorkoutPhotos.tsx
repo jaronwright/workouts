@@ -70,7 +70,7 @@ export function WorkoutPhotos({ sessionId, templateSessionId }: WorkoutPhotosPro
 
   if (isLoading) {
     return (
-      <div className="h-24 bg-[var(--color-surface-hover)] animate-pulse rounded-2xl" />
+      <div className="h-24 bg-[var(--color-surface-hover)] animate-pulse rounded-[var(--radius-lg)]" />
     )
   }
 

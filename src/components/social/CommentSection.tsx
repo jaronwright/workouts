@@ -101,7 +101,7 @@ export function CommentSection({ sessionId, templateSessionId, workoutOwnerId }:
                   {user && comment.user_id === user.id && (
                     <button
                       onClick={() => handleDelete(comment)}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-all flex-shrink-0"
+                      className="opacity-0 group-hover:opacity-100 p-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-all flex-shrink-0"
                     >
                       <Trash className="w-3.5 h-3.5" />
                     </button>
@@ -140,7 +140,7 @@ export function CommentSection({ sessionId, templateSessionId, workoutOwnerId }:
             <button
               onClick={handleSubmit}
               disabled={!newComment.trim() || addComment.isPending}
-              className="p-1 text-[var(--color-primary)] disabled:opacity-30 transition-opacity"
+              className="p-1.5 text-[var(--color-primary)] disabled:opacity-50 transition-opacity"
             >
               <PaperPlaneTilt className="w-4 h-4" />
             </button>

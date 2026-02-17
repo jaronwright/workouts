@@ -211,8 +211,8 @@ export function WorkoutPage() {
   if (!workoutDay) {
     return (
       <AppShell title="Not Found" showBack>
-        <div className="p-4 text-center text-[var(--color-text-muted)]">
-          Workout day not found
+        <div className="p-4 text-center">
+          <p className="text-[var(--color-text)]">Workout day not found</p>
         </div>
       </AppShell>
     )
@@ -366,13 +366,13 @@ export function WorkoutPage() {
                 initial={{ scale: 0, opacity: 0.6 }}
                 animate={{ scale: 4, opacity: 0 }}
                 transition={{ duration: 1.5, ease: 'easeOut' }}
-                className="absolute w-32 h-32 rounded-full border-4 border-white/30"
+                className="absolute w-32 h-32 rounded-full border-4 border-[var(--color-primary-text)]/30"
               />
               <motion.div
                 initial={{ scale: 0, opacity: 0.4 }}
                 animate={{ scale: 3, opacity: 0 }}
                 transition={{ duration: 1.5, ease: 'easeOut', delay: 0.2 }}
-                className="absolute w-32 h-32 rounded-full border-4 border-white/20"
+                className="absolute w-32 h-32 rounded-full border-4 border-[var(--color-primary-text)]/20"
               />
 
               {/* Quote text */}
@@ -396,7 +396,7 @@ export function WorkoutPage() {
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full"
+                  className="w-6 h-6 border-2 border-[var(--color-primary-text)]/30 border-t-[var(--color-primary-text)] rounded-full"
                 />
               </motion.div>
             </motion.div>

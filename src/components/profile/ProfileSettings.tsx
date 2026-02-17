@@ -65,6 +65,7 @@ export function ProfileSettings() {
                 }}
                 className={`
                   relative w-11 h-6 rounded-full transition-colors duration-200
+                  focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]
                   ${profile?.hide_weight_details
                     ? 'bg-[var(--color-primary)]'
                     : 'bg-[var(--color-border)]'
@@ -75,7 +76,7 @@ export function ProfileSettings() {
               >
                 <span
                   className={`
-                    absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full
+                    absolute top-0.5 left-0.5 w-5 h-5 bg-[var(--color-surface-elevated)] rounded-full
                     transition-transform duration-200
                     ${profile?.hide_weight_details ? 'translate-x-5' : 'translate-x-0'}
                   `}

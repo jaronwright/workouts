@@ -45,7 +45,7 @@ export function AuthCallbackPage() {
     return (
       <div className="min-h-screen bg-[var(--color-background)] flex flex-col items-center justify-center p-4">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-full bg-red-500/10 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto rounded-full bg-[var(--color-danger-muted)] flex items-center justify-center">
             <span className="text-2xl">!</span>
           </div>
           <h1 className="text-xl font-bold text-[var(--color-text)]">

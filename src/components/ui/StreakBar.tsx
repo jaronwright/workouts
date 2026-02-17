@@ -75,9 +75,9 @@ export function StreakBar({ days, className = '', showDates = false }: StreakBar
                     : 'w-7 h-7'
                 } ${
                   day.completed
-                    ? 'text-white shadow-sm'
+                    ? 'text-[var(--color-primary-text)] shadow-sm'
                     : isToday && !day.isRest
-                      ? 'text-white shadow-sm'
+                      ? 'text-[var(--color-primary-text)] shadow-sm'
                       : isToday && day.isRest
                         ? 'border-2 border-[var(--color-border-strong)] text-[var(--color-text-muted)] bg-[var(--color-surface-hover)]'
                         : day.isRest

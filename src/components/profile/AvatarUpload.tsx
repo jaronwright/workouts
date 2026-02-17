@@ -65,9 +65,9 @@ export function AvatarUpload() {
           className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[var(--color-primary)] flex items-center justify-center shadow-md border-2 border-[var(--color-surface)] disabled:opacity-50"
         >
           {isUploading ? (
-            <SpinnerGap className="w-3.5 h-3.5 text-white animate-spin" />
+            <SpinnerGap className="w-3.5 h-3.5 text-[var(--color-primary-text)] animate-spin" />
           ) : (
-            <Camera className="w-3.5 h-3.5 text-white" />
+            <Camera className="w-3.5 h-3.5 text-[var(--color-primary-text)]" />
           )}
         </button>
 

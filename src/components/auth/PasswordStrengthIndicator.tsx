@@ -33,7 +33,7 @@ export function PasswordStrengthIndicator({ password }: PasswordStrengthIndicato
       <div className="flex items-center gap-2">
         <div className="flex-1 h-1.5 bg-[var(--color-surface-hover)] rounded-full overflow-hidden">
           <div
-            className="h-full rounded-full transition-all duration-300"
+            className="h-full rounded-full transition-all duration-[var(--duration-slow)]"
             style={{
               width: `${progressWidth}%`,
               backgroundColor: strengthColor

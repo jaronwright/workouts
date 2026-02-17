@@ -83,7 +83,7 @@ export function FeedbackSection() {
               onChange={(e) => setFeedbackMessage(e.target.value)}
               placeholder={feedbackType === 'bug' ? 'Describe the bug...' : 'Describe the feature you\'d like...'}
               rows={3}
-              className="w-full px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none text-sm"
+              className="w-full px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none text-sm"
             />
 
             {/* Submit */}

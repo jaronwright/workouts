@@ -367,11 +367,11 @@ export function PublicSessionDetailPage() {
           <div className="flex justify-around px-4 -mt-1 mb-4">
             {getDuration() && (
               <div className="flex flex-col items-center">
-                <div className="w-10 h-10 rounded-xl bg-sky-500/15 flex items-center justify-center mb-1.5">
+                <div className="w-10 h-10 rounded-xl bg-[var(--color-accent-muted)] flex items-center justify-center mb-1.5">
                   {workout.type === 'weights' ? (
-                    <Clock className="w-5 h-5 text-sky-500" />
+                    <Clock className="w-5 h-5 text-[var(--color-accent)]" />
                   ) : (
-                    <Timer className="w-5 h-5 text-sky-500" />
+                    <Timer className="w-5 h-5 text-[var(--color-accent)]" />
                   )}
                 </div>
                 <span className="text-sm font-bold text-[var(--color-text)]">{getDuration()}</span>
@@ -381,15 +381,15 @@ export function PublicSessionDetailPage() {
             {workout.type === 'weights' && (
               <>
                 <div className="flex flex-col items-center">
-                  <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center mb-1.5">
-                    <Stack className="w-5 h-5 text-violet-500" />
+                  <div className="w-10 h-10 rounded-xl bg-[var(--color-weights-muted)] flex items-center justify-center mb-1.5">
+                    <Stack className="w-5 h-5 text-[var(--color-weights)]" />
                   </div>
                   <span className="text-sm font-bold text-[var(--color-text)]">{workout.exercise_count}</span>
                   <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Exercises</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center mb-1.5">
-                    <Barbell className="w-5 h-5 text-amber-500" />
+                  <div className="w-10 h-10 rounded-xl bg-[var(--color-reward-muted)] flex items-center justify-center mb-1.5">
+                    <Barbell className="w-5 h-5 text-[var(--color-reward)]" />
                   </div>
                   <span className="text-sm font-bold text-[var(--color-text)]">{workout.exercises.length}</span>
                   <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">Sets</span>
@@ -398,8 +398,8 @@ export function PublicSessionDetailPage() {
             )}
             {workout.distance_value && (
               <div className="flex flex-col items-center">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center mb-1.5">
-                  <MapPin className="w-5 h-5 text-emerald-500" />
+                <div className="w-10 h-10 rounded-xl bg-[var(--color-success-muted)] flex items-center justify-center mb-1.5">
+                  <MapPin className="w-5 h-5 text-[var(--color-success)]" />
                 </div>
                 <span className="text-sm font-bold text-[var(--color-text)]">
                   {workout.distance_value} {workout.distance_unit || 'mi'}
@@ -409,8 +409,8 @@ export function PublicSessionDetailPage() {
             )}
             {workout.distance_value && workout.duration_minutes && (
               <div className="flex flex-col items-center">
-                <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center mb-1.5">
-                  <Clock className="w-5 h-5 text-violet-500" />
+                <div className="w-10 h-10 rounded-xl bg-[var(--color-info-muted)] flex items-center justify-center mb-1.5">
+                  <Clock className="w-5 h-5 text-[var(--color-info)]" />
                 </div>
                 <span className="text-sm font-bold text-[var(--color-text)]">
                   {(workout.duration_minutes / workout.distance_value).toFixed(1)}
@@ -475,7 +475,7 @@ export function PublicSessionDetailPage() {
                                   </span>
                                   {reps != null && (
                                     <span className="text-[var(--color-text-muted)]">
-                                      , {reps} reps
+                                      , {reps} {sets[0].plan_exercise?.reps_unit || 'reps'}
                                     </span>
                                   )}
                                   {weight != null && !hideWeights && (
@@ -494,7 +494,7 @@ export function PublicSessionDetailPage() {
                                 <span className="font-medium text-[var(--color-text)]">S{index + 1}</span>
                                 {set.reps_completed != null && (
                                   <span className="text-[var(--color-text-muted)]">
-                                    : {set.reps_completed} reps
+                                    : {set.reps_completed} {set.plan_exercise?.reps_unit || 'reps'}
                                   </span>
                                 )}
                                 {set.weight_used != null && !hideWeights && (
@@ -572,8 +572,8 @@ function ReviewSection({ review }: { review: FeedReview }) {
               key={i}
               className={`w-4 h-4 ${
                 i <= review.overall_rating
-                  ? 'fill-amber-400 text-amber-400'
-                  : 'fill-none text-gray-300 dark:text-gray-600'
+                  ? 'fill-[var(--color-reward)] text-[var(--color-reward)]'
+                  : 'fill-none text-[var(--color-border)]'
               }`}
             />
           ))}

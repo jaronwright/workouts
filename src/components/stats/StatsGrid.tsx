@@ -63,7 +63,7 @@ function StatWidget({ info, className, children }: { info: string; className?: s
       {!flipped && (
         <button
           onClick={(e) => { e.stopPropagation(); setFlipped(true) }}
-          className="absolute top-2 right-2 z-10 p-0.5 rounded-full text-[var(--color-text-muted)] opacity-30 hover:opacity-60 transition-opacity"
+          className="absolute top-1.5 right-1.5 z-10 p-1.5 rounded-full text-[var(--color-text-muted)] opacity-30 hover:opacity-60 transition-opacity"
         >
           <Info className="w-3 h-3" />
         </button>

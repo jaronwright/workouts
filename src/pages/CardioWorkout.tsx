@@ -287,9 +287,9 @@ export function CardioWorkoutPage() {
                   setValue('')
                   setSliderValue(mode.slider?.min ?? 1000)
                 }}
-                className={`flex-1 py-2.5 text-sm font-semibold rounded-[var(--radius-md)] transition-all duration-150 ${
+                className={`flex-1 py-2.5 text-sm font-semibold rounded-[var(--radius-md)] transition-all duration-150 active:scale-[0.96] ${
                   selectedModeIndex === idx
-                    ? 'bg-white text-[var(--color-text)] shadow-sm dark:bg-[var(--color-surface)]'
+                    ? 'bg-[var(--color-surface-elevated)] text-[var(--color-text)] shadow-sm'
                     : 'text-[var(--color-text-muted)]'
                 }`}
                 style={selectedModeIndex === idx ? { color: style.color } : undefined}

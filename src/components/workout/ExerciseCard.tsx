@@ -125,7 +125,7 @@ export function ExerciseCard({
         }
       `}
     >
-      <div className="px-4 py-3.5 flex items-center gap-3">
+      <div className="px-4 py-4 flex items-center gap-3">
         {/* Completion Toggle */}
         <button
           onClick={handleComplete}
@@ -134,7 +134,7 @@ export function ExerciseCard({
             transition-transform duration-100
             active:scale-90
             ${isCompleted
-              ? 'bg-[var(--color-success)] text-white'
+              ? 'bg-[var(--color-success)] text-[var(--color-primary-text)]'
               : 'bg-[var(--color-surface-hover)] border-2 border-[var(--color-border-strong)] text-[var(--color-text-muted)]'
             }
             ${justCompleted ? 'animate-pop-in' : ''}
@@ -210,7 +210,7 @@ export function ExerciseCard({
 
         {/* Weight shown when completed */}
         {!noWeight && isCompleted && completedSets[0]?.weight_used != null && (
-          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--color-success)]/15 flex-shrink-0">
+          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--color-success)]/15 flex-shrink-0">
             <Sparkle className="w-3.5 h-3.5 text-[var(--color-success)]" />
             <span className="text-sm text-[var(--color-success)] font-bold">
               {completedSets[0].weight_used} {localWeightUnit}

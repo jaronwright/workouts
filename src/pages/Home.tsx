@@ -206,7 +206,7 @@ export function HomePage() {
         <FadeIn direction="up" delay={0.15}>
           <section className="mb-[var(--space-6)]">
             <PressableCard onClick={() => navigate('/history')} className="cursor-pointer">
-              <div className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] overflow-hidden">
+              <div className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] overflow-hidden shadow-[var(--shadow-card)]">
                 <div className="flex divide-x divide-[var(--color-border)]">
                   {/* Streak */}
                   <div className="flex-1 flex flex-col items-center py-[var(--space-4)] relative">
@@ -339,7 +339,7 @@ export function HomePage() {
                   return (
                     <StaggerItem key={session.id}>
                       <PressableCard onClick={() => navigate(historyPath)} className="cursor-pointer">
-                        <div className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)]">
+                        <div className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] shadow-[var(--shadow-card)]">
                           <div className="flex items-center gap-[var(--space-3)]">
                             {/* Workout type icon — tinted background like community cards */}
                             <div
@@ -353,7 +353,7 @@ export function HomePage() {
                                 <p className="text-[var(--text-sm)] font-semibold text-[var(--color-text)] truncate">
                                   {name}
                                 </p>
-                                <span className="text-[var(--text-xs)] text-[var(--color-text-muted)] opacity-70 shrink-0 ml-2">
+                                <span className="text-[var(--text-xs)] text-[var(--color-text-muted)] shrink-0 ml-2">
                                   {formatRelativeTime(session.completed_at || session.started_at)}
                                 </span>
                               </div>

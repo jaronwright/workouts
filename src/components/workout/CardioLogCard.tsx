@@ -32,7 +32,7 @@ export function CardioLogCard({ template, sessions, schedule, currentCycleDay, d
         <div
           className={`w-12 h-12 rounded-[var(--radius-lg)] bg-gradient-to-br ${style.gradient} flex items-center justify-center shadow-sm`}
         >
-          <Icon className="w-6 h-6 text-white" weight="bold" />
+          <Icon className="w-6 h-6 text-[var(--color-primary-text)]" weight="bold" />
         </div>
 
         {/* Info */}

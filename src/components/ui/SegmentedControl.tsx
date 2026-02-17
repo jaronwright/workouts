@@ -61,7 +61,7 @@ export function SegmentedControl({
             disabled={isDisabled}
             className={`
               relative z-10 flex-1 py-2 rounded-full text-sm font-semibold transition-colors
-              ${isDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
+              ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
               ${isActive ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}
             `}
           >

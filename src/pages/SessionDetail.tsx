@@ -163,7 +163,7 @@ function EditSetModal({ set, isOpen, onClose, onSave, onDelete, isLoading }: Edi
               type="number"
               value={reps}
               onChange={(e) => setReps(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)]"
+              className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-sunken)] text-[var(--color-text)]"
               placeholder="0"
             />
           </div>
@@ -177,7 +177,7 @@ function EditSetModal({ set, isOpen, onClose, onSave, onDelete, isLoading }: Edi
                 step="0.5"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)]"
+                className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-sunken)] text-[var(--color-text)]"
                 placeholder="0"
               />
             </div>

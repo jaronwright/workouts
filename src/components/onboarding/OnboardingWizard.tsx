@@ -524,7 +524,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                   </div>
                 )}
                 <div className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-[var(--color-primary)] flex items-center justify-center shadow-lg ring-3 ring-[var(--color-background)]">
-                  <Camera className="w-4 h-4 text-white" />
+                  <Camera className="w-4 h-4 text-[var(--color-primary-text)]" />
                 </div>
               </button>
               <p className="text-sm text-[var(--color-text-muted)]">
@@ -593,7 +593,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                 >
                   <div className="flex items-start gap-4">
                     <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center flex-shrink-0`}>
-                      <Icon className="w-6 h-6 text-white" />
+                      <Icon className="w-6 h-6 text-[var(--color-primary-text)]" />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-lg font-bold text-[var(--color-text)]">
@@ -626,7 +626,7 @@ export function OnboardingWizard({ isOpen, onClose, initialStep = 1, initialPlan
                     </div>
                     {selectedPlanId === id && (
                       <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
-                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <svg className="w-4 h-4 text-[var(--color-primary-text)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       </div>

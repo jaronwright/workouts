@@ -78,7 +78,7 @@ export function ProfileHero() {
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="p-1 rounded-[var(--radius-sm)] shrink-0 hover:bg-[var(--color-success-muted)]"
+                  className="p-2 rounded-[var(--radius-sm)] shrink-0 hover:bg-[var(--color-success-muted)]"
                   style={{ color: 'var(--color-success)' }}
                   aria-label="Save name"
                 >
@@ -89,7 +89,7 @@ export function ProfileHero() {
                     setDisplayName(profile?.display_name || '')
                     setIsEditingName(false)
                   }}
-                  className="p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] rounded-[var(--radius-sm)] shrink-0"
+                  className="p-2 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] rounded-[var(--radius-sm)] shrink-0"
                   aria-label="Cancel editing"
                 >
                   <X className="w-5 h-5" />
@@ -116,7 +116,7 @@ export function ProfileHero() {
 
         {/* Trophy Stats */}
         <div className="relative flex gap-[var(--space-3)] mt-[var(--space-5)]">
-          <div className="flex-1 bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]">
+          <div className="flex-1 bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)] shadow-[var(--shadow-xs)]">
             <AnimatedNumber
               value={lifetimeStats.totalWorkouts}
               className="text-[var(--text-2xl)] font-bold text-[var(--color-text)] font-mono-stats block leading-none"
@@ -130,7 +130,7 @@ export function ProfileHero() {
           </div>
 
           <div
-            className="flex-1 bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]"
+            className="flex-1 bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)] shadow-[var(--shadow-xs)]"
             style={lifetimeStats.longestStreak > 0 ? { boxShadow: 'var(--shadow-primary)', borderColor: 'var(--color-primary-glow)' } : undefined}
           >
             <AnimatedNumber
@@ -145,7 +145,7 @@ export function ProfileHero() {
             </p>
           </div>
 
-          <div className="flex-1 bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)]">
+          <div className="flex-1 bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] text-center border border-[var(--color-border)] shadow-[var(--shadow-xs)]">
             <p className="text-[var(--text-sm)] font-bold text-[var(--color-text)] font-mono-stats truncate leading-none">{lifetimeStats.favoriteType}</p>
             <p
               className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase font-medium"

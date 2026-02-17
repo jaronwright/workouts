@@ -114,7 +114,7 @@ export function ChallengeCard({ challenge, onJoin, isJoining }: ChallengeCardPro
             <PressableButton
               onClick={() => onJoin(challenge.id)}
               disabled={isJoining}
-              className="px-4 py-1.5 rounded-full bg-[var(--color-accent)] text-white text-xs font-semibold"
+              className="px-4 py-1.5 rounded-full bg-[var(--color-accent)] text-[var(--color-primary-text)] text-xs font-semibold"
             >
               Join
             </PressableButton>

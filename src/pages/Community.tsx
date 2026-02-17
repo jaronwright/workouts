@@ -161,7 +161,7 @@ export function CommunityPage() {
         {/* Discover: Search bar */}
         {showDiscoverExtras && (
           <div className="space-y-[var(--space-3)]">
-            <div className="flex items-center gap-2 bg-[var(--color-surface-sunken)] rounded-[var(--radius-lg)] px-3 py-2.5 transition-colors focus-within:bg-[var(--color-surface-hover)]">
+            <div className="flex items-center gap-2 bg-[var(--color-surface-sunken)] rounded-[var(--radius-lg)] px-3 py-3 transition-colors focus-within:bg-[var(--color-surface-hover)]">
               <MagnifyingGlass className="w-4 h-4 text-[var(--color-text-muted)] flex-shrink-0" />
               <input
                 type="text"
@@ -188,7 +188,7 @@ export function CommunityPage() {
                     <button
                       key={u.id}
                       onClick={() => { handleUserClick(u.id); setShowSearch(false); setSearchQuery('') }}
-                      className="w-full flex items-center gap-3 p-2.5 rounded-[var(--radius-md)] hover:bg-[var(--color-surface-hover)] transition-colors"
+                      className="w-full flex items-center gap-3 p-2.5 rounded-[var(--radius-md)] hover:bg-[var(--color-surface-hover)] active:scale-[0.98] transition-colors"
                     >
                       <Avatar src={u.avatar_url} alt={u.display_name || 'User'} size="sm" className="w-8 h-8" />
                       <span className="text-sm font-medium text-[var(--color-text)] truncate flex-1 text-left">
@@ -211,7 +211,7 @@ export function CommunityPage() {
                   {suggestedUsers.map(u => (
                     <div
                       key={u.id}
-                      className="flex flex-col items-center gap-1.5 min-w-[72px] p-2 rounded-[var(--radius-lg)] hover:bg-[var(--color-surface-hover)] transition-colors cursor-pointer"
+                      className="flex flex-col items-center gap-1.5 min-w-[72px] p-2 rounded-[var(--radius-lg)] hover:bg-[var(--color-surface-hover)] active:scale-[0.98] transition-colors cursor-pointer"
                     >
                       <div onClick={() => handleUserClick(u.id)}>
                         <Avatar src={u.avatar_url} alt={u.display_name || 'User'} size="md" className="w-12 h-12" />
@@ -363,7 +363,7 @@ export function CommunityPage() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={springPresets.smooth}
-            className="relative bg-[var(--color-surface)] rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)] p-[var(--space-6)] mx-[var(--space-4)] mb-0 sm:mb-0 max-w-sm w-full"
+            className="relative bg-[var(--color-surface-elevated)] rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)] p-[var(--space-6)] mx-[var(--space-4)] mb-0 sm:mb-0 max-w-sm w-full"
           >
             <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-[var(--space-4)]" style={{ background: 'var(--color-primary-muted)' }}>
               <Users className="w-6 h-6 text-[var(--color-primary)]" />
