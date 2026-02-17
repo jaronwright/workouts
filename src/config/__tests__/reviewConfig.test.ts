@@ -10,10 +10,8 @@ import {
   RATING_COLORS,
   DIFFICULTY_COLORS,
   ENERGY_COLORS,
-  REVIEW_STEPS,
   type MoodOption,
   type TagOption,
-  type ReviewStepConfig,
 } from '../reviewConfig'
 import type { MoodValue, PerformanceTag } from '@/services/reviewService'
 
@@ -245,40 +243,4 @@ describe('reviewConfig', () => {
     })
   })
 
-  // ────────────────────────────────────────────────────────
-  // REVIEW_STEPS
-  // ────────────────────────────────────────────────────────
-
-  describe('REVIEW_STEPS', () => {
-    it('has exactly 4 steps', () => {
-      expect(REVIEW_STEPS).toHaveLength(4)
-    })
-
-    it('each step has title, subtitle, and optional fields', () => {
-      for (const step of REVIEW_STEPS) {
-        expect(typeof step.title).toBe('string')
-        expect(step.title.length).toBeGreaterThan(0)
-        expect(typeof step.subtitle).toBe('string')
-        expect(step.subtitle.length).toBeGreaterThan(0)
-        expect(typeof step.optional).toBe('boolean')
-      }
-    })
-
-    it('first step is required (rating)', () => {
-      expect(REVIEW_STEPS[0].optional).toBe(false)
-    })
-
-    it('steps 2-4 are optional', () => {
-      expect(REVIEW_STEPS[1].optional).toBe(true)
-      expect(REVIEW_STEPS[2].optional).toBe(true)
-      expect(REVIEW_STEPS[3].optional).toBe(true)
-    })
-
-    it('steps have descriptive titles', () => {
-      expect(REVIEW_STEPS[0].title).toContain('workout')
-      expect(REVIEW_STEPS[1].title).toContain('feel')
-      expect(REVIEW_STEPS[2].title).toContain('Tag')
-      expect(REVIEW_STEPS[3].title).toContain('Reflect')
-    })
-  })
 })

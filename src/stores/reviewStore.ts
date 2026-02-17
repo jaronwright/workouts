@@ -21,12 +21,8 @@ interface ReviewStoreState {
   sessionType: 'weights' | 'cardio' | 'mobility' | null
   workoutDurationMinutes: number | null
 
-  // Draft review (multi-step form state)
+  // Draft review
   draft: ReviewDraft
-
-  // Step: 0=rating, 1=mood+energy, 2=tags, 3=reflection
-  step: number
-  totalSteps: number
 
   // Actions
   openReview: (params: {
@@ -38,9 +34,6 @@ interface ReviewStoreState {
   closeReview: () => void
   updateDraft: (updates: Partial<ReviewDraft>) => void
   toggleTag: (tag: PerformanceTag) => void
-  setStep: (step: number) => void
-  nextStep: () => void
-  prevStep: () => void
   resetDraft: () => void
 }
 
@@ -63,8 +56,6 @@ export const useReviewStore = create<ReviewStoreState>((set) => ({
   sessionType: null,
   workoutDurationMinutes: null,
   draft: { ...defaultDraft },
-  step: 0,
-  totalSteps: 4,
 
   openReview: ({ sessionId, templateSessionId, sessionType, durationMinutes }) =>
     set({
@@ -74,7 +65,6 @@ export const useReviewStore = create<ReviewStoreState>((set) => ({
       sessionType,
       workoutDurationMinutes: durationMinutes ?? null,
       draft: { ...defaultDraft },
-      step: 0,
     }),
 
   closeReview: () =>
@@ -85,7 +75,6 @@ export const useReviewStore = create<ReviewStoreState>((set) => ({
       sessionType: null,
       workoutDurationMinutes: null,
       draft: { ...defaultDraft },
-      step: 0,
     }),
 
   updateDraft: (updates) =>
@@ -107,13 +96,5 @@ export const useReviewStore = create<ReviewStoreState>((set) => ({
       }
     }),
 
-  setStep: (step) => set({ step }),
-
-  nextStep: () =>
-    set((state) => ({ step: Math.min(state.step + 1, state.totalSteps - 1) })),
-
-  prevStep: () =>
-    set((state) => ({ step: Math.max(state.step - 1, 0) })),
-
-  resetDraft: () => set({ draft: { ...defaultDraft }, step: 0 }),
+  resetDraft: () => set({ draft: { ...defaultDraft } }),
 }))

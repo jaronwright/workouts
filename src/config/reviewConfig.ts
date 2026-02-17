@@ -117,33 +117,3 @@ export const ENERGY_COLORS: Record<number, string> = {
   5: '#22C55E', // green (energized)
 }
 
-// ─── Review Steps ─────────────────────────────────────
-
-export interface ReviewStepConfig {
-  title: string
-  subtitle: string
-  optional: boolean
-}
-
-export const REVIEW_STEPS: ReviewStepConfig[] = [
-  {
-    title: 'How was your workout?',
-    subtitle: 'Rate your overall experience',
-    optional: false,
-  },
-  {
-    title: 'How did you feel?',
-    subtitle: 'Track your mood and energy',
-    optional: true,
-  },
-  {
-    title: 'Tag your session',
-    subtitle: 'Select what applies',
-    optional: true,
-  },
-  {
-    title: 'Reflect',
-    subtitle: 'Capture your thoughts',
-    optional: true,
-  },
-]

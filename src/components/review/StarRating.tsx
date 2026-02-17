@@ -49,7 +49,7 @@ export function StarRating({ value, onChange, size = 'md', readonly = false }: S
                 style={
                   filled
                     ? { fill: 'var(--color-reward)', color: 'var(--color-reward)' }
-                    : { fill: 'none', color: 'var(--color-border)' }
+                    : { fill: 'none', color: 'var(--color-text-muted)' }
                 }
               />
             </motion.button>

@@ -24,8 +24,6 @@ describe('reviewStore', () => {
       sessionType: null,
       workoutDurationMinutes: null,
       draft: { ...defaultDraft },
-      step: 0,
-      totalSteps: 4,
     })
   })
 
@@ -53,12 +51,6 @@ describe('reviewStore', () => {
     it('starts with default draft', () => {
       const state = useReviewStore.getState()
       expect(state.draft).toEqual(defaultDraft)
-    })
-
-    it('starts at step 0 with 4 total steps', () => {
-      const state = useReviewStore.getState()
-      expect(state.step).toBe(0)
-      expect(state.totalSteps).toBe(4)
     })
   })
 
@@ -108,10 +100,9 @@ describe('reviewStore', () => {
       expect(state.currentTemplateSessionId).toBe('template-session-2')
     })
 
-    it('resets draft and step when opening', () => {
-      // First modify draft and step
+    it('resets draft when opening', () => {
+      // First modify draft
       useReviewStore.getState().updateDraft({ overallRating: 5 })
-      useReviewStore.getState().setStep(2)
 
       // Then open review
       useReviewStore.getState().openReview({
@@ -121,7 +112,6 @@ describe('reviewStore', () => {
 
       const state = useReviewStore.getState()
       expect(state.draft).toEqual(defaultDraft)
-      expect(state.step).toBe(0)
     })
 
     it('sets workoutDurationMinutes to null when not provided', () => {
@@ -156,7 +146,6 @@ describe('reviewStore', () => {
         durationMinutes: 45,
       })
       useReviewStore.getState().updateDraft({ overallRating: 4 })
-      useReviewStore.getState().setStep(2)
 
       // Close
       useReviewStore.getState().closeReview()
@@ -168,7 +157,6 @@ describe('reviewStore', () => {
       expect(state.sessionType).toBeNull()
       expect(state.workoutDurationMinutes).toBeNull()
       expect(state.draft).toEqual(defaultDraft)
-      expect(state.step).toBe(0)
     })
 
     it('can close an already-closed modal without error', () => {
@@ -290,85 +278,6 @@ describe('reviewStore', () => {
   })
 
   // ────────────────────────────────────────────────────────
-  // Navigation: nextStep / prevStep / setStep
-  // ────────────────────────────────────────────────────────
-
-  describe('nextStep', () => {
-    it('increments step from 0 to 1', () => {
-      useReviewStore.getState().nextStep()
-
-      expect(useReviewStore.getState().step).toBe(1)
-    })
-
-    it('increments step sequentially', () => {
-      useReviewStore.getState().nextStep()
-      useReviewStore.getState().nextStep()
-      useReviewStore.getState().nextStep()
-
-      expect(useReviewStore.getState().step).toBe(3)
-    })
-
-    it('does not exceed totalSteps - 1 (clamped at 3)', () => {
-      useReviewStore.getState().setStep(3)
-      useReviewStore.getState().nextStep()
-
-      expect(useReviewStore.getState().step).toBe(3)
-    })
-
-    it('stays at max after repeated calls', () => {
-      for (let i = 0; i < 10; i++) {
-        useReviewStore.getState().nextStep()
-      }
-
-      expect(useReviewStore.getState().step).toBe(3)
-    })
-  })
-
-  describe('prevStep', () => {
-    it('decrements step from 1 to 0', () => {
-      useReviewStore.getState().setStep(1)
-      useReviewStore.getState().prevStep()
-
-      expect(useReviewStore.getState().step).toBe(0)
-    })
-
-    it('does not go below 0', () => {
-      useReviewStore.getState().prevStep()
-
-      expect(useReviewStore.getState().step).toBe(0)
-    })
-
-    it('stays at 0 after repeated calls', () => {
-      for (let i = 0; i < 10; i++) {
-        useReviewStore.getState().prevStep()
-      }
-
-      expect(useReviewStore.getState().step).toBe(0)
-    })
-  })
-
-  describe('setStep', () => {
-    it('sets step to an arbitrary value', () => {
-      useReviewStore.getState().setStep(2)
-
-      expect(useReviewStore.getState().step).toBe(2)
-    })
-
-    it('sets step to 0', () => {
-      useReviewStore.getState().setStep(2)
-      useReviewStore.getState().setStep(0)
-
-      expect(useReviewStore.getState().step).toBe(0)
-    })
-
-    it('sets step to the last step', () => {
-      useReviewStore.getState().setStep(3)
-
-      expect(useReviewStore.getState().step).toBe(3)
-    })
-  })
-
-  // ────────────────────────────────────────────────────────
   // resetDraft
   // ────────────────────────────────────────────────────────
 
@@ -384,14 +293,6 @@ describe('reviewStore', () => {
       useReviewStore.getState().resetDraft()
 
       expect(useReviewStore.getState().draft).toEqual(defaultDraft)
-    })
-
-    it('resets step to 0', () => {
-      useReviewStore.getState().setStep(3)
-
-      useReviewStore.getState().resetDraft()
-
-      expect(useReviewStore.getState().step).toBe(0)
     })
 
     it('keeps modal open when resetting draft', () => {
