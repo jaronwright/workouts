@@ -1,16 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  CaretRight, Fire, Trophy, Calendar,
-  Heart, Barbell, Heartbeat
-} from '@phosphor-icons/react'
+import { Fire, Trophy, Calendar } from '@phosphor-icons/react'
 import { AppShell } from '@/components/layout'
 import { ScheduleWidget } from '@/components/workout'
 import { WeatherCard } from '@/components/weather'
-import {
-  FadeIn, StaggerList, StaggerItem, AnimatedNumber,
-  PressableButton, PressableCard, FadeInOnScroll
-} from '@/components/motion'
+import { FadeIn, AnimatedNumber, PressableCard } from '@/components/motion'
 
 import { OnboardingWizard } from '@/components/onboarding'
 import { useActiveSession, useUserSessions, useDeleteSession } from '@/hooks/useWorkoutSession'
@@ -18,15 +12,8 @@ import { useProfile } from '@/hooks/useProfile'
 import { useUserSchedule } from '@/hooks/useSchedule'
 import { useUserTemplateWorkouts } from '@/hooks/useTemplateWorkout'
 import { useToast } from '@/hooks/useToast'
-import { formatRelativeTime } from '@/utils/formatters'
-import { getWorkoutDisplayName } from '@/config/workoutConfig'
 import type { SessionWithDay } from '@/services/workoutService'
 import type { TemplateWorkoutSession } from '@/services/templateWorkoutService'
-
-// Unified session type for stats and recent activity
-type RecentSession =
-  | { kind: 'weights'; session: SessionWithDay }
-  | { kind: 'template'; session: TemplateWorkoutSession }
 
 // Calculate streak from sessions
 function calculateStreak(sessions: { completed_at: string | null }[]): number {
@@ -125,15 +112,6 @@ export function HomePage() {
     ...weightsSessions,
     ...templateSessions
   ]
-
-  // Merge recent activity from both session types, sorted by most recent
-  const recentActivity: RecentSession[] = [
-    ...weightsSessions.map(s => ({ kind: 'weights' as const, session: s })),
-    ...templateSessions.map(s => ({ kind: 'template' as const, session: s }))
-  ]
-    .filter(r => r.session.completed_at)
-    .sort((a, b) => new Date(b.session.completed_at!).getTime() - new Date(a.session.completed_at!).getTime())
-    .slice(0, 3)
 
   // Stats
   const streak = calculateStreak(allCompleted)
@@ -288,93 +266,6 @@ export function HomePage() {
           </section>
         </FadeIn>
 
-        {/* ─── RECENT ACTIVITY — community feed style ─── */}
-        {recentActivity.length > 0 && (
-          <FadeInOnScroll direction="up">
-            <section>
-              <div className="flex items-center justify-between mb-[var(--space-3)]">
-                <h2
-                  className="text-[var(--text-xs)] uppercase font-medium text-[var(--color-text-muted)]"
-                  style={{ letterSpacing: 'var(--tracking-widest)' }}
-                >
-                  Recent
-                </h2>
-                <PressableButton
-                  onClick={() => navigate('/history')}
-                  className="text-[var(--text-xs)] font-semibold text-[var(--color-primary)] flex items-center gap-0.5"
-                >
-                  See All
-                  <CaretRight className="w-3.5 h-3.5" />
-                </PressableButton>
-              </div>
-              <StaggerList className="space-y-[var(--space-2)]">
-                {recentActivity.map((item) => {
-                  const isWeights = item.kind === 'weights'
-                  const session = item.session
-                  const name = isWeights
-                    ? getWorkoutDisplayName((session as SessionWithDay).workout_day?.name ?? 'Workout')
-                    : (session as TemplateWorkoutSession).template?.name || 'Workout'
-                  const historyPath = isWeights
-                    ? `/history/${session.id}`
-                    : `/history/cardio/${session.id}`
-
-                  // Workout type icon + color — matches community feed pattern
-                  const templateType = !isWeights
-                    ? (session as TemplateWorkoutSession).template?.type
-                    : undefined
-                  const { IconComp, iconColor } = isWeights
-                    ? { IconComp: Barbell, iconColor: 'var(--color-weights)' }
-                    : templateType === 'mobility'
-                      ? { IconComp: Heartbeat, iconColor: 'var(--color-mobility)' }
-                      : { IconComp: Heart, iconColor: 'var(--color-cardio)' }
-
-                  // Duration: use template's explicit duration_minutes if available,
-                  // otherwise calculate from completed_at - started_at
-                  const durationMin = !isWeights && (session as TemplateWorkoutSession).duration_minutes
-                    ? (session as TemplateWorkoutSession).duration_minutes
-                    : session.completed_at
-                      ? Math.round((new Date(session.completed_at).getTime() - new Date(session.started_at).getTime()) / 60000)
-                      : null
-
-                  return (
-                    <StaggerItem key={session.id}>
-                      <PressableCard onClick={() => navigate(historyPath)} className="cursor-pointer">
-                        <div className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] px-[var(--space-4)] py-[var(--space-3)] shadow-[var(--shadow-card)]">
-                          <div className="flex items-center gap-[var(--space-3)]">
-                            {/* Workout type icon — tinted background like community cards */}
-                            <div
-                              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                              style={{ backgroundColor: `${iconColor}20` }}
-                            >
-                              <IconComp className="w-5 h-5" style={{ color: iconColor }} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <p className="text-[var(--text-sm)] font-semibold text-[var(--color-text)] truncate">
-                                  {name}
-                                </p>
-                                <span className="text-[var(--text-xs)] text-[var(--color-text-muted)] shrink-0 ml-2">
-                                  {formatRelativeTime(session.completed_at || session.started_at)}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                {durationMin != null && durationMin > 0 && (
-                                  <span className="text-[var(--text-xs)] text-[var(--color-text-muted)]">
-                                    {durationMin} min
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </PressableCard>
-                    </StaggerItem>
-                  )
-                })}
-              </StaggerList>
-            </section>
-          </FadeInOnScroll>
-        )}
       </div>
 
       {/* Onboarding Wizard */}
