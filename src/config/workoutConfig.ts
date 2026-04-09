@@ -156,6 +156,12 @@ export const MOBILITY_CONFIG: Record<string, WorkoutStyle> = {
     bgColor: 'rgba(129, 140, 248, 0.15)',
     gradient: 'from-indigo-400 to-indigo-300',
     icon: Shield
+  },
+  cycling_mobility: {
+    color: '#06B6D4',
+    bgColor: 'rgba(6, 182, 212, 0.15)',
+    gradient: 'from-cyan-500 to-cyan-400',
+    icon: Bicycle
   }
 }
 
@@ -231,7 +237,8 @@ export const WORKOUT_DISPLAY_NAMES: Record<string, string> = {
   'spine mobility': 'Spine Mobility',
   'upper body flow': 'Upper Body Flow',
   'full body recovery': 'Full Body Recovery',
-  'shoulder prehab': 'Shoulder Prehab'
+  'shoulder prehab': 'Shoulder Prehab',
+  'cycling mobility': 'Cycling Mobility'
 }
 
 /**
@@ -285,6 +292,7 @@ const WORKOUT_SHORT_NAMES: Record<string, string> = {
   'Spine Mobility': 'Spine',
   'Upper Body Flow': 'UB Flow',
   'Shoulder Prehab': 'Sh Prehab',
+  'Cycling Mobility': 'Cyc Mob',
   'Stair Stepper': 'Stairs',
   'Lower A': 'Low A',
   'Upper A': 'Up A',
