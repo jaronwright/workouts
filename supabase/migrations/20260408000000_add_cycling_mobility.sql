@@ -24,7 +24,7 @@ INSERT INTO exercise_sections (id, workout_day_id, name, duration_minutes, sort_
 -- CYCLING MOBILITY — 15 min (5 exercises: quick pre/post ride essentials)
 INSERT INTO plan_exercises (section_id, name, sets, reps_min, reps_max, reps_unit, is_per_side, notes, sort_order) VALUES
   ('00000000-0000-0000-0001-000000000161', 'Kneeling Hip Flexor Stretch', 2, 30, NULL, 'seconds', true, 'Rear knee down, squeeze glute, push hips forward — counteracts cycling hip flexion', 1),
-  ('00000000-0000-0000-0001-000000000161', 'Figure-Four Stretch', 2, 30, NULL, 'seconds', true, 'Supine, ankle on opposite knee, pull toward chest — opens piriformis and deep hip rotators', 2),
+  ('00000000-0000-0000-0001-000000000161', 'Half Pigeon Pose', 2, 45, NULL, 'seconds', true, 'Front shin across body, square hips, fold forward gently — deep hip opener for tight cyclists', 2),
   ('00000000-0000-0000-0001-000000000161', 'Cat-Cow', 2, 10, NULL, 'reps', false, 'Slow and controlled, full spinal flexion and extension — relieves compressed lower back', 3),
   ('00000000-0000-0000-0001-000000000161', 'Standing Quad Stretch', 2, 30, NULL, 'seconds', true, 'Grab ankle behind you, knees together, squeeze glute — releases dominant quads', 4),
   ('00000000-0000-0000-0001-000000000161', 'Standing IT Band Stretch', 2, 30, NULL, 'seconds', true, 'Cross rear leg behind, lean away and reach overhead — protects lateral knee', 5);
@@ -32,7 +32,7 @@ INSERT INTO plan_exercises (section_id, name, sets, reps_min, reps_max, reps_uni
 -- CYCLING MOBILITY — 30 min (8 exercises)
 INSERT INTO plan_exercises (section_id, name, sets, reps_min, reps_max, reps_unit, is_per_side, notes, sort_order) VALUES
   ('00000000-0000-0000-0001-000000000162', 'Kneeling Hip Flexor Stretch', 2, 30, NULL, 'seconds', true, 'Rear knee down, squeeze glute, push hips forward — counteracts cycling hip flexion', 1),
-  ('00000000-0000-0000-0001-000000000162', 'Figure-Four Stretch', 2, 30, NULL, 'seconds', true, 'Supine, ankle on opposite knee, pull toward chest — opens piriformis and deep hip rotators', 2),
+  ('00000000-0000-0000-0001-000000000162', 'Half Pigeon Pose', 2, 45, NULL, 'seconds', true, 'Front shin across body, square hips, fold forward gently — deep hip opener for tight cyclists', 2),
   ('00000000-0000-0000-0001-000000000162', 'Cat-Cow', 2, 10, NULL, 'reps', false, 'Slow and controlled, full spinal flexion and extension — relieves compressed lower back', 3),
   ('00000000-0000-0000-0001-000000000162', 'Standing Quad Stretch', 2, 30, NULL, 'seconds', true, 'Grab ankle behind you, knees together, squeeze glute — releases dominant quads', 4),
   ('00000000-0000-0000-0001-000000000162', 'Standing IT Band Stretch', 2, 30, NULL, 'seconds', true, 'Cross rear leg behind, lean away and reach overhead — protects lateral knee', 5),
@@ -43,7 +43,7 @@ INSERT INTO plan_exercises (section_id, name, sets, reps_min, reps_max, reps_uni
 -- CYCLING MOBILITY — 45 min (11 exercises)
 INSERT INTO plan_exercises (section_id, name, sets, reps_min, reps_max, reps_unit, is_per_side, notes, sort_order) VALUES
   ('00000000-0000-0000-0001-000000000163', 'Kneeling Hip Flexor Stretch', 2, 30, NULL, 'seconds', true, 'Rear knee down, squeeze glute, push hips forward — counteracts cycling hip flexion', 1),
-  ('00000000-0000-0000-0001-000000000163', 'Figure-Four Stretch', 2, 30, NULL, 'seconds', true, 'Supine, ankle on opposite knee, pull toward chest — opens piriformis and deep hip rotators', 2),
+  ('00000000-0000-0000-0001-000000000163', 'Half Pigeon Pose', 2, 45, NULL, 'seconds', true, 'Front shin across body, square hips, fold forward gently — deep hip opener for tight cyclists', 2),
   ('00000000-0000-0000-0001-000000000163', 'Cat-Cow', 2, 10, NULL, 'reps', false, 'Slow and controlled, full spinal flexion and extension — relieves compressed lower back', 3),
   ('00000000-0000-0000-0001-000000000163', 'Standing Quad Stretch', 2, 30, NULL, 'seconds', true, 'Grab ankle behind you, knees together, squeeze glute — releases dominant quads', 4),
   ('00000000-0000-0000-0001-000000000163', 'Standing IT Band Stretch', 2, 30, NULL, 'seconds', true, 'Cross rear leg behind, lean away and reach overhead — protects lateral knee', 5),
@@ -57,7 +57,7 @@ INSERT INTO plan_exercises (section_id, name, sets, reps_min, reps_max, reps_uni
 -- CYCLING MOBILITY — 60 min (14 exercises)
 INSERT INTO plan_exercises (section_id, name, sets, reps_min, reps_max, reps_unit, is_per_side, notes, sort_order) VALUES
   ('00000000-0000-0000-0001-000000000164', 'Kneeling Hip Flexor Stretch', 2, 30, NULL, 'seconds', true, 'Rear knee down, squeeze glute, push hips forward — counteracts cycling hip flexion', 1),
-  ('00000000-0000-0000-0001-000000000164', 'Figure-Four Stretch', 2, 30, NULL, 'seconds', true, 'Supine, ankle on opposite knee, pull toward chest — opens piriformis and deep hip rotators', 2),
+  ('00000000-0000-0000-0001-000000000164', 'Half Pigeon Pose', 2, 45, NULL, 'seconds', true, 'Front shin across body, square hips, fold forward gently — deep hip opener for tight cyclists', 2),
   ('00000000-0000-0000-0001-000000000164', 'Cat-Cow', 2, 10, NULL, 'reps', false, 'Slow and controlled, full spinal flexion and extension — relieves compressed lower back', 3),
   ('00000000-0000-0000-0001-000000000164', 'Standing Quad Stretch', 2, 30, NULL, 'seconds', true, 'Grab ankle behind you, knees together, squeeze glute — releases dominant quads', 4),
   ('00000000-0000-0000-0001-000000000164', 'Standing IT Band Stretch', 2, 30, NULL, 'seconds', true, 'Cross rear leg behind, lean away and reach overhead — protects lateral knee', 5),
@@ -67,7 +67,7 @@ INSERT INTO plan_exercises (section_id, name, sets, reps_min, reps_max, reps_uni
   ('00000000-0000-0000-0001-000000000164', '90/90 Hip Switch', 2, 8, NULL, 'reps', false, 'Seated, rotate knees side to side through full range — full hip internal/external rotation', 9),
   ('00000000-0000-0000-0001-000000000164', 'Foam Roll IT Band', 1, 60, NULL, 'seconds', true, 'Side-lying on roller, slow passes from hip to knee — deep myofascial release for IT band', 10),
   ('00000000-0000-0000-0001-000000000164', 'Child''s Pose to Cobra Flow', 2, 8, NULL, 'reps', false, 'Flow between positions, full spinal wave — reverses cycling posture through entire spine', 11),
-  ('00000000-0000-0000-0001-000000000164', 'Pigeon Pose', 2, 45, NULL, 'seconds', true, 'Front shin across body, square hips, fold forward — deep hip opener for tight cyclists', 12),
+  ('00000000-0000-0000-0001-000000000164', 'Lizard Lunge', 2, 30, NULL, 'seconds', true, 'Hands inside front foot, sink hips low, option to drop to forearms — deep hip flexor and groin opener', 12),
   ('00000000-0000-0000-0001-000000000164', 'Dead Bug', 2, 10, NULL, 'reps', true, 'Arms up, opposite arm/leg extend, low back flat — builds core stability to protect lower back', 13),
   ('00000000-0000-0000-0001-000000000164', 'Supine Spinal Twist', 2, 30, NULL, 'seconds', true, 'Knees to one side, arms wide, let gravity decompress — gentle lower back relief', 14);
 
