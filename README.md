@@ -27,6 +27,23 @@ The app supports three workout modalities (weights, cardio, and mobility), inclu
 
 ---
 
+## Screenshots
+
+<div align="center">
+
+| Login | Training Split | Cycle Builder | Cycle Preview |
+|:---:|:---:|:---:|:---:|
+| ![Login](screenshots/01-login.png) | ![Training Split](screenshots/02-training-split.png) | ![Cycle Builder](screenshots/03-cycle-builder.png) | ![Cycle Preview](screenshots/04-cycle-preview.png) |
+
+| Home Dashboard | Workout Detail | Schedule | Community |
+|:---:|:---:|:---:|:---:|
+| ![Home](screenshots/05-home.png) | ![Workout](screenshots/06-workout-detail.png) | ![Schedule](screenshots/07-schedule.png) | ![Community](screenshots/08-community.png) |
+
+</div>
+
+---
+
+
 ## Key Features
 
 ### Training System
