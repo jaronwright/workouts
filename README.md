@@ -31,8 +31,21 @@ The app supports three workout modalities (weights, cardio, and mobility), inclu
 
 <div align="center">
 
-| Login | Training Split | Cycle Builder |
+| Home (Workout Complete) | Workout Preview | Active Session |
 |:---:|:---:|:---:|
+| ![Home](screenshots/01-home-completed.png) | ![Preview](screenshots/02-workout-preview.png) | ![Active](screenshots/03-active-workout.png) |
+
+| Post-Workout Review | Calendar History | Onboarding |
+|:---:|:---:|:---:|
+| ![Review](screenshots/04-post-workout.png) | ![Calendar](screenshots/05-calendar.png) | ![Onboarding](screenshots/06-onboarding.png) |
+
+| Profile | Login |
+|:---:|:---:|
+| ![Profile](screenshots/07-profile.png) | ![Login](screenshots/08-login.png) |
+
+</div>
+
+---:|:---:|:---:|
 | ![Login](screenshots/01-login.png) | ![Training Split](screenshots/02-training-split.png) | ![Cycle Builder](screenshots/03-cycle-builder.png) |
 
 | Cycle Preview | Home (In Progress) | Active Workout |
