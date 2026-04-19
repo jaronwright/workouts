@@ -18,29 +18,29 @@ describe('Badge', () => {
     it('applies completed variant styles', () => {
       render(<Badge variant="completed">Done</Badge>)
       const badge = screen.getByText('Done')
-      expect(badge.className).toContain('bg-emerald-100')
-      expect(badge.className).toContain('text-emerald-700')
+      expect(badge.className).toContain('bg-[var(--color-success-muted)]')
+      expect(badge.className).toContain('text-[var(--color-success)]')
     })
 
     it('applies scheduled variant styles', () => {
       render(<Badge variant="scheduled">Upcoming</Badge>)
       const badge = screen.getByText('Upcoming')
-      expect(badge.className).toContain('bg-indigo-100')
-      expect(badge.className).toContain('text-indigo-700')
+      expect(badge.className).toContain('bg-[var(--color-info-muted)]')
+      expect(badge.className).toContain('text-[var(--color-info)]')
     })
 
     it('applies missed variant styles', () => {
       render(<Badge variant="missed">Missed</Badge>)
       const badge = screen.getByText('Missed')
-      expect(badge.className).toContain('bg-red-100')
-      expect(badge.className).toContain('text-red-700')
+      expect(badge.className).toContain('bg-[var(--color-danger-muted)]')
+      expect(badge.className).toContain('text-[var(--color-danger)]')
     })
 
     it('applies inProgress variant styles', () => {
       render(<Badge variant="inProgress">In Progress</Badge>)
       const badge = screen.getByText('In Progress')
-      expect(badge.className).toContain('bg-amber-100')
-      expect(badge.className).toContain('text-amber-700')
+      expect(badge.className).toContain('bg-[var(--color-warning-muted)]')
+      expect(badge.className).toContain('text-[var(--color-warning)]')
     })
   })
 

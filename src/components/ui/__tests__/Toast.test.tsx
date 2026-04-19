@@ -61,7 +61,7 @@ describe('Toast', () => {
       const toast: ToastType = { ...baseToast, type: 'success' }
       render(<Toast toast={toast} onDismiss={vi.fn()} />)
       const alert = screen.getByRole('alert')
-      expect(alert.className).toContain('bg-green-500/10')
+      expect(alert.className).toContain('bg-[var(--color-success-muted)]')
     })
 
     it('applies error styles', () => {
@@ -75,14 +75,14 @@ describe('Toast', () => {
       const toast: ToastType = { ...baseToast, type: 'warning' }
       render(<Toast toast={toast} onDismiss={vi.fn()} />)
       const alert = screen.getByRole('alert')
-      expect(alert.className).toContain('bg-amber-500/10')
+      expect(alert.className).toContain('bg-[var(--color-warning-muted)]')
     })
 
     it('applies info styles', () => {
       const toast: ToastType = { ...baseToast, type: 'info' }
       render(<Toast toast={toast} onDismiss={vi.fn()} />)
       const alert = screen.getByRole('alert')
-      expect(alert.className).toContain('bg-blue-500/10')
+      expect(alert.className).toContain('bg-[var(--color-info-muted)]')
     })
   })
 

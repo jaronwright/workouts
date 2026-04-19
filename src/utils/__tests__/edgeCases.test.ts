@@ -255,9 +255,9 @@ describe('validatePassword edge cases', () => {
 describe('getStrengthColor edge cases', () => {
   it('returns correct color for all strength levels', () => {
     expect(getStrengthColor('weak')).toBe('var(--color-danger)')
-    expect(getStrengthColor('fair')).toBe('#f59e0b')
-    expect(getStrengthColor('good')).toBe('#3b82f6')
-    expect(getStrengthColor('strong')).toBe('#22c55e')
+    expect(getStrengthColor('fair')).toBe('var(--color-warning)')
+    expect(getStrengthColor('good')).toBe('var(--color-info)')
+    expect(getStrengthColor('strong')).toBe('var(--color-success)')
   })
 
   it('returns a string for each strength level', () => {

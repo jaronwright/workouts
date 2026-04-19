@@ -56,7 +56,7 @@ describe('AnimatedCard', () => {
       <AnimatedCard variant="elevated"><p>Elevated</p></AnimatedCard>
     )
     const card = container.firstChild as HTMLElement
-    expect(card.className).toContain('shadow-[var(--shadow-md)]')
+    expect(card.className).toContain('shadow-[var(--shadow-elevated)]')
   })
 
   it('passes interactive prop to Card', () => {

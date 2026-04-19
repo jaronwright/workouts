@@ -102,13 +102,6 @@ describe('RestTimer', () => {
       expect(screen.getByText('0:45')).toBeInTheDocument()
     })
 
-    it('shows the Rest Timer label in active state', () => {
-      mockUseWorkoutStore.mockReturnValue(createActiveState() as any)
-
-      render(<RestTimer />)
-      expect(screen.getByText('Rest Timer')).toBeInTheDocument()
-    })
-
     it('shows the pause button when timer is active', () => {
       mockUseWorkoutStore.mockReturnValue(createActiveState() as any)
 
@@ -169,9 +162,9 @@ describe('RestTimer', () => {
       )
 
       render(<RestTimer />)
-      // Progress bar container has a specific class
-      const container = document.querySelector('.bg-white\\/20.rounded-full')
-      expect(container).toBeInTheDocument()
+      // Progress bar is a circular SVG
+      const circle = document.querySelector('circle')
+      expect(circle).toBeInTheDocument()
     })
 
     it('shows formatted time for various seconds values', () => {
@@ -186,13 +179,13 @@ describe('RestTimer', () => {
   })
 
   describe('timer completed state', () => {
-    it('shows the timer at 0:00 when seconds reach zero and timer is still active', () => {
+    it('shows "Done!" when seconds reach zero and timer is still active', () => {
       mockUseWorkoutStore.mockReturnValue(
         createActiveState({ restTimerSeconds: 0 }) as any
       )
 
       render(<RestTimer />)
-      expect(screen.getByText('0:00')).toBeInTheDocument()
+      expect(screen.getByText('Done!')).toBeInTheDocument()
     })
   })
 })

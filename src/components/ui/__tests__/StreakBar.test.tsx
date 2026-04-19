@@ -53,7 +53,7 @@ describe('StreakBar', () => {
     // Completed non-today days use w-7 circles
     const mondayCircle = mondayWrapper.querySelector('.w-7') as HTMLElement
     expect(mondayCircle).toBeTruthy()
-    expect(mondayCircle!.className).toContain('text-white')
+    expect(mondayCircle!.className).toContain('text-[var(--color-primary-text)]')
     expect(mondayCircle!.className).toContain('shadow-sm')
     expect(mondayCircle!.style.backgroundColor).toBe('rgb(16, 185, 129)')
   })
@@ -66,7 +66,7 @@ describe('StreakBar', () => {
     const todayCircle = todayWrapper.querySelector('.w-9') as HTMLElement
     expect(todayCircle).toBeTruthy()
     // Today non-rest gets a filled background with workout color
-    expect(todayCircle!.className).toContain('text-white')
+    expect(todayCircle!.className).toContain('text-[var(--color-primary-text)]')
     expect(todayCircle!.style.backgroundColor).toBe('rgb(99, 102, 241)')
   })
 

@@ -20,7 +20,7 @@ describe('Card', () => {
       render(<Card variant="elevated" data-testid="card">Elevated</Card>)
       const card = screen.getByTestId('card')
       expect(card.className).toContain('bg-[var(--color-surface-elevated)]')
-      expect(card.className).toContain('shadow-[var(--shadow-md)]')
+      expect(card.className).toContain('shadow-[var(--shadow-elevated)]')
     })
 
     it('renders outlined variant', () => {

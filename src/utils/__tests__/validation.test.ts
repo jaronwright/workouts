@@ -113,15 +113,15 @@ describe('getStrengthColor', () => {
   })
 
   it('returns amber color for fair passwords', () => {
-    expect(getStrengthColor('fair')).toBe('#f59e0b')
+    expect(getStrengthColor('fair')).toBe('var(--color-warning)')
   })
 
   it('returns blue color for good passwords', () => {
-    expect(getStrengthColor('good')).toBe('#3b82f6')
+    expect(getStrengthColor('good')).toBe('var(--color-info)')
   })
 
   it('returns green color for strong passwords', () => {
-    expect(getStrengthColor('strong')).toBe('#22c55e')
+    expect(getStrengthColor('strong')).toBe('var(--color-success)')
   })
 })
 

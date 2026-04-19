@@ -47,6 +47,10 @@ vi.mock('motion/react', () => ({
       const { variants, initial, animate, exit, transition, ...rest } = props
       return <p {...rest}>{children}</p>
     },
+    button: ({ children, ...props }: any) => {
+      const { variants, initial, animate, exit, transition, layoutId, whileTap, drag, dragConstraints, dragDirectionLock, dragElastic, onDragEnd, ...rest } = props
+      return <button {...rest}>{children}</button>
+    },
   },
   AnimatePresence: ({ children }: any) => <>{children}</>,
 }))
